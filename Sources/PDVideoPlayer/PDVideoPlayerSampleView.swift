@@ -45,9 +45,7 @@ private struct ContentView: View {
     @State private var isLongpress: Bool = false
     @State private var controlsVisible: Bool = true
     @State private var originalRate: Float = 1.0
-    private let closeAction = VideoPlayerCloseAction({})
 
-    init(){}
     var body:some View{
         PDVideoPlayer(
             url: videoURL,
@@ -72,7 +70,9 @@ private struct ContentView: View {
         .isLongpress($isLongpress)
         .controlsVisible($controlsVisible)
         .originalRate($originalRate)
-        .closeAction(closeAction)
+        .closeAction {
+            
+        }
     }
 }
 
