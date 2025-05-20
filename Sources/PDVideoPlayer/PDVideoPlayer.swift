@@ -38,17 +38,16 @@ public struct PDVideoPlayer: View {
 
 public struct PDVideoPlayer: View {
 
-    @State private var playerViewModel :PDPlayerModel
-    
-    public init(
-        url:URL
-    ) {
-        _playerViewModel = State(initialValue: PDPlayerModel(url:url))
+    private var url: URL?
+    private var player: AVPlayer?
+
+    public init(url: URL) {
+        self.url = url
+        self.player = nil
     }
-    public init(
-        player:AVPlayer
-    ) {
-        _playerViewModel = State(initialValue:PDPlayerModel(player:player))
+    public init(player: AVPlayer) {
+        self.player = player
+        self.url = nil
     }
     @State private var isMuted: Bool = false
     @State private var isLongpress: Bool = false
@@ -59,25 +58,49 @@ public struct PDVideoPlayer: View {
     @Environment(\.scenePhase) private var scenePhase
     public var body: some View {
         
-        PDVideoPlayerView(
-            model: playerViewModel,
-            menuContent: {
-                Button("Sample 1") {
-                    print("Button Tapped 1")
-                }
-                Button("Sample 2") {
-                    print("Button Tapped 2")
-                }
-            },
-            content: { proxy in
-                ZStack {
-                    proxy.player
-                        .rippleEffect()
-                        .ignoresSafeArea()
-                    proxy.control
-                }
+        Group {
+            if let url {
+                PDVideoPlayerView(
+                    url: url,
+                    menuContent: {
+                        Button("Sample 1") {
+                            print("Button Tapped 1")
+                        }
+                        Button("Sample 2") {
+                            print("Button Tapped 2")
+                        }
+                    },
+                    content: { proxy in
+                        ZStack {
+                            proxy.player
+                                .rippleEffect()
+                                .ignoresSafeArea()
+                            proxy.control
+                        }
+                    }
+                )
+            } else if let player {
+                PDVideoPlayerView(
+                    player: player,
+                    menuContent: {
+                        Button("Sample 1") {
+                            print("Button Tapped 1")
+                        }
+                        Button("Sample 2") {
+                            print("Button Tapped 2")
+                        }
+                    },
+                    content: { proxy in
+                        ZStack {
+                            proxy.player
+                                .rippleEffect()
+                                .ignoresSafeArea()
+                            proxy.control
+                        }
+                    }
+                )
             }
-        )
+        }
         .isMuted($isMuted)
         .isLongpress($isLongpress)
         .controlsVisible($controlsVisible)
