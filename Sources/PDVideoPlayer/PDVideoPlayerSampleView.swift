@@ -62,6 +62,10 @@ private struct ContentView: View {
                         .rippleEffect()
                         .ignoresSafeArea()
                     proxy.control
+                    VStack {
+                        proxy.navigation
+                        Spacer()
+                    }
                 }
             }
         )
