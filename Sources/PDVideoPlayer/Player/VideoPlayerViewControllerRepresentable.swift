@@ -13,7 +13,7 @@ import AVKit
 
 #if os(macOS)
 
-public typealias PDVideoPlayerView = PDVideoPlayerView_macOS
+public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_macOS
 
 public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> NSMenu?
@@ -147,7 +147,7 @@ public class PlayerNSView: NSView {
 }
 
 #else
-public typealias PDVideoPlayerView = PDVideoPlayerView_iOS
+public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_iOS
 public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> UIMenu?
     public typealias ScrollViewConfigurator = (UIScrollView) -> Void
@@ -268,9 +268,9 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     }
 
     public class Coordinator: NSObject, UIScrollViewDelegate {
-        var parent: PDVideoPlayerView
+        var parent: PDVideoPlayerRepresentable
         weak var playerView:AVPlayerViewController?
-        init(_ parent: PDVideoPlayerView) {
+        init(_ parent: PDVideoPlayerRepresentable) {
             self.parent = parent
         }
         
@@ -353,7 +353,7 @@ class PlayerUIView: UIView,UIGestureRecognizerDelegate {
     }
     
 }
-extension PDVideoPlayerView.Coordinator: UIGestureRecognizerDelegate {
+extension PDVideoPlayerRepresentable.Coordinator: UIGestureRecognizerDelegate {
     public func gestureRecognizer(
         _ gestureRecognizer: UIGestureRecognizer,
         shouldReceive touch: UITouch
@@ -381,7 +381,7 @@ extension PDVideoPlayerView.Coordinator: UIGestureRecognizerDelegate {
     }
 }
 private let ADJSUT_GESTURE_INSET :CGFloat = 150
-extension PDVideoPlayerView.Coordinator: UIContextMenuInteractionDelegate {
+extension PDVideoPlayerRepresentable.Coordinator: UIContextMenuInteractionDelegate {
     
     public func contextMenuInteraction(
         _ interaction: UIContextMenuInteraction,
@@ -420,7 +420,7 @@ extension PDVideoPlayerView.Coordinator: UIContextMenuInteractionDelegate {
         }
     }
 }
-extension PDVideoPlayerView.Coordinator: UIPointerInteractionDelegate {
+extension PDVideoPlayerRepresentable.Coordinator: UIPointerInteractionDelegate {
     public func pointerInteraction(
         _ interaction: UIPointerInteraction,
         regionFor request: UIPointerRegionRequest,
