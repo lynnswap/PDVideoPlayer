@@ -28,7 +28,7 @@ private struct VideoPlayerDurationView: View {
 }
 public struct VideoPlayerControlView<MenuContent: View>: View {
     var model: PDPlayerModel
-    @Environment(PDPlayerControllerModel.self) var controllerModel
+    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     
     private let menuContent: () -> MenuContent
 
@@ -42,7 +42,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
 
     public var body: some View {
         ZStack {
-            if controllerModel.controlsVisible {
+            if controlsVisibleBinding?.wrappedValue ?? true {
                 VStack {
                     Spacer()
                     
@@ -92,7 +92,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                 .transition(.opacity)
             }
         }
-        .animation(.smooth(duration:0.12), value: controllerModel.controlsVisible)
+        .animation(.smooth(duration:0.12), value: controlsVisibleBinding?.wrappedValue)
         .overlay{
             Button("") {
                 model.togglePlay()

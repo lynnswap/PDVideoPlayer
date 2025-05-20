@@ -50,7 +50,11 @@ public struct PDVideoPlayer: View {
     ) {
         _playerViewModel = State(initialValue:PDPlayerModel(player:player))
     }
-    @State private var controllerModel = PDPlayerControllerModel(isMuted: false)
+    @State private var isMuted: Bool = false
+    @State private var isLongpress: Bool = false
+    @State private var controlsVisible: Bool = true
+    @State private var originalRate: Float = 1.0
+    private let closeAction = VideoPlayerCloseAction({})
    
     @Environment(\.scenePhase) private var scenePhase
     public var body: some View {
@@ -73,7 +77,11 @@ public struct PDVideoPlayer: View {
             }
         }
         
-        .environment(controllerModel)
+        .environment(\.videoPlayerIsMuted, $isMuted)
+        .environment(\.videoPlayerIsLongpress, $isLongpress)
+        .environment(\.videoPlayerControlsVisible, $controlsVisible)
+        .environment(\.videoPlayerOriginalRate, $originalRate)
+        .environment(\.videoPlayerCloseAction, closeAction)
     }
 }
 #endif
@@ -83,12 +91,20 @@ private let videoURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording
     PDVideoPlayerWrapper()
 }
 public struct PDVideoPlayerWrapper: View {
-    @State private var controllerModel = PDPlayerControllerModel(isMuted:true)
-    
+    @State private var isMuted: Bool = true
+    @State private var isLongpress: Bool = false
+    @State private var controlsVisible: Bool = true
+    @State private var originalRate: Float = 1.0
+    private let closeAction = VideoPlayerCloseAction({})
+
     public init(){}
     public var body:some View{
         PDVideoPlayer(url:videoURL)
-            .environment(controllerModel)
+            .environment(\.videoPlayerIsMuted, $isMuted)
+            .environment(\.videoPlayerIsLongpress, $isLongpress)
+            .environment(\.videoPlayerControlsVisible, $controlsVisible)
+            .environment(\.videoPlayerOriginalRate, $originalRate)
+            .environment(\.videoPlayerCloseAction, closeAction)
     }
 }
 //@main

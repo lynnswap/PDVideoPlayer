@@ -168,7 +168,11 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         self.contextMenuProvider = contextMenuProvider
      
     }
-    @Environment(PDPlayerControllerModel.self) var controllerModel
+    @Environment(\.videoPlayerCloseAction) private var closeAction
+    @Environment(\.videoPlayerIsMuted) private var isMutedBinding
+    @Environment(\.videoPlayerIsLongpress) private var isLongpressBinding
+    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     @Environment(\.isPresentedMedia) private var isPresented
 
 
@@ -286,7 +290,9 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
             if self.parent.model.doubleTapCount == 0 {
-                self.parent.controllerModel.controlsVisible.toggle()
+                if let binding = self.parent.controlsVisibleBinding {
+                    binding.wrappedValue.toggle()
+                }
             }
         }
         @objc func handleSingleTap_mac(_ recognizer: UITapGestureRecognizer) {
@@ -295,30 +301,31 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             let videoRect = playerView.videoBounds
             
             if videoRect.contains(locationInPlayerView) {
-                parent.controllerModel.controlsVisible.toggle()
+                if let binding = parent.controlsVisibleBinding {
+                    binding.wrappedValue.toggle()
+                }
             } else {
-                parent.controllerModel.close()
+                parent.closeAction?()
             }
         }
         @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
             let model = parent.model
-            let controllerModel = parent.controllerModel
             
             switch recognizer.state {
             case .began:
                 // 今の再生レートを保持
-                controllerModel.originalRate = model.player.rate
+                originalRateBinding?.wrappedValue = model.player.rate
                 // もし再生中であれば（rateが0でなければ）
                 if model.isPlaying {
                     // 現在のレートの2倍にする
-                    model.player.rate = min(controllerModel.originalRate * 2.0,2.0)
-                    controllerModel.isLongpress = true
+                    model.player.rate = min((originalRateBinding?.wrappedValue ?? 1.0) * 2.0,2.0)
+                    isLongpressBinding?.wrappedValue = true
                     model.isLongpress = true
                 }
             case .ended, .cancelled, .failed:
                 // 長押し終了時に元のレートに戻す
-                model.player.rate = controllerModel.originalRate
-                controllerModel.isLongpress = false
+                model.player.rate = originalRateBinding?.wrappedValue ?? model.player.rate
+                isLongpressBinding?.wrappedValue = false
                 model.isLongpress = false
             default:
                 break
@@ -429,8 +436,8 @@ extension PDVideoPlayerView.Coordinator: UIPointerInteractionDelegate {
         willEnter region: UIPointerRegion,
         animator: any UIPointerInteractionAnimating
     ){
-        if !self.parent.controllerModel.controlsVisible{
-            self.parent.controllerModel.controlsVisible = true
+        if let binding = self.parent.controlsVisibleBinding, !binding.wrappedValue {
+            binding.wrappedValue = true
         }
     }
     public func pointerInteraction(
@@ -438,8 +445,8 @@ extension PDVideoPlayerView.Coordinator: UIPointerInteractionDelegate {
         willExit region: UIPointerRegion,
         animator: any UIPointerInteractionAnimating
     ){
-        if self.parent.controllerModel.controlsVisible{
-            self.parent.controllerModel.controlsVisible = false
+        if let binding = self.parent.controlsVisibleBinding, binding.wrappedValue {
+            binding.wrappedValue = false
         }
     }
 }
