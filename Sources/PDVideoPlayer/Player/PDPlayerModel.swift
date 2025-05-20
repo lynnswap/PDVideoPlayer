@@ -17,7 +17,7 @@ enum SkipDirection {
     case forward
 }
 @MainActor
-@Observable public class PDPlayerModel: NSObject {
+@Observable public class PDPlayerModel: NSObject, DynamicProperty {
     public var isPlaying: Bool = false
     public var currentTime: Double = 0
     public var duration: Double = 0
@@ -31,7 +31,7 @@ enum SkipDirection {
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     
     public var player: AVPlayer
-    public var onCloseAction: ((CGFloat) -> Void)? = nil
+    @Environment(\.videoPlayerCloseAction) private var closeAction
     
     var doubleTapCount: Int = 0
     private var doubleTapBaseTime: Double = 0
@@ -40,6 +40,7 @@ enum SkipDirection {
     private var doubleTapDirection: SkipDirection? = nil
     let rippleStore = RippleEffectStore()
     public var scrollView = UIScrollView()
+    public func update() {}
     @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
         // タップ位置でリップルエフェクトだけ先に発火
         let location = recognizer.location(in: recognizer.view)
@@ -283,7 +284,7 @@ extension PDPlayerModel:UIGestureRecognizerDelegate{
                 } else if stoptime < 0.2 {
                     stoptime = 0.2
                 }
-                onCloseAction?(stoptime * 0.5)
+                closeAction?(stoptime * 0.5)
                
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
@@ -340,7 +341,7 @@ extension PDPlayerModel:UIGestureRecognizerDelegate{
                 } else if stoptime < 0.18{
                     stoptime = 0.15
                 }
-                onCloseAction?(stoptime * 0.5)
+                closeAction?(stoptime * 0.5)
            
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
