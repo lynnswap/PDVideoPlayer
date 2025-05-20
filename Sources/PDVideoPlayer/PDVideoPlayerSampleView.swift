@@ -4,42 +4,31 @@
 import SwiftUI
 import AVKit
 
+
+private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
+
 #if os(macOS)
-struct PDVideoPlayerSampleView: View {
+struct ContentView: View {
+    @State private var player = AVPlayer(url:sampleURL)
     
-    var player :AVPlayer
-    
-    init(
-        url:URL
-    ) {
-        self.player = AVPlayer(url:url)
-    }
-    init(
-        player:AVPlayer
-    ) {
-        self.player = player
-    }
-    @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         
-        PDVideoPlayerRepresentable(
+        PDVideoPlayer(
             player: player,
             menuContent:{
-                Button{
-                    
-                }label:{
-                    Text("test")
-                }
+            Button("Sample 1") {
+                print("Button Tapped 1")
             }
-        )
+            Button("Sample 2") {
+                print("Button Tapped 2")
+            }
+        })
     }
 }
 #endif
 
 
 #if os(iOS) && DEBUG
-private let videoURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
-
 private struct ContentView: View {
     @State private var isMuted: Bool = true
     @State private var controlsVisible: Bool = true
@@ -95,9 +84,7 @@ private struct ContentView: View {
         }
     }
 }
-
+#endif
 #Preview{
     ContentView()
 }
-
-#endif
