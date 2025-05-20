@@ -2,12 +2,12 @@ import SwiftUI
 
 /// Closure wrapper that can be invoked like a function.
 public struct VideoPlayerCloseAction {
-    let action: () -> Void
-    public init(_ action: @escaping () -> Void) {
+    let action: (CGFloat) -> Void
+    public init(_ action: @escaping (CGFloat) -> Void) {
         self.action = action
     }
-    public func callAsFunction() {
-        action()
+    public func callAsFunction(_ duration: CGFloat) {
+        action(duration)
     }
 }
 

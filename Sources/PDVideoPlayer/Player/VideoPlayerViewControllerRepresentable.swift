@@ -305,7 +305,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     binding.wrappedValue.toggle()
                 }
             } else {
-                parent.closeAction?()
+                parent.closeAction?(0)
             }
         }
         @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {

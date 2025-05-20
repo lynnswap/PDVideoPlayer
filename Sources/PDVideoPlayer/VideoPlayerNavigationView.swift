@@ -23,7 +23,7 @@ public struct VideoPlayerNavigationView:View{
                     HStack(spacing:4){
                         if UIDevice.current.userInterfaceIdiom == .pad{
                             Button {
-                                closeAction?()
+                                closeAction?(0)
                             } label: {
                                 ZStack{
                                     Color.clear
