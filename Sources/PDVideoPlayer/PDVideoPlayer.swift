@@ -1,3 +1,4 @@
+#if os(iOS)
 import SwiftUI
 import AVKit
 
@@ -19,9 +20,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var originalRate: Binding<Float>?
     private var closeAction: VideoPlayerCloseAction?
     private var longpressAction: VideoPlayerLongpressAction?
-#if os(iOS)
     private var panGesture: PDVideoPlayerPanGesture = .rotation
-#endif
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
@@ -157,12 +156,11 @@ public extension PDVideoPlayer {
         copy.longpressAction = VideoPlayerLongpressAction(action)
         return copy
     }
-#if os(iOS)
     /// Sets the pan gesture style used for dismissing the video.
     func panGesture(_ gesture: PDVideoPlayerPanGesture) -> Self {
         var copy = self
         copy.panGesture = gesture
         return copy
     }
-#endif
 }
+#endif
