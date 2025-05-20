@@ -170,9 +170,9 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     }
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
-    @Environment(\.videoPlayerIsLongpress) private var isLongpressBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
+    @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.isPresentedMedia) private var isPresented
 
 
@@ -319,14 +319,14 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                 if self.parent.model.isPlaying {
                     // 現在のレートの2倍にする
                     self.parent.model.player.rate = min((self.parent.originalRateBinding?.wrappedValue ?? 1.0) * 2.0,2.0)
-                    self.parent.isLongpressBinding?.wrappedValue = true
                     self.parent.model.isLongpress = true
+                    self.parent.longpressAction?(true)
                 }
             case .ended, .cancelled, .failed:
                 // 長押し終了時に元のレートに戻す
                 self.parent.model.player.rate = self.parent.originalRateBinding?.wrappedValue ?? self.parent.model.player.rate
-                self.parent.isLongpressBinding?.wrappedValue = false
                 self.parent.model.isLongpress = false
+                self.parent.longpressAction?(false)
             default:
                 break
             }

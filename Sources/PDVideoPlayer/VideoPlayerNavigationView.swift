@@ -12,9 +12,10 @@ public struct VideoPlayerNavigationView:View{
 
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
-    @Environment(\.videoPlayerIsLongpress) private var isLongpressBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
+    @Environment(PDPlayerModel.self) private var model
+    @Environment(\.videoPlayerLongpressAction) private var longpressAction
     public var body:some View{
         VStack {
             ZStack{
@@ -51,13 +52,16 @@ public struct VideoPlayerNavigationView:View{
             .frame(height:44)
             .padding(.horizontal,12)
            
-            if isLongpressBinding?.wrappedValue ?? false{
+            if model.isLongpress{
                 fastView()
                     .transition(.opacity)
             }
         }
-        .animation(.smooth(duration:0.12),value:isLongpressBinding?.wrappedValue)
+        .animation(.smooth(duration:0.12),value:model.isLongpress)
         .animation(.smooth(duration:0.12),value:controlsVisibleBinding?.wrappedValue)
+        .onChange(of: model.isLongpress) { newValue in
+            longpressAction?(newValue)
+        }
         
     }
     private func fastView() -> some View {

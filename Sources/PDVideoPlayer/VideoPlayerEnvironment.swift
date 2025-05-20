@@ -17,14 +17,25 @@ private struct VideoPlayerCloseActionKey: @preconcurrency EnvironmentKey {
 private struct VideoPlayerIsMutedKey: EnvironmentKey {
     static let defaultValue: Binding<Bool>? = nil
 }
-private struct VideoPlayerIsLongpressKey: EnvironmentKey {
-    static let defaultValue: Binding<Bool>? = nil
-}
 private struct VideoPlayerControlsVisibleKey: EnvironmentKey {
     static let defaultValue: Binding<Bool>? = nil
 }
 private struct VideoPlayerOriginalRateKey: EnvironmentKey {
     static let defaultValue: Binding<Float>? = nil
+}
+
+public struct VideoPlayerLongpressAction {
+    let action: (Bool) -> Void
+    public init(_ action: @escaping (Bool) -> Void) {
+        self.action = action
+    }
+    public func callAsFunction(_ value: Bool) {
+        action(value)
+    }
+}
+
+private struct VideoPlayerLongpressActionKey: EnvironmentKey {
+    static let defaultValue: VideoPlayerLongpressAction? = nil
 }
 
 public extension EnvironmentValues {
@@ -36,10 +47,6 @@ public extension EnvironmentValues {
         get { self[VideoPlayerIsMutedKey.self] }
         set { self[VideoPlayerIsMutedKey.self] = newValue }
     }
-    var videoPlayerIsLongpress: Binding<Bool>? {
-        get { self[VideoPlayerIsLongpressKey.self] }
-        set { self[VideoPlayerIsLongpressKey.self] = newValue }
-    }
     var videoPlayerControlsVisible: Binding<Bool>? {
         get { self[VideoPlayerControlsVisibleKey.self] }
         set { self[VideoPlayerControlsVisibleKey.self] = newValue }
@@ -47,5 +54,9 @@ public extension EnvironmentValues {
     var videoPlayerOriginalRate: Binding<Float>? {
         get { self[VideoPlayerOriginalRateKey.self] }
         set { self[VideoPlayerOriginalRateKey.self] = newValue }
+    }
+    var videoPlayerLongpressAction: VideoPlayerLongpressAction? {
+        get { self[VideoPlayerLongpressActionKey.self] }
+        set { self[VideoPlayerLongpressActionKey.self] = newValue }
     }
 }
