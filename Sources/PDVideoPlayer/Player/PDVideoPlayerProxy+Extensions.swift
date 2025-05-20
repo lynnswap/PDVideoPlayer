@@ -1,6 +1,7 @@
 #if os(iOS)
 import SwiftUI
 
+@MainActor
 extension PDVideoPlayerProxy {
     func player(
         scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator? = nil,
