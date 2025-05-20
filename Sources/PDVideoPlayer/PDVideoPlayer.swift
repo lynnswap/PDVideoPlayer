@@ -37,7 +37,7 @@ public struct PDVideoPlayer: View {
 #else
 
 public struct PDVideoPlayer: View {
-    
+
     @State private var playerViewModel :PDPlayerModel
     
     public init(
@@ -58,30 +58,31 @@ public struct PDVideoPlayer: View {
    
     @Environment(\.scenePhase) private var scenePhase
     public var body: some View {
-        ZStack{
-            Color.black
-                .ignoresSafeArea()
-            PDVideoPlayerRepresentable(model: playerViewModel)
-                .rippleEffect(playerViewModel) { store in
-                    playerViewModel.rippleStore = store
-                }
-                .ignoresSafeArea()
-            
-            VideoPlayerControlView(model: playerViewModel) {
+        PDVideoPlayerView(
+            model: playerViewModel,
+            menuContent: {
                 Toggle(isOn: Bindable(playerViewModel).isLooping) {
                     Text("ループ再生")
                 }
                 Button("サンプルボタン") {
                     print("Button Tapped")
                 }
+            },
+            content: { proxy in
+                ZStack {
+                    Color.black
+                        .ignoresSafeArea()
+                    proxy.player
+                        .ignoresSafeArea()
+                    proxy.control
+                }
             }
-        }
-        
-        .environment(\.videoPlayerIsMuted, $isMuted)
-        .environment(\.videoPlayerIsLongpress, $isLongpress)
-        .environment(\.videoPlayerControlsVisible, $controlsVisible)
-        .environment(\.videoPlayerOriginalRate, $originalRate)
-        .environment(\.videoPlayerCloseAction, closeAction)
+        )
+        .isMuted($isMuted)
+        .isLongpress($isLongpress)
+        .controlsVisible($controlsVisible)
+        .originalRate($originalRate)
+        .closeAction(closeAction)
     }
 }
 #endif
