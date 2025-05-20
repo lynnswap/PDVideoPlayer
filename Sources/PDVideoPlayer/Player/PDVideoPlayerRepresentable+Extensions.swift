@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 
-extension PDVideoPlayerRepresentable {
+public extension PDVideoPlayerRepresentable {
     func scrollViewConfigurator(_ configurator: @escaping ScrollViewConfigurator) -> Self {
         Self(model: self.model, panGesture: self.panGesture, scrollViewConfigurator: configurator, contextMenuProvider: self.contextMenuProvider)
     }

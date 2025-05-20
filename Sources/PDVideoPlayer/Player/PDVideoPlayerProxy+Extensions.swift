@@ -2,7 +2,7 @@
 import SwiftUI
 
 @MainActor
-extension PDVideoPlayerProxy {
+public extension PDVideoPlayerProxy {
     func player(
         panGesture: PDVideoPlayerPanGesture? = nil,
         scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator? = nil,
