@@ -33,13 +33,12 @@ enum SkipDirection {
     public var player: AVPlayer
     public var onCloseAction: ((CGFloat) -> Void)? = nil
     
-    public var rippleStore: RippleEffectStore?
     var doubleTapCount: Int = 0
     private var doubleTapBaseTime: Double = 0
     
     private var doubleTapResetTask: Task<(), Never>? = nil
     private var doubleTapDirection: SkipDirection? = nil
-    
+    let rippleStore = RippleEffectStore()
     public var scrollView = UIScrollView()
     @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
         // タップ位置でリップルエフェクトだけ先に発火
@@ -89,7 +88,7 @@ enum SkipDirection {
         }
         
         let labelSeconds:Int = targetTime > .zero ? Int(skipSeconds) : .zero
-        rippleStore?.addRipple(at: location,duration: labelSeconds)
+        rippleStore.addRipple(at: location,duration: labelSeconds)
 
         // シーク実行
         seek(to: targetTime)

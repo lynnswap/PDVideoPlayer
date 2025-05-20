@@ -69,6 +69,7 @@ public struct PDVideoPlayerView<MenuContent: View, Content: View>: View {
         )
         
         return content(proxy)
+            .environment(model)
             .environment(\.videoPlayerIsMuted, isMuted)
             .environment(\.videoPlayerIsLongpress, isLongpress)
             .environment(\.videoPlayerControlsVisible, controlsVisible)
