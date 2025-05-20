@@ -40,11 +40,8 @@ public struct VideoPlayerNavigationView:View{
                         AirPlayRoutePicker()
                             .transition(.opacity)
                             .frame(width:44,height:44)
-//                        pipButton()
-//                            .transition(.opacity)
-//                            .frame(width:44,height:44)
                         Spacer()
-                        volumeButton()
+                        volumeButton
                             .frame(width:44,height:44)
                     }
                 }
@@ -53,7 +50,7 @@ public struct VideoPlayerNavigationView:View{
             .padding(.horizontal,12)
            
             if model.isLongpress{
-                fastView()
+                fastView
                     .transition(.opacity)
             }
         }
@@ -64,7 +61,7 @@ public struct VideoPlayerNavigationView:View{
         }
         
     }
-    private func fastView() -> some View {
+    private var fastView: some View {
         HStack(spacing:4){
             Text("\(min(2.0,(originalRateBinding?.wrappedValue ?? 1.0) * 2.0), specifier: "%.1f")x")
             Image(systemName:"forward.fill")
@@ -84,7 +81,7 @@ public struct VideoPlayerNavigationView:View{
             
         }
     }
-    private func volumeButton() -> some View {
+    private var volumeButton: some View {
         Button{
             if let binding = isMutedBinding {
                 binding.wrappedValue.toggle()
@@ -108,7 +105,7 @@ public struct VideoPlayerNavigationView:View{
             .opacity(0.8)
         }
     }
-    private func pipButton() -> some View{
+    private var pipButton: some View{
         Button{
             PiPManager.shared.start()
         }label:{
