@@ -34,8 +34,8 @@ public struct VideoPlayerLongpressAction {
     }
 }
 
-private struct VideoPlayerLongpressActionKey: EnvironmentKey {
-    static let defaultValue: VideoPlayerLongpressAction? = nil
+private struct VideoPlayerLongpressActionKey: @preconcurrency EnvironmentKey {
+    @MainActor static let defaultValue: VideoPlayerLongpressAction? = nil
 }
 
 public extension EnvironmentValues {
