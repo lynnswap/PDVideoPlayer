@@ -4,6 +4,7 @@ import AVKit
 public struct PDVideoPlayerProxy<MenuContent: View> {
     public let player:  PDVideoPlayerRepresentable
     public let control: VideoPlayerControlView<MenuContent>
+    public let navigation: VideoPlayerNavigationView
 }
 /// A container view that provides video player components.
 public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
@@ -53,7 +54,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
             if let model {
                 let proxy = PDVideoPlayerProxy(
                     player: PDVideoPlayerRepresentable(model: model),
-                    control: VideoPlayerControlView(model: model, menuContent: menuContent)
+                    control: VideoPlayerControlView(model: model, menuContent: menuContent),
+                    navigation: VideoPlayerNavigationView()
                 )
 
                 content(proxy)
