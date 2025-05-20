@@ -77,14 +77,14 @@ public struct PDVideoPlayerView<MenuContent: View, Content: View>: View {
 
 public extension PDVideoPlayerView where MenuContent == EmptyView {
     /// Convenience initializer when no menu content is provided.
-    init(url: URL,
-         @ViewBuilder content: @escaping (Proxy) -> Content) {
+    public init(url: URL,
+                @ViewBuilder content: @escaping (Proxy) -> Content) {
         self.init(url: url, menuContent: { EmptyView() }, content: content)
     }
 
     /// Convenience initializer when no menu content is provided.
-    init(player: AVPlayer,
-         @ViewBuilder content: @escaping (Proxy) -> Content) {
+    public init(player: AVPlayer,
+                @ViewBuilder content: @escaping (Proxy) -> Content) {
         self.init(player: player, menuContent: { EmptyView() }, content: content)
     }
 }
