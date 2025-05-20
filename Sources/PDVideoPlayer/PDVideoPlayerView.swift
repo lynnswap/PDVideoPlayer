@@ -7,37 +7,22 @@ public struct PDVideoPlayerProxy<MenuContent: View> {
 }
 /// A container view that provides video player components.
 public struct PDVideoPlayerView<MenuContent: View, Content: View>: View {
-    
-    @State private var model: PDPlayerModel
-    
+
+    @State private var model: PDPlayerModel? = nil
+
+    private var url: URL?
+    private var player: AVPlayer?
+
     private var isMuted: Binding<Bool>?
     private var isLongpress: Binding<Bool>?
     private var controlsVisible: Binding<Bool>?
     private var originalRate: Binding<Float>?
     private var closeAction: VideoPlayerCloseAction?
-    
+
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
-    
-    init(
-        model: PDPlayerModel,
-        isMuted: Binding<Bool>? = nil,
-        isLongpress: Binding<Bool>? = nil,
-        controlsVisible: Binding<Bool>? = nil,
-        originalRate: Binding<Float>? = nil,
-        closeAction: VideoPlayerCloseAction? = nil,
-        @ViewBuilder menuContent: @escaping () -> MenuContent,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ){
-        self._model = State(initialValue: model)
-        self.isMuted = isMuted
-        self.isLongpress = isLongpress
-        self.controlsVisible = controlsVisible
-        self.originalRate = originalRate
-        self.closeAction = closeAction
-        self.menuContent = menuContent
-        self.content = content
-    }
+
+    private var playerID: ObjectIdentifier? { player.map { ObjectIdentifier($0) } }
     
     /// Creates a player from a URL.
     public init(
@@ -45,10 +30,10 @@ public struct PDVideoPlayerView<MenuContent: View, Content: View>: View {
         @ViewBuilder menuContent: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ){
-        self.init(
-            model: PDPlayerModel(url: url),
-            menuContent: menuContent,
-            content: content)
+        self.url = url
+        self.player = nil
+        self.menuContent = menuContent
+        self.content = content
     }
     
     /// Creates a player from an existing AVPlayer instance.
@@ -57,26 +42,39 @@ public struct PDVideoPlayerView<MenuContent: View, Content: View>: View {
         @ViewBuilder menuContent: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ){
-        self.init(
-            model: PDPlayerModel(player: player),
-            menuContent: menuContent,
-            content: content
-        )
+        self.player = player
+        self.url = nil
+        self.menuContent = menuContent
+        self.content = content
     }
     
     public var body: some View {
-        let proxy = PDVideoPlayerProxy(
-            player: PDVideoPlayerRepresentable(model: model),
-            control: VideoPlayerControlView(model: model, menuContent: menuContent)
-        )
-        
-        return content(proxy)
-            .environment(model)
-            .environment(\.videoPlayerIsMuted, isMuted)
-            .environment(\.videoPlayerIsLongpress, isLongpress)
-            .environment(\.videoPlayerControlsVisible, controlsVisible)
-            .environment(\.videoPlayerOriginalRate, originalRate)
-            .environment(\.videoPlayerCloseAction, closeAction)
+        Group {
+            if let model {
+                let proxy = PDVideoPlayerProxy(
+                    player: PDVideoPlayerRepresentable(model: model),
+                    control: VideoPlayerControlView(model: model, menuContent: menuContent)
+                )
+
+                content(proxy)
+                    .environment(model)
+                    .environment(\.videoPlayerIsMuted, isMuted)
+                    .environment(\.videoPlayerIsLongpress, isLongpress)
+                    .environment(\.videoPlayerControlsVisible, controlsVisible)
+                    .environment(\.videoPlayerOriginalRate, originalRate)
+                    .environment(\.videoPlayerCloseAction, closeAction)
+            }
+        }
+        .task(id: url) {
+            if let url {
+                model = PDPlayerModel(url: url)
+            }
+        }
+        .task(id: playerID) {
+            if let player {
+                model = PDPlayerModel(player: player)
+            }
+        }
     }
 }
 
