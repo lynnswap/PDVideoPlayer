@@ -161,7 +161,7 @@ public extension PDVideoPlayer {
         copy.longpressAction = VideoPlayerLongpressAction(action)
         return copy
     }
-
+#if os(iOS)
     /// Sets the pan gesture style used for dismissing the video.
     func panGesture(_ gesture: PDVideoPlayerPanGesture) -> Self {
         var copy = self
