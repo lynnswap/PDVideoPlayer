@@ -22,7 +22,7 @@ public struct PDVideoPlayer: View {
     @Environment(\.scenePhase) private var scenePhase
     public var body: some View {
         
-        PDVideoPlayerView(
+        PDVideoPlayerRepresentable(
             player: player,
             menuContent:{
                 Button{
@@ -61,7 +61,7 @@ public struct PDVideoPlayer: View {
         ZStack{
             Color.black
                 .ignoresSafeArea()
-            PDVideoPlayerView(model: playerViewModel)
+            PDVideoPlayerRepresentable(model: playerViewModel)
                 .rippleEffect(playerViewModel) { store in
                     playerViewModel.rippleStore = store
                 }
