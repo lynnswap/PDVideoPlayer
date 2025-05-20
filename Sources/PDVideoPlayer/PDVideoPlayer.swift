@@ -1,142 +1,135 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
-
 import SwiftUI
 import AVKit
 
-#if os(macOS)
-public struct PDVideoPlayer: View {
-    
-    var player :AVPlayer
-    
-    public init(
-        url:URL
-    ) {
-        self.player = AVPlayer(url:url)
-    }
-    public init(
-        player:AVPlayer
-    ) {
-        self.player = player
-    }
-    @Environment(\.scenePhase) private var scenePhase
-    public var body: some View {
-        
-        PDVideoPlayerRepresentable(
-            player: player,
-            menuContent:{
-                Button{
-                    
-                }label:{
-                    Text("test")
-                }
-            }
-        )
-    }
+public struct PDVideoPlayerProxy<MenuContent: View> {
+    public let player:  PDVideoPlayerRepresentable
+    public let control: VideoPlayerControlView<MenuContent>
 }
-#else
+/// A container view that provides video player components.
+public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
-public struct PDVideoPlayer: View {
+    @State private var model: PDPlayerModel? = nil
 
     private var url: URL?
     private var player: AVPlayer?
 
-    public init(url: URL) {
+    private var isMuted: Binding<Bool>?
+    private var isLongpress: Binding<Bool>?
+    private var controlsVisible: Binding<Bool>?
+    private var originalRate: Binding<Float>?
+    private var closeAction: VideoPlayerCloseAction?
+
+    private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
+    private let menuContent: () -> MenuContent
+
+    private var playerID: ObjectIdentifier? { player.map { ObjectIdentifier($0) } }
+    
+    /// Creates a player from a URL.
+    public init(
+        url: URL,
+        @ViewBuilder menuContent: @escaping () -> MenuContent,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
+    ){
         self.url = url
         self.player = nil
+        self.menuContent = menuContent
+        self.content = content
     }
-    public init(player: AVPlayer) {
+    
+    /// Creates a player from an existing AVPlayer instance.
+    public init(
+        player: AVPlayer,
+        @ViewBuilder menuContent: @escaping () -> MenuContent,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
+    ){
         self.player = player
         self.url = nil
+        self.menuContent = menuContent
+        self.content = content
     }
-    @State private var isMuted: Bool = false
-    @State private var isLongpress: Bool = false
-    @State private var controlsVisible: Bool = true
-    @State private var originalRate: Float = 1.0
-    private let closeAction = VideoPlayerCloseAction({})
-   
-    @Environment(\.scenePhase) private var scenePhase
+    
     public var body: some View {
-        
         Group {
-            if let url {
-                PDVideoPlayerView(
-                    url: url,
-                    menuContent: {
-                        Button("Sample 1") {
-                            print("Button Tapped 1")
-                        }
-                        Button("Sample 2") {
-                            print("Button Tapped 2")
-                        }
-                    },
-                    content: { proxy in
-                        ZStack {
-                            proxy.player
-                                .rippleEffect()
-                                .ignoresSafeArea()
-                            proxy.control
-                        }
-                    }
+            if let model {
+                let proxy = PDVideoPlayerProxy(
+                    player: PDVideoPlayerRepresentable(model: model),
+                    control: VideoPlayerControlView(model: model, menuContent: menuContent)
                 )
-            } else if let player {
-                PDVideoPlayerView(
-                    player: player,
-                    menuContent: {
-                        Button("Sample 1") {
-                            print("Button Tapped 1")
-                        }
-                        Button("Sample 2") {
-                            print("Button Tapped 2")
-                        }
-                    },
-                    content: { proxy in
-                        ZStack {
-                            proxy.player
-                                .rippleEffect()
-                                .ignoresSafeArea()
-                            proxy.control
-                        }
-                    }
-                )
+
+                content(proxy)
+                    .environment(model)
+                    .environment(\.videoPlayerIsMuted, isMuted)
+                    .environment(\.videoPlayerIsLongpress, isLongpress)
+                    .environment(\.videoPlayerControlsVisible, controlsVisible)
+                    .environment(\.videoPlayerOriginalRate, originalRate)
+                    .environment(\.videoPlayerCloseAction, closeAction)
             }
         }
-        .isMuted($isMuted)
-        .isLongpress($isLongpress)
-        .controlsVisible($controlsVisible)
-        .originalRate($originalRate)
-        .closeAction(closeAction)
-    }
-}
-#endif
-#if DEBUG
-private let videoURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
-#Preview{
-    PDVideoPlayerWrapper()
-}
-public struct PDVideoPlayerWrapper: View {
-    @State private var isMuted: Bool = true
-    @State private var isLongpress: Bool = false
-    @State private var controlsVisible: Bool = true
-    @State private var originalRate: Float = 1.0
-    private let closeAction = VideoPlayerCloseAction({})
-
-    public init(){}
-    public var body:some View{
-        PDVideoPlayer(url:videoURL)
-            .environment(\.videoPlayerIsMuted, $isMuted)
-            .environment(\.videoPlayerIsLongpress, $isLongpress)
-            .environment(\.videoPlayerControlsVisible, $controlsVisible)
-            .environment(\.videoPlayerOriginalRate, $originalRate)
-            .environment(\.videoPlayerCloseAction, closeAction)
-    }
-}
-//@main
-struct tweetpdApp: App {
-    var body: some Scene {
-        WindowGroup {
-            PDVideoPlayerWrapper()
+        .task(id: url) {
+            if let url {
+                model = PDPlayerModel(url: url)
+            }
+        }
+        .task(id: playerID) {
+            if let player {
+                model = PDPlayerModel(player: player)
+            }
         }
     }
 }
-#endif
+
+public extension PDVideoPlayer where MenuContent == EmptyView {
+    /// Convenience initializer when no menu content is provided.
+    init(
+        url: URL,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
+    ) {
+        self.init(url: url, menuContent: { EmptyView() }, content: content)
+    }
+
+    /// Convenience initializer when no menu content is provided.
+    init(
+        player: AVPlayer,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
+    ) {
+        self.init(player: player, menuContent: { EmptyView() }, content: content)
+    }
+}
+
+public extension PDVideoPlayer {
+    /// Sets a binding for the muted state.
+    func isMuted(_ binding: Binding<Bool>) -> Self {
+        var copy = self
+        copy.isMuted = binding
+        return copy
+    }
+
+    /// Sets a binding for the long‑press state.
+    func isLongpress(_ binding: Binding<Bool>) -> Self {
+        var copy = self
+        copy.isLongpress = binding
+        return copy
+    }
+
+    /// Sets a binding for control visibility.
+    func controlsVisible(_ binding: Binding<Bool>) -> Self {
+        var copy = self
+        copy.controlsVisible = binding
+        return copy
+    }
+
+    /// Sets a binding for the original playback rate.
+    func originalRate(_ binding: Binding<Float>) -> Self {
+        var copy = self
+        copy.originalRate = binding
+        return copy
+    }
+
+    /// Sets a close action for the player.
+    func closeAction(_ action: VideoPlayerCloseAction) -> Self {
+        var copy = self
+        copy.closeAction = action
+        return copy
+    }
+}
+
