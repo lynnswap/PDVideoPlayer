@@ -154,19 +154,22 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
     
     var model: PDPlayerModel
+    let panGesture: PDVideoPlayerPanGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
  
     public init(
-        model:PDPlayerModel,
+        model: PDPlayerModel,
+        panGesture: PDVideoPlayerPanGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
         contextMenuProvider: ContextMenuProvider? = nil
-       
-    ){
+
+    ) {
         self.model = model
+        self.panGesture = panGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
-     
+
     }
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
@@ -255,6 +258,20 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         if contextMenuProvider != nil{
             let contextMenuInteraction = UIContextMenuInteraction(delegate: context.coordinator)
             playerView.view.addInteraction(contextMenuInteraction)
+        }
+        switch panGesture {
+        case .rotation:
+            let panGestureRecognizer = UIPanGestureRecognizer(target: model, action: #selector(PDPlayerModel.handlePanGesture(_:)))
+            panGestureRecognizer.delegate = model
+            scrollView.isUserInteractionEnabled = true
+            scrollView.addGestureRecognizer(panGestureRecognizer)
+        case .vertical:
+            let panGestureRecognizer = UIPanGestureRecognizer(target: model, action: #selector(PDPlayerModel.handlePanGestureUpDown(_:)))
+            panGestureRecognizer.delegate = model
+            scrollView.isUserInteractionEnabled = true
+            scrollView.addGestureRecognizer(panGestureRecognizer)
+        case .none:
+            break
         }
         scrollViewConfigurator?(scrollView)
 
