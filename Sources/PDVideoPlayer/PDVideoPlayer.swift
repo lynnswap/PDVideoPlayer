@@ -20,8 +20,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var closeAction: VideoPlayerCloseAction?
     private var longpressAction: VideoPlayerLongpressAction?
 #if os(iOS)
-    private var scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator?
-    private var contextMenuProvider: PDVideoPlayerRepresentable.ContextMenuProvider?
     private var panGesture: PDVideoPlayerPanGesture = .rotation
 #endif
 
@@ -60,9 +58,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 let proxy = PDVideoPlayerProxy(
                     player: PDVideoPlayerRepresentable(
                         model: model,
-                        panGesture: panGesture,
-                        scrollViewConfigurator: scrollViewConfigurator,
-                        contextMenuProvider: contextMenuProvider
+                        panGesture: panGesture
                     ),
                     control: VideoPlayerControlView(model: model, menuContent: menuContent),
                     navigation: VideoPlayerNavigationView()
