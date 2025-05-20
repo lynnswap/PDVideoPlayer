@@ -31,7 +31,7 @@ enum SkipDirection {
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     
     public var player: AVPlayer
-    @Environment(\.videoPlayerCloseAction) private var closeAction
+    public var closeAction: VideoPlayerCloseAction?
     
     var doubleTapCount: Int = 0
     private var doubleTapBaseTime: Double = 0
