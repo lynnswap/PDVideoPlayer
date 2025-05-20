@@ -44,7 +44,6 @@ private struct ContentView: View {
     @State private var isMuted: Bool = true
     @State private var controlsVisible: Bool = true
     @State private var originalRate: Float = 1.0
-    @State private var isLongpress: Bool = false
 
     var body:some View{
         PDVideoPlayer(
@@ -70,7 +69,7 @@ private struct ContentView: View {
         .controlsVisible($controlsVisible)
         .originalRate($originalRate)
         .longpressAction { value in
-            isLongpress = value
+            print("longpressAction",value)
         }
         .closeAction {
             

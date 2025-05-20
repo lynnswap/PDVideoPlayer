@@ -59,8 +59,8 @@ public struct VideoPlayerNavigationView:View{
         }
         .animation(.smooth(duration:0.12),value:model.isLongpress)
         .animation(.smooth(duration:0.12),value:controlsVisibleBinding?.wrappedValue)
-        .onChange(of: model.isLongpress) { newValue in
-            longpressAction?(newValue)
+        .onChange(of: model.isLongpress) {
+            longpressAction?(model.isLongpress)
         }
         
     }
