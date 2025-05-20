@@ -69,16 +69,26 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                     .environment(\.videoPlayerOriginalRate, originalRate)
                     .environment(\.videoPlayerCloseAction, closeAction)
                     .environment(\.videoPlayerLongpressAction, longpressAction)
+                    .onAppear {
+                        model.closeAction = closeAction
+                    }
+                    .onChange(of: closeAction) { newValue in
+                        model.closeAction = newValue
+                    }
             }
         }
         .task(id: url) {
             if let url {
-                model = PDPlayerModel(url: url)
+                var newModel = PDPlayerModel(url: url)
+                newModel.closeAction = closeAction
+                model = newModel
             }
         }
         .task(id: playerID) {
             if let player {
-                model = PDPlayerModel(player: player)
+                var newModel = PDPlayerModel(player: player)
+                newModel.closeAction = closeAction
+                model = newModel
             }
         }
     }
