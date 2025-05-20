@@ -36,85 +36,11 @@ struct PDVideoPlayerSampleView: View {
 }
 #else
 
-struct PDVideoPlayerSampleView: View {
-
-    private var url: URL?
-    private var player: AVPlayer?
-
-    init(url: URL) {
-        self.url = url
-        self.player = nil
-    }
-    init(player: AVPlayer) {
-        self.player = player
-        self.url = nil
-    }
-    @State private var isMuted: Bool = false
-    @State private var isLongpress: Bool = false
-    @State private var controlsVisible: Bool = true
-    @State private var originalRate: Float = 1.0
-    private let closeAction = VideoPlayerCloseAction({})
-   
-    @Environment(\.scenePhase) private var scenePhase
-    var body: some View {
-        
-        Group {
-            if let url {
-                PDVideoPlayer(
-                    url: url,
-                    menuContent: {
-                        Button("Sample 1") {
-                            print("Button Tapped 1")
-                        }
-                        Button("Sample 2") {
-                            print("Button Tapped 2")
-                        }
-                    },
-                    content: { proxy in
-                        ZStack {
-                            proxy.player
-                                .rippleEffect()
-                                .ignoresSafeArea()
-                            proxy.control
-                        }
-                    }
-                )
-            } else if let player {
-                PDVideoPlayer(
-                    player: player,
-                    menuContent: {
-                        Button("Sample 1") {
-                            print("Button Tapped 1")
-                        }
-                        Button("Sample 2") {
-                            print("Button Tapped 2")
-                        }
-                    },
-                    content: { proxy in
-                        ZStack {
-                            proxy.player
-                                .rippleEffect()
-                                .ignoresSafeArea()
-                            proxy.control
-                        }
-                    }
-                )
-            }
-        }
-        .isMuted($isMuted)
-        .isLongpress($isLongpress)
-        .controlsVisible($controlsVisible)
-        .originalRate($originalRate)
-        .closeAction(closeAction)
-    }
-}
 #endif
 #if DEBUG
 private let videoURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
-#Preview{
-    PDVideoPlayerSampleWrapper()
-}
-struct PDVideoPlayerSampleWrapper: View {
+
+private struct ContentView: View {
     @State private var isMuted: Bool = true
     @State private var isLongpress: Bool = false
     @State private var controlsVisible: Bool = true
@@ -123,20 +49,35 @@ struct PDVideoPlayerSampleWrapper: View {
 
     init(){}
     var body:some View{
-        PDVideoPlayer(url:videoURL)
-            .environment(\.videoPlayerIsMuted, $isMuted)
-            .environment(\.videoPlayerIsLongpress, $isLongpress)
-            .environment(\.videoPlayerControlsVisible, $controlsVisible)
-            .environment(\.videoPlayerOriginalRate, $originalRate)
-            .environment(\.videoPlayerCloseAction, closeAction)
+        PDVideoPlayer(
+            url: videoURL,
+            menuContent: {
+                Button("Sample 1") {
+                    print("Button Tapped 1")
+                }
+                Button("Sample 2") {
+                    print("Button Tapped 2")
+                }
+            },
+            content: { proxy in
+                ZStack {
+                    proxy.player
+                        .rippleEffect()
+                        .ignoresSafeArea()
+                    proxy.control
+                }
+            }
+        )
+        .isMuted($isMuted)
+        .isLongpress($isLongpress)
+        .controlsVisible($controlsVisible)
+        .originalRate($originalRate)
+        .closeAction(closeAction)
     }
 }
-//@main
-struct tweetpdApp: App {
-    var body: some Scene {
-        WindowGroup {
-            PDVideoPlayerSampleWrapper()
-        }
-    }
+
+#Preview{
+    ContentView()
 }
+
 #endif
