@@ -11,8 +11,8 @@ public struct VideoPlayerCloseAction {
     }
 }
 
-private struct VideoPlayerCloseActionKey: EnvironmentKey {
-    static let defaultValue: VideoPlayerCloseAction? = nil
+private struct VideoPlayerCloseActionKey: @preconcurrency EnvironmentKey {
+    @MainActor static let defaultValue: VideoPlayerCloseAction? = nil
 }
 private struct VideoPlayerIsMutedKey: EnvironmentKey {
     static let defaultValue: Binding<Bool>? = nil

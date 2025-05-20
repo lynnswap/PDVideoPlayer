@@ -314,19 +314,19 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             switch recognizer.state {
             case .began:
                 // 今の再生レートを保持
-                originalRateBinding?.wrappedValue = model.player.rate
+                self.parent.originalRateBinding?.wrappedValue = model.player.rate
                 // もし再生中であれば（rateが0でなければ）
-                if model.isPlaying {
+                if self.parent.model.isPlaying {
                     // 現在のレートの2倍にする
-                    model.player.rate = min((originalRateBinding?.wrappedValue ?? 1.0) * 2.0,2.0)
-                    isLongpressBinding?.wrappedValue = true
-                    model.isLongpress = true
+                    self.parent.model.player.rate = min((self.parent.originalRateBinding?.wrappedValue ?? 1.0) * 2.0,2.0)
+                    self.parent.isLongpressBinding?.wrappedValue = true
+                    self.parent.model.isLongpress = true
                 }
             case .ended, .cancelled, .failed:
                 // 長押し終了時に元のレートに戻す
-                model.player.rate = originalRateBinding?.wrappedValue ?? model.player.rate
-                isLongpressBinding?.wrappedValue = false
-                model.isLongpress = false
+                self.parent.model.player.rate = self.parent.originalRateBinding?.wrappedValue ?? self.parent.model.player.rate
+                self.parent.isLongpressBinding?.wrappedValue = false
+                self.parent.model.isLongpress = false
             default:
                 break
             }
