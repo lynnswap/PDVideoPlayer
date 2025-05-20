@@ -19,14 +19,16 @@ public struct PDVideoPlayerView<MenuContent: View, Content: View>: View {
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
     
-    init(model: PDPlayerModel,
-         isMuted: Binding<Bool>? = nil,
-         isLongpress: Binding<Bool>? = nil,
-         controlsVisible: Binding<Bool>? = nil,
-         originalRate: Binding<Float>? = nil,
-         closeAction: VideoPlayerCloseAction? = nil,
-         @ViewBuilder menuContent: @escaping () -> MenuContent,
-         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content) {
+    init(
+        model: PDPlayerModel,
+        isMuted: Binding<Bool>? = nil,
+        isLongpress: Binding<Bool>? = nil,
+        controlsVisible: Binding<Bool>? = nil,
+        originalRate: Binding<Float>? = nil,
+        closeAction: VideoPlayerCloseAction? = nil,
+        @ViewBuilder menuContent: @escaping () -> MenuContent,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
+    ){
         self._model = State(initialValue: model)
         self.isMuted = isMuted
         self.isLongpress = isLongpress
