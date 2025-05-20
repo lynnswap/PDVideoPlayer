@@ -132,7 +132,7 @@ public extension PDVideoPlayer {
     }
 
     /// Convenience overload to set a close action using a simple closure.
-    func closeAction(_ action: @escaping () -> Void) -> Self {
+    func closeAction(_ action: @escaping (CGFloat) -> Void) -> Self {
         var copy = self
         copy.closeAction = VideoPlayerCloseAction(action)
         return copy

@@ -89,8 +89,8 @@ private struct ContentView: View {
         .longpressAction { value in
             print("longpressAction",value)
         }
-        .closeAction {
-            
+        .closeAction { _ in
+
         }
     }
 }
