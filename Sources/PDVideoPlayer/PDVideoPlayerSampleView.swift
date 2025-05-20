@@ -59,6 +59,20 @@ private struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
+                        .contextMenuProvider{ location in
+                            let contextMenus :[UIMenuElement] = [
+                                UIAction(
+                                    title: String(localized:"save"),
+                                    image: UIImage(systemName: "square.and.arrow.down")
+                                ) { _ in
+                                    print("save")
+                                }
+                            ]
+                            return UIMenu(
+                                title: "",
+                                children: contextMenus
+                            )
+                        }
                         .rippleEffect()
                         .ignoresSafeArea()
                     proxy.control

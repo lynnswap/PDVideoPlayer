@@ -56,24 +56,11 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     public var body: some View {
         ZStack {
             if let model {
-                let proxy: PDVideoPlayerProxy<MenuContent>
-#if os(iOS)
-                proxy = PDVideoPlayerProxy(
-                    player: PDVideoPlayerRepresentable(
-                        model: model,
-                        scrollViewConfigurator: scrollViewConfigurator,
-                        contextMenuProvider: contextMenuProvider
-                    ),
-                    control: VideoPlayerControlView(model: model, menuContent: menuContent),
-                    navigation: VideoPlayerNavigationView()
-                )
-#else
-                proxy = PDVideoPlayerProxy(
+                let proxy = PDVideoPlayerProxy(
                     player: PDVideoPlayerRepresentable(model: model),
                     control: VideoPlayerControlView(model: model, menuContent: menuContent),
                     navigation: VideoPlayerNavigationView()
                 )
-#endif
 
                 content(proxy)
                     .environment(model)
