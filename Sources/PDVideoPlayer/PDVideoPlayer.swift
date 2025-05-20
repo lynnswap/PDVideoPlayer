@@ -72,6 +72,7 @@ public struct PDVideoPlayer: View {
             content: { proxy in
                 ZStack {
                     proxy.player
+                        .rippleEffect()
                         .ignoresSafeArea()
                     proxy.control
                 }

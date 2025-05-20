@@ -7,61 +7,48 @@
 import SwiftUI
 #if canImport(UIKit)
 struct RippleEffectModifier: ViewModifier {
-    var model:PDPlayerModel
-    @State private var store = RippleEffectStore()
-    
-    let configure: (inout RippleEffectStore) -> Void
-    init(
-        model:PDPlayerModel,
-        configure: @escaping (inout RippleEffectStore) -> Void = { _ in }
-    ) {
-        self.model = model
-        self.configure = configure
-    }
+    @Environment(PDPlayerModel.self) private var model
     
     func body(content: Content) -> some View {
         content
-            .onAppear(){
-                self.configure(&self.store)
-            }
             .onGeometryChange(for: CGSize.self) { proxy in
                 proxy.frame(in: .local).size
             } action: { newValue in
                 if newValue.width <= .zero || newValue.height <= .zero{
                     return
                 }
-                store.viewSize = newValue
+                model.rippleStore.viewSize = newValue
             }
             .overlay {
                 ZStack {
-                    ForEach(store.ripples) { ripple in
+                    ForEach(model.rippleStore.ripples) { ripple in
                         RippleCircle(
-                            rippleColor: store.rippleColor,
+                            rippleColor: model.rippleStore.rippleColor,
                             center: ripple.center,
                             maxRadius: calcMaxRadius(
                                 center: ripple.center,
                                 region: ripple.region,
-                                videoSize: store.viewSize
+                                videoSize: model.rippleStore.viewSize
                             ),
-                            animationDuration: store.animationDuration,
-                            fadeOutDuration: store.fadeOutDuration,
+                            animationDuration: model.rippleStore.animationDuration,
+                            fadeOutDuration: model.rippleStore.fadeOutDuration,
                             startDate: ripple.startDate
                    
                         )
                         .clipShape(
                             ArcShape(
                                 isLeft: (ripple.region == .left),
-                                size: store.viewSize
+                                size: model.rippleStore.viewSize
                             )
                         )
                     }
-                    if let item = store.latestItem {
+                    if let item = model.rippleStore.latestItem {
                         // スキップ秒数表示などのUI
                         // （こちらも「最後のタップからまとめて消える」挙動に合わせるなら、
-                        //  store.globalEndTime で一斉に消す実装に変更してもOK）
+                        //  model.rippleStore.globalEndTime で一斉に消す実装に変更してもOK）
                         
-                        let w = store.viewSize.width
-                        let h = store.viewSize.height
+                        let w = model.rippleStore.viewSize.width
+                        let h = model.rippleStore.viewSize.height
                         
                         let isLeft: Bool = item.region == .left
                         let degrees: Double = isLeft ? 180 : 0
@@ -72,7 +59,7 @@ struct RippleEffectModifier: ViewModifier {
                             TriplePlayIconView(
                                 model: model,
                                 item: item,
-                                totalRippleDuration: store.animationDuration + store.fadeOutDuration
+                                totalRippleDuration: model.rippleStore.animationDuration + model.rippleStore.fadeOutDuration
                             )
                             .rotation3DEffect(
                                 .degrees(degrees),
@@ -96,7 +83,7 @@ struct RippleEffectModifier: ViewModifier {
                         .position(x: xPos, y: yPos)
                     }
                 }
-                .animation(.smooth(duration: 0.12), value: store.latestItem == nil)
+                .animation(.smooth(duration: 0.12), value: model.rippleStore.latestItem == nil)
                 .allowsHitTesting(false)
             }
     }
@@ -134,14 +121,8 @@ struct RippleEffectModifier: ViewModifier {
 }
 
 extension View {
-    /// RippleEffectModifierを簡単に呼ぶためのヘルパー
-    public func rippleEffect(
-        _ model:PDPlayerModel,
-        configure: @escaping (inout RippleEffectStore) -> Void
-    ) -> some View {
-        modifier(
-            RippleEffectModifier(model:model,configure: configure)
-        )
+    public func rippleEffect() -> some View {
+        modifier(RippleEffectModifier())
     }
 }
 #endif
