@@ -22,6 +22,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 #if os(iOS)
     private var scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator?
     private var contextMenuProvider: PDVideoPlayerRepresentable.ContextMenuProvider?
+    private var panGesture: PDVideoPlayerPanGesture = .rotation
 #endif
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
@@ -57,7 +58,12 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
         ZStack {
             if let model {
                 let proxy = PDVideoPlayerProxy(
-                    player: PDVideoPlayerRepresentable(model: model),
+                    player: PDVideoPlayerRepresentable(
+                        model: model,
+                        panGesture: panGesture,
+                        scrollViewConfigurator: scrollViewConfigurator,
+                        contextMenuProvider: contextMenuProvider
+                    ),
                     control: VideoPlayerControlView(model: model, menuContent: menuContent),
                     navigation: VideoPlayerNavigationView()
                 )
@@ -174,6 +180,13 @@ public extension PDVideoPlayer {
     func contextMenuProvider(_ provider: @escaping PDVideoPlayerRepresentable.ContextMenuProvider) -> Self {
         var copy = self
         copy.contextMenuProvider = provider
+        return copy
+    }
+
+    /// Sets the pan gesture style used for dismissing the video.
+    func panGesture(_ gesture: PDVideoPlayerPanGesture) -> Self {
+        var copy = self
+        copy.panGesture = gesture
         return copy
     }
 #endif
