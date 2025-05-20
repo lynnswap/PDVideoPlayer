@@ -8,6 +8,15 @@
 import SwiftUI
 import AVFoundation
 #if os(macOS)
+import AppKit
+
+class VideoPlayerSlider: NSSlider {
+    override var intrinsicContentSize: NSSize {
+        let size = super.intrinsicContentSize
+        return NSSize(width: size.width, height: size.height + 20)
+    }
+}
+
 #else
 class VideoPlayerSlider: UISlider {
 

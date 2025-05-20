@@ -7,6 +7,49 @@
 
 import SwiftUI
 #if os(macOS)
+public struct VideoPlayerControlView<MenuContent: View>: View {
+    var model: PDPlayerModel
+    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+
+    private let menuContent: () -> MenuContent
+
+    public init(
+        model: PDPlayerModel,
+        @ViewBuilder menuContent: @escaping () -> MenuContent
+    ) {
+        self.model = model
+        self.menuContent = menuContent
+    }
+
+    public var body: some View {
+        ZStack {
+            if controlsVisibleBinding?.wrappedValue ?? true {
+                VStack {
+                    Spacer()
+                    VStack {
+                        HStack {
+                            Button { model.togglePlay() } label: {
+                                Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+                                    .foregroundStyle(.white)
+                            }
+                            Spacer()
+                            Menu(content: menuContent) {
+                                Image(systemName: "ellipsis.circle")
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .padding(.horizontal)
+
+                        VideoPlayerSliderView(viewModel: model)
+                            .padding(.horizontal)
+                    }
+                    .frame(maxWidth: 600)
+                }
+                .padding(.bottom)
+            }
+        }
+    }
+}
 #else
 private struct VideoPlayerDurationView: View {
     var model:PDPlayerModel

@@ -6,7 +6,38 @@
 //
 
 import SwiftUI
-#if canImport(UIKit) && !os(visionOS)
+#if os(macOS)
+public struct VideoPlayerNavigationView: View {
+    public init() {}
+
+    @Environment(\.videoPlayerCloseAction) private var closeAction
+    @Environment(\.videoPlayerIsMuted) private var isMutedBinding
+    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+
+    public var body: some View {
+        VStack {
+            if controlsVisibleBinding?.wrappedValue ?? true {
+                HStack {
+                    Button { closeAction?(0) } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.white)
+                    }
+                    Spacer()
+                    Button {
+                        isMutedBinding?.wrappedValue.toggle()
+                    } label: {
+                        Image(systemName: (isMutedBinding?.wrappedValue ?? false) ? "speaker.slash.fill" : "speaker.fill")
+                            .foregroundStyle(.white)
+                    }
+                }
+                .padding(.horizontal)
+                .frame(height: 44)
+            }
+            Spacer()
+        }
+    }
+}
+#elseif canImport(UIKit) && !os(visionOS)
 public struct VideoPlayerNavigationView:View{
     public init() {}
 
