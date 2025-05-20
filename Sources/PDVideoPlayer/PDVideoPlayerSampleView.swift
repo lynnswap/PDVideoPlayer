@@ -59,6 +59,7 @@ private struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
+                        .panGesture(.rotation)
                         .contextMenuProvider{ location in
                             let contextMenus :[UIMenuElement] = [
                                 UIAction(
@@ -89,8 +90,8 @@ private struct ContentView: View {
         .longpressAction { value in
             print("longpressAction",value)
         }
-        .closeAction { _ in
-
+        .closeAction { value in
+            print("closeAction",value)
         }
     }
 }
