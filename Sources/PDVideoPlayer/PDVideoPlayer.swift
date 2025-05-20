@@ -19,10 +19,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var originalRate: Binding<Float>?
     private var closeAction: VideoPlayerCloseAction?
     private var longpressAction: VideoPlayerLongpressAction?
-#if os(iOS)
-    private var scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator?
-    private var contextMenuProvider: PDVideoPlayerRepresentable.ContextMenuProvider?
-#endif
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
@@ -69,24 +65,18 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                     .environment(\.videoPlayerOriginalRate, originalRate)
                     .environment(\.videoPlayerCloseAction, closeAction)
                     .environment(\.videoPlayerLongpressAction, longpressAction)
-                    .onAppear {
-                        model.closeAction = closeAction
-                    }
-                    .onChange(of: closeAction) { newValue in
-                        model.closeAction = newValue
-                    }
             }
         }
         .task(id: url) {
             if let url {
-                var newModel = PDPlayerModel(url: url)
+                let newModel = PDPlayerModel(url: url)
                 newModel.closeAction = closeAction
                 model = newModel
             }
         }
         .task(id: playerID) {
             if let player {
-                var newModel = PDPlayerModel(player: player)
+                let newModel = PDPlayerModel(player: player)
                 newModel.closeAction = closeAction
                 model = newModel
             }
@@ -119,63 +109,47 @@ public extension PDVideoPlayer {
         copy.isMuted = binding
         return copy
     }
-
+    
     /// Sets a binding for control visibility.
     func controlsVisible(_ binding: Binding<Bool>) -> Self {
         var copy = self
         copy.controlsVisible = binding
         return copy
     }
-
+    
     /// Sets a binding for the original playback rate.
     func originalRate(_ binding: Binding<Float>) -> Self {
         var copy = self
         copy.originalRate = binding
         return copy
     }
-
+    
     /// Sets a close action for the player.
     func closeAction(_ action: VideoPlayerCloseAction) -> Self {
         var copy = self
         copy.closeAction = action
         return copy
     }
-
+    
     /// Convenience overload to set a close action using a simple closure.
     func closeAction(_ action: @escaping (CGFloat) -> Void) -> Self {
         var copy = self
         copy.closeAction = VideoPlayerCloseAction(action)
         return copy
     }
-
+    
     /// Sets an action triggered when long‑press state changes.
     func longpressAction(_ action: VideoPlayerLongpressAction) -> Self {
         var copy = self
         copy.longpressAction = action
         return copy
     }
-
+    
     /// Convenience overload to set a long‑press action using a simple closure.
     func longpressAction(_ action: @escaping (Bool) -> Void) -> Self {
         var copy = self
         copy.longpressAction = VideoPlayerLongpressAction(action)
         return copy
     }
-
-#if os(iOS)
-    /// Configures the internal `UIScrollView`.
-    func scrollViewConfigurator(_ configurator: @escaping PDVideoPlayerRepresentable.ScrollViewConfigurator) -> Self {
-        var copy = self
-        copy.scrollViewConfigurator = configurator
-        return copy
-    }
-
-    /// Provides a context menu for long‑press interactions.
-    func contextMenuProvider(_ provider: @escaping PDVideoPlayerRepresentable.ContextMenuProvider) -> Self {
-        var copy = self
-        copy.contextMenuProvider = provider
-        return copy
-    }
-#endif
+    
 }
-

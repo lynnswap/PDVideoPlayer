@@ -40,7 +40,6 @@ enum SkipDirection {
     private var doubleTapDirection: SkipDirection? = nil
     let rippleStore = RippleEffectStore()
     public var scrollView = UIScrollView()
-    public func update() {}
     @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
         // タップ位置でリップルエフェクトだけ先に発火
         let location = recognizer.location(in: recognizer.view)
