@@ -387,8 +387,109 @@ extension UIView {
         position.y -= oldPoint.y
         position.y += newPoint.y
 
-        view.layer.position = position
+    view.layer.position = position
         view.layer.anchorPoint = anchorPoint
+    }
+}
+#endif
+
+#elseif os(macOS)
+@MainActor
+@Observable public class PDPlayerModel: NSObject, DynamicProperty {
+    public var isPlaying: Bool = false
+    public var currentTime: Double = 0
+    public var duration: Double = 0
+
+    let slider = VideoPlayerSlider()
+    public var isTracking = false
+
+    public var player: AVPlayer
+    public var closeAction: VideoPlayerCloseAction?
+
+    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+    private var timeObserverToken: Any?
+
+    public init(url: URL) {
+        self.player = AVPlayer(url: url)
+    }
+
+    public init(player: AVPlayer) {
+        self.player = player
+    }
+
+    deinit {
+        removePeriodicTimeObserver()
+    }
+
+    func setupPlayerView(_ view: AVPlayerView) {
+        view.player = player
+        player.publisher(for: \.
+            timeControlStatus)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                guard let self else { return }
+                switch status {
+                case .playing:
+                    self.isPlaying = true
+                case .paused:
+                    self.isPlaying = false
+                default:
+                    break
+                }
+            }
+            .store(in: &cancellables)
+
+        if let item = player.currentItem {
+            duration = CMTimeGetSeconds(item.duration)
+        }
+
+        addPeriodicTimeObserver()
+    }
+
+    private func addPeriodicTimeObserver() {
+        guard timeObserverToken == nil else { return }
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: .main) { [weak self] time in
+            guard let self else { return }
+            currentTime = CMTimeGetSeconds(time)
+            if let item = player.currentItem {
+                let total = CMTimeGetSeconds(item.duration)
+                if total.isFinite { duration = total }
+            }
+            if !self.isTracking {
+                let ratio = (self.duration > 0) ? self.currentTime / self.duration : 0
+                self.slider.doubleValue = ratio
+            }
+        }
+    }
+
+    private func removePeriodicTimeObserver() {
+        if let token = timeObserverToken {
+            player.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
+    }
+
+    func play() { player.play() }
+    func pause() { player.pause() }
+
+    public func togglePlay() {
+        isPlaying ? pause() : play()
+    }
+
+    public func seekRatio(_ ratio: Double) {
+        let target = duration * ratio
+        seek(to: target)
+    }
+
+    public func seek(to seconds: Double) {
+        let time = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        player.seek(to: time)
+    }
+
+    public func seekPrecisely(to seconds: Double) {
+        let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
+        currentTime = seconds
     }
 }
 #endif
