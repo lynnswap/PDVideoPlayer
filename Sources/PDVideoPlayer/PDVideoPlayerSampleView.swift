@@ -1,0 +1,142 @@
+// The Swift Programming Language
+// https://docs.swift.org/swift-book
+
+import SwiftUI
+import AVKit
+
+#if os(macOS)
+struct PDVideoPlayerSampleView: View {
+    
+    var player :AVPlayer
+    
+    init(
+        url:URL
+    ) {
+        self.player = AVPlayer(url:url)
+    }
+    init(
+        player:AVPlayer
+    ) {
+        self.player = player
+    }
+    @Environment(\.scenePhase) private var scenePhase
+    var body: some View {
+        
+        PDVideoPlayerRepresentable(
+            player: player,
+            menuContent:{
+                Button{
+                    
+                }label:{
+                    Text("test")
+                }
+            }
+        )
+    }
+}
+#else
+
+struct PDVideoPlayerSampleView: View {
+
+    private var url: URL?
+    private var player: AVPlayer?
+
+    init(url: URL) {
+        self.url = url
+        self.player = nil
+    }
+    init(player: AVPlayer) {
+        self.player = player
+        self.url = nil
+    }
+    @State private var isMuted: Bool = false
+    @State private var isLongpress: Bool = false
+    @State private var controlsVisible: Bool = true
+    @State private var originalRate: Float = 1.0
+    private let closeAction = VideoPlayerCloseAction({})
+   
+    @Environment(\.scenePhase) private var scenePhase
+    var body: some View {
+        
+        Group {
+            if let url {
+                PDVideoPlayer(
+                    url: url,
+                    menuContent: {
+                        Button("Sample 1") {
+                            print("Button Tapped 1")
+                        }
+                        Button("Sample 2") {
+                            print("Button Tapped 2")
+                        }
+                    },
+                    content: { proxy in
+                        ZStack {
+                            proxy.player
+                                .rippleEffect()
+                                .ignoresSafeArea()
+                            proxy.control
+                        }
+                    }
+                )
+            } else if let player {
+                PDVideoPlayer(
+                    player: player,
+                    menuContent: {
+                        Button("Sample 1") {
+                            print("Button Tapped 1")
+                        }
+                        Button("Sample 2") {
+                            print("Button Tapped 2")
+                        }
+                    },
+                    content: { proxy in
+                        ZStack {
+                            proxy.player
+                                .rippleEffect()
+                                .ignoresSafeArea()
+                            proxy.control
+                        }
+                    }
+                )
+            }
+        }
+        .isMuted($isMuted)
+        .isLongpress($isLongpress)
+        .controlsVisible($controlsVisible)
+        .originalRate($originalRate)
+        .closeAction(closeAction)
+    }
+}
+#endif
+#if DEBUG
+private let videoURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
+#Preview{
+    PDVideoPlayerSampleWrapper()
+}
+struct PDVideoPlayerSampleWrapper: View {
+    @State private var isMuted: Bool = true
+    @State private var isLongpress: Bool = false
+    @State private var controlsVisible: Bool = true
+    @State private var originalRate: Float = 1.0
+    private let closeAction = VideoPlayerCloseAction({})
+
+    init(){}
+    var body:some View{
+        PDVideoPlayer(url:videoURL)
+            .environment(\.videoPlayerIsMuted, $isMuted)
+            .environment(\.videoPlayerIsLongpress, $isLongpress)
+            .environment(\.videoPlayerControlsVisible, $controlsVisible)
+            .environment(\.videoPlayerOriginalRate, $originalRate)
+            .environment(\.videoPlayerCloseAction, closeAction)
+    }
+}
+//@main
+struct tweetpdApp: App {
+    var body: some Scene {
+        WindowGroup {
+            PDVideoPlayerSampleWrapper()
+        }
+    }
+}
+#endif
