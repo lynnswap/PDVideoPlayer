@@ -9,17 +9,21 @@ import SwiftUI
 #if canImport(UIKit) && !os(visionOS)
 public struct VideoPlayerNavigationView:View{
     public init() {}
-    
-    @Environment(PDPlayerControllerModel.self) var controllerModel
+
+    @Environment(\.videoPlayerCloseAction) private var closeAction
+    @Environment(\.videoPlayerIsMuted) private var isMutedBinding
+    @Environment(\.videoPlayerIsLongpress) private var isLongpressBinding
+    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     public var body:some View{
         VStack {
             ZStack{
-                if controllerModel.controlsVisible{
+                if controlsVisibleBinding?.wrappedValue ?? true{
                     HStack(spacing:4){
                         if UIDevice.current.userInterfaceIdiom == .pad{
-                            Button{
-                                controllerModel.close()
-                            }label:{
+                            Button {
+                                closeAction?()
+                            } label: {
                                 ZStack{
                                     Color.clear
                                     Image(systemName:"xmark.circle.fill")
@@ -47,18 +51,18 @@ public struct VideoPlayerNavigationView:View{
             .frame(height:44)
             .padding(.horizontal,12)
            
-            if controllerModel.isLongpress{
+            if isLongpressBinding?.wrappedValue ?? false{
                 fastView()
                     .transition(.opacity)
             }
         }
-        .animation(.smooth(duration:0.12),value:controllerModel.isLongpress)
-        .animation(.smooth(duration:0.12),value:controllerModel.controlsVisible)
+        .animation(.smooth(duration:0.12),value:isLongpressBinding?.wrappedValue)
+        .animation(.smooth(duration:0.12),value:controlsVisibleBinding?.wrappedValue)
         
     }
     private func fastView() -> some View {
         HStack(spacing:4){
-            Text("\(min(2.0,controllerModel.originalRate * 2.0), specifier: "%.1f")x")
+            Text("\(min(2.0,(originalRateBinding?.wrappedValue ?? 1.0) * 2.0), specifier: "%.1f")x")
             Image(systemName:"forward.fill")
                 .imageScale(.small)
         }
@@ -78,17 +82,19 @@ public struct VideoPlayerNavigationView:View{
     }
     private func volumeButton() -> some View {
         Button{
-            controllerModel.isMuted.toggle()
+            if let binding = isMutedBinding {
+                binding.wrappedValue.toggle()
+            }
         }label:{
             ZStack{
                 Color.clear
                 if #available(iOS 18.0, *,visionOS 2.0, *) {
                     Image(systemName:"speaker")
-                        .symbolVariant(controllerModel.isMuted ? .slash.fill : .fill)
+                        .symbolVariant((isMutedBinding?.wrappedValue ?? false) ? .slash.fill : .fill)
                         .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.byLayer), options: .nonRepeating))
                 } else {
                     Image(systemName:"speaker")
-                        .symbolVariant(controllerModel.isMuted ? .slash.fill : .fill)
+                        .symbolVariant((isMutedBinding?.wrappedValue ?? false) ? .slash.fill : .fill)
                         .contentTransition(.symbolEffect(.replace))
                 }
             }
