@@ -7,7 +7,7 @@
 
 import SwiftUI
 struct ArcShape: Shape {
-    let isLeft: Bool  // 左側なら true, 右側なら false など
+    let isLeft: Bool
     let width:CGFloat
     let height:CGFloat
     
