@@ -19,6 +19,10 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var originalRate: Binding<Float>?
     private var closeAction: VideoPlayerCloseAction?
     private var longpressAction: VideoPlayerLongpressAction?
+#if os(iOS)
+    private var scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator?
+    private var contextMenuProvider: PDVideoPlayerRepresentable.ContextMenuProvider?
+#endif
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
@@ -52,11 +56,24 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     public var body: some View {
         ZStack {
             if let model {
-                let proxy = PDVideoPlayerProxy(
+                let proxy: PDVideoPlayerProxy<MenuContent>
+#if os(iOS)
+                proxy = PDVideoPlayerProxy(
+                    player: PDVideoPlayerRepresentable(
+                        model: model,
+                        scrollViewConfigurator: scrollViewConfigurator,
+                        contextMenuProvider: contextMenuProvider
+                    ),
+                    control: VideoPlayerControlView(model: model, menuContent: menuContent),
+                    navigation: VideoPlayerNavigationView()
+                )
+#else
+                proxy = PDVideoPlayerProxy(
                     player: PDVideoPlayerRepresentable(model: model),
                     control: VideoPlayerControlView(model: model, menuContent: menuContent),
                     navigation: VideoPlayerNavigationView()
                 )
+#endif
 
                 content(proxy)
                     .environment(model)
@@ -147,5 +164,21 @@ public extension PDVideoPlayer {
         copy.longpressAction = VideoPlayerLongpressAction(action)
         return copy
     }
+
+#if os(iOS)
+    /// Configures the internal `UIScrollView`.
+    func scrollViewConfigurator(_ configurator: @escaping PDVideoPlayerRepresentable.ScrollViewConfigurator) -> Self {
+        var copy = self
+        copy.scrollViewConfigurator = configurator
+        return copy
+    }
+
+    /// Provides a context menu for long‑press interactions.
+    func contextMenuProvider(_ provider: @escaping PDVideoPlayerRepresentable.ContextMenuProvider) -> Self {
+        var copy = self
+        copy.contextMenuProvider = provider
+        return copy
+    }
+#endif
 }
 
