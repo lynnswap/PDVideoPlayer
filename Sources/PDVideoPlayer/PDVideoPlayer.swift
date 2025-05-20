@@ -14,10 +14,10 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var player: AVPlayer?
 
     private var isMuted: Binding<Bool>?
-    private var isLongpress: Binding<Bool>?
     private var controlsVisible: Binding<Bool>?
     private var originalRate: Binding<Float>?
     private var closeAction: VideoPlayerCloseAction?
+    private var longpressAction: VideoPlayerLongpressAction?
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
@@ -59,10 +59,10 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 content(proxy)
                     .environment(model)
                     .environment(\.videoPlayerIsMuted, isMuted)
-                    .environment(\.videoPlayerIsLongpress, isLongpress)
                     .environment(\.videoPlayerControlsVisible, controlsVisible)
                     .environment(\.videoPlayerOriginalRate, originalRate)
                     .environment(\.videoPlayerCloseAction, closeAction)
+                    .environment(\.videoPlayerLongpressAction, longpressAction)
             }
         }
         .task(id: url) {
@@ -104,13 +104,6 @@ public extension PDVideoPlayer {
         return copy
     }
 
-    /// Sets a binding for the long‑press state.
-    func isLongpress(_ binding: Binding<Bool>) -> Self {
-        var copy = self
-        copy.isLongpress = binding
-        return copy
-    }
-
     /// Sets a binding for control visibility.
     func controlsVisible(_ binding: Binding<Bool>) -> Self {
         var copy = self
@@ -136,6 +129,20 @@ public extension PDVideoPlayer {
     func closeAction(_ action: @escaping () -> Void) -> Self {
         var copy = self
         copy.closeAction = VideoPlayerCloseAction(action)
+        return copy
+    }
+
+    /// Sets an action triggered when long‑press state changes.
+    func longpressAction(_ action: VideoPlayerLongpressAction) -> Self {
+        var copy = self
+        copy.longpressAction = action
+        return copy
+    }
+
+    /// Convenience overload to set a long‑press action using a simple closure.
+    func longpressAction(_ action: @escaping (Bool) -> Void) -> Self {
+        var copy = self
+        copy.longpressAction = VideoPlayerLongpressAction(action)
         return copy
     }
 }

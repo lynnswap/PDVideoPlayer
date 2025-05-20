@@ -42,9 +42,9 @@ private let videoURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording
 
 private struct ContentView: View {
     @State private var isMuted: Bool = true
-    @State private var isLongpress: Bool = false
     @State private var controlsVisible: Bool = true
     @State private var originalRate: Float = 1.0
+    @State private var isLongpress: Bool = false
 
     var body:some View{
         PDVideoPlayer(
@@ -67,9 +67,11 @@ private struct ContentView: View {
             }
         )
         .isMuted($isMuted)
-        .isLongpress($isLongpress)
         .controlsVisible($controlsVisible)
         .originalRate($originalRate)
+        .longpressAction { value in
+            isLongpress = value
+        }
         .closeAction {
             
         }

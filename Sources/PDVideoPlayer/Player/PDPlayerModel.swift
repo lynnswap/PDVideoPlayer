@@ -109,7 +109,7 @@ enum SkipDirection {
     
     private var timeObserverToken: Any?
     private var playerVC:AVPlayerViewController?
-    @ObservationIgnored var isLongpress:Bool = false
+    public var isLongpress:Bool = false
     public init(
         url: URL
     ) {
