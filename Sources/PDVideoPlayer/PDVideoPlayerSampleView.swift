@@ -34,10 +34,10 @@ struct PDVideoPlayerSampleView: View {
         )
     }
 }
-#else
-
 #endif
-#if DEBUG
+
+
+#if os(iOS) && DEBUG
 private let videoURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
 
 private struct ContentView: View {
