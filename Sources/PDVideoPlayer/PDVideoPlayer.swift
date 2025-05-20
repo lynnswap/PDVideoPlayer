@@ -58,20 +58,19 @@ public struct PDVideoPlayer: View {
    
     @Environment(\.scenePhase) private var scenePhase
     public var body: some View {
+        
         PDVideoPlayerView(
             model: playerViewModel,
             menuContent: {
-                Toggle(isOn: Bindable(playerViewModel).isLooping) {
-                    Text("ループ再生")
+                Button("Sample 1") {
+                    print("Button Tapped 1")
                 }
-                Button("サンプルボタン") {
-                    print("Button Tapped")
+                Button("Sample 2") {
+                    print("Button Tapped 2")
                 }
             },
             content: { proxy in
                 ZStack {
-                    Color.black
-                        .ignoresSafeArea()
                     proxy.player
                         .ignoresSafeArea()
                     proxy.control
