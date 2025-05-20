@@ -49,7 +49,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     }
     
     public var body: some View {
-        Group {
+        ZStack {
             if let model {
                 let proxy = PDVideoPlayerProxy(
                     player: PDVideoPlayerRepresentable(model: model),
