@@ -425,9 +425,8 @@ extension UIView {
         let view = CustomAVPlayerView()
         self.playerView = view
         view.wantsLayer = true
-        view.isOpaque = false
+        view.layer?.isOpaque = false
         view.layer?.backgroundColor = NSColor.clear.cgColor
-        view.playerLayer.backgroundColor = NSColor.clear.cgColor
         view.player = player
         player.publisher(for: \.timeControlStatus)
             .receive(on: DispatchQueue.main)
