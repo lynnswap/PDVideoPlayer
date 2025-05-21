@@ -6,6 +6,7 @@ import AppKit
 public class PlayerScrollView: NSScrollView {
     public override func scrollWheel(with event: NSEvent) {
         if magnification <= minMagnification {
+            nextResponder?.scrollWheel(with: event)
             return
         }
         super.scrollWheel(with: event)
