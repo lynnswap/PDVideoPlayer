@@ -25,7 +25,7 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
         slider.isContinuous = true
         slider.target = context.coordinator
         slider.action = #selector(Coordinator.onValueChanged(_:))
-
+      
         let gesture = NSPanGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handlePan(_:))
@@ -39,6 +39,7 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
         if #available(macOS 11.0, *) {
             slider.trackFillColor = NSColor.white.withAlphaComponent(0.8)
         }
+        slider.sendAction(on: [.leftMouseDown, .leftMouseDragged, .leftMouseUp])
         return slider
     }
 
@@ -58,33 +59,39 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
         }
 
         @objc func onValueChanged(_ sender: NSSlider) {
-            guard parent.viewModel.duration > 0 else { return }
+            guard parent.viewModel.duration > 0,
+                  let event = NSApp.currentEvent else { return }
 
-            let wasTracking = parent.viewModel.isTracking
-            parent.viewModel.isTracking = sender.isHighlighted
-
-            if !wasTracking && parent.viewModel.isTracking {
+            switch event.type {
+            case .leftMouseDown:
+                parent.viewModel.isTracking = true
                 wasPlayingBeforeTracking = parent.viewModel.isPlaying
                 parent.viewModel.pause()
-            }
 
-            if wasTracking && !parent.viewModel.isTracking {
+            case .leftMouseDragged:
+                seek(to: sender.doubleValue)
+            case .leftMouseUp:
+                parent.viewModel.isTracking = false
+                snapAndSeek(to: sender.doubleValue)
+
                 if wasPlayingBeforeTracking {
                     parent.viewModel.play()
                 }
-            }
 
+            default:
+                break
+            }
+        }
+        private func snapAndSeek(to ratio: Double) {
+            let total   = parent.viewModel.duration
+            let step    = 0.03
+            let seconds = (ratio * total / step).rounded() * step
+            parent.viewModel.seekPrecisely(to: seconds)
+            parent.viewModel.slider.doubleValue = seconds / total
+        }
+        private func seek(to ratio: Double) {
             let total = parent.viewModel.duration
-            let rawSeconds = sender.doubleValue * total
-            let step = 0.03
-            let snappedSeconds = (rawSeconds / step).rounded() * step
-
-            if !sender.isHighlighted {
-                let snappedRatio = snappedSeconds / total
-                sender.doubleValue = snappedRatio
-            }
-
-            parent.viewModel.seekPrecisely(to: snappedSeconds)
+            parent.viewModel.seekPrecisely(to: ratio * total)
         }
 
         @objc func handlePan(_ gesture: NSPanGestureRecognizer) {
