@@ -14,7 +14,7 @@ struct ContentView: View {
     var body: some View {
         PDVideoPlayer(
             url: sampleURL,
-            menuContent: {
+            menu: {
                 Button("Sample 1") {
                     print("Button Tapped 1")
                 }
@@ -55,7 +55,7 @@ private struct ContentView: View {
     var body:some View{
         PDVideoPlayer(
             url: sampleURL,
-            menuContent: {
+            menu: {
                 Button("Sample 1") {
                     print("Button Tapped 1")
                 }
