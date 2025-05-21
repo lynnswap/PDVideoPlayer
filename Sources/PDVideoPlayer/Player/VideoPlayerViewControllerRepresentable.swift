@@ -39,7 +39,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     }
     
     @Environment(\.videoPlayerCloseAction) private var closeAction
-    @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
@@ -76,7 +75,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
 
         model.player.appliesMediaSelectionCriteriaAutomatically = false
-        model.player.isMuted = isMutedBinding?.wrappedValue ?? false
 
         if resizeAction != nil, let playerItem = model.player.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
@@ -213,7 +211,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
     }
     @Environment(\.videoPlayerCloseAction) private var closeAction
-    @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
