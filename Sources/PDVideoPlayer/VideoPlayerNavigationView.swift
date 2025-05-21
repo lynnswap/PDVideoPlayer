@@ -13,6 +13,7 @@ public struct VideoPlayerNavigationView: View {
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
 
     public var body: some View {
         VStack {
