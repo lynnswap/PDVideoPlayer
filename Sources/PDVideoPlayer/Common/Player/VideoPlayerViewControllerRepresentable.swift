@@ -69,7 +69,32 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         playerView.setPlayer(model.player, videoGravity: .resizeAspect)
 
         let scrollView = model.scrollView
-        scrollView.documentView = playerView
+
+        let containerView = NSView()
+        containerView.translatesAutoresizingMaskIntoConstraints = false
+        containerView.wantsLayer = true
+        containerView.layer?.backgroundColor = NSColor.clear.cgColor
+        containerView.tag = 1
+        scrollView.documentView = containerView
+
+        containerView.addSubview(playerView)
+        playerView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            containerView.leadingAnchor.constraint(equalTo: scrollView.contentView.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: scrollView.contentView.trailingAnchor),
+            containerView.topAnchor.constraint(equalTo: scrollView.contentView.topAnchor),
+            containerView.bottomAnchor.constraint(equalTo: scrollView.contentView.bottomAnchor),
+            containerView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            containerView.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
+
+            playerView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            playerView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            playerView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            playerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            playerView.widthAnchor.constraint(equalTo: containerView.widthAnchor),
+            playerView.heightAnchor.constraint(equalTo: containerView.heightAnchor)
+        ])
         scrollView.allowsMagnification = true
         scrollView.minMagnification = 1.0
         scrollView.maxMagnification = 4.0
