@@ -255,18 +255,21 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     let panGesture: PDVideoPlayerPanGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
+    let tapAction: (() -> Void)?
  
     public init(
         model: PDPlayerModel,
         panGesture: PDVideoPlayerPanGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
-        contextMenuProvider: ContextMenuProvider? = nil
+        contextMenuProvider: ContextMenuProvider? = nil,
+        tapAction: (() -> Void)? = nil
 
     ) {
         self.model = model
         self.panGesture = panGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
+        self.tapAction = tapAction
 
     }
     @Environment(\.videoPlayerCloseAction) private var closeAction
@@ -406,17 +409,19 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                 if let binding = self.parent.controlsVisibleBinding {
                     binding.wrappedValue.toggle()
                 }
+                self.parent.tapAction?()
             }
         }
         @objc func handleSingleTap_mac(_ recognizer: UITapGestureRecognizer) {
             guard let playerView else { return }
             let locationInPlayerView = recognizer.location(in: playerView.view)
             let videoRect = playerView.videoBounds
-            
+
             if videoRect.contains(locationInPlayerView) {
                 if let binding = parent.controlsVisibleBinding {
                     binding.wrappedValue.toggle()
                 }
+                parent.tapAction?()
             } else {
                 parent.closeAction?(0)
             }
