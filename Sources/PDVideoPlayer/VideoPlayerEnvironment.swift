@@ -20,9 +20,6 @@ private struct VideoPlayerIsMutedKey: EnvironmentKey {
 private struct VideoPlayerControlsVisibleKey: EnvironmentKey {
     static let defaultValue: Binding<Bool>? = nil
 }
-private struct VideoPlayerOriginalRateKey: EnvironmentKey {
-    static let defaultValue: Binding<Float>? = nil
-}
 
 public struct VideoPlayerLongpressAction {
     let action: (Bool) -> Void
@@ -50,10 +47,6 @@ public extension EnvironmentValues {
     var videoPlayerControlsVisible: Binding<Bool>? {
         get { self[VideoPlayerControlsVisibleKey.self] }
         set { self[VideoPlayerControlsVisibleKey.self] = newValue }
-    }
-    var videoPlayerOriginalRate: Binding<Float>? {
-        get { self[VideoPlayerOriginalRateKey.self] }
-        set { self[VideoPlayerOriginalRateKey.self] = newValue }
     }
     var videoPlayerLongpressAction: VideoPlayerLongpressAction? {
         get { self[VideoPlayerLongpressActionKey.self] }
