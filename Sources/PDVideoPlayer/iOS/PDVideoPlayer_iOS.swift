@@ -72,6 +72,25 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                     .environment(\.videoPlayerForegroundColor, foregroundColor)
             }
         }
+        .onChange(of:foregroundColor){
+            guard let slider = model?.slider else { return }
+            
+            
+            let config = UIImage.SymbolConfiguration(
+                pointSize: 6,
+                weight: .regular,
+                scale: .default
+            )
+            let leftColor:UIColor = UIColor(foregroundColor.opacity(0.8))
+            let rightColor:UIColor = UIColor(foregroundColor.opacity(0.3))
+
+            let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
+                .withTintColor(leftColor, renderingMode: .alwaysOriginal)
+            slider.setThumbImage(thumbImage, for: .normal)
+
+            slider.minimumTrackTintColor = leftColor
+            slider.maximumTrackTintColor = rightColor
+        }
         .task(id: url) {
             if let url {
                 let newModel = PDPlayerModel(url: url)

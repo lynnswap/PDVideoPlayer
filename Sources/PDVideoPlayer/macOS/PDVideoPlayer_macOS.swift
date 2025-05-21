@@ -78,6 +78,9 @@ public struct PDVideoPlayer<PlayerMenu: View,
                     .environment(\.videoPlayerForegroundColor, foregroundColor)
             }
         }
+        .onChange(of:foregroundColor){
+            model?.slider.baseColor = NSColor(foregroundColor)
+        }
         .task(id: url) {
             if let url {
                 let m = PDPlayerModel(url: url)

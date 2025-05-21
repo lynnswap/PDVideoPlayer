@@ -57,13 +57,13 @@ struct ContentView: View {
                         proxy.navigation
                         Spacer()
                         proxy.control
+                            .frame(maxWidth: 600)
                             .padding(.bottom)
                     }
-                    .frame(maxWidth: 600)
+                  
                 }
             }
         )
-        
         .isMuted($isMuted)
         .controlsVisible($controlsVisible)
         .longpressAction { value in
@@ -72,6 +72,7 @@ struct ContentView: View {
         .closeAction { value in
             print("closeAction",value)
         }
+        .playerForegroundColor(.white)
     }
 }
 
