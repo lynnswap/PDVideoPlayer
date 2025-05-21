@@ -18,7 +18,6 @@ public struct PDVideoPlayer<PlayerMenu: View,
     
     private var isMuted: Binding<Bool>?
     private var controlsVisible: Binding<Bool>?
-    private var originalRate: Binding<Float>?
     private var closeAction: VideoPlayerCloseAction?
     private var longpressAction: VideoPlayerLongpressAction?
     
@@ -73,7 +72,6 @@ public struct PDVideoPlayer<PlayerMenu: View,
                     .environment(model)
                     .environment(\.videoPlayerIsMuted, isMuted)
                     .environment(\.videoPlayerControlsVisible, controlsVisible)
-                    .environment(\.videoPlayerOriginalRate, originalRate)
                     .environment(\.videoPlayerCloseAction, closeAction)
                     .environment(\.videoPlayerLongpressAction, longpressAction)
             }
@@ -136,11 +134,6 @@ public extension PDVideoPlayer {
         return copy
     }
 
-    func originalRate(_ binding: Binding<Float>) -> Self {
-        var copy = self
-        copy.originalRate = binding
-        return copy
-    }
 
     func closeAction(_ action: VideoPlayerCloseAction) -> Self {
         var copy = self

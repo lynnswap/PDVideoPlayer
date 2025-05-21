@@ -113,6 +113,7 @@ enum SkipDirection {
     private var timeObserverToken: Any?
     private var playerVC:AVPlayerViewController?
     public var isLongpress:Bool = false
+    public var originalRate: Float = 1.0
     public init(
         url: URL
     ) {
@@ -435,6 +436,7 @@ extension UIView {
 
     public var player: AVPlayer
     public var closeAction: VideoPlayerCloseAction?
+    public var originalRate: Float = 1.0
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     private var timeObserverToken: Any?
