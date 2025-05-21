@@ -151,7 +151,7 @@ public extension PDVideoPlayer {
         return copy
     }
     /// Sets the foreground color for player controls.
-    func foregroundColor(_ color: Color) -> Self {
+    func playerForegroundColor(_ color: Color) -> Self {
         var copy = self
         copy.foregroundColor = color
         return copy
