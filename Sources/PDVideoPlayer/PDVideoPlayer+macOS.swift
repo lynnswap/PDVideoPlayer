@@ -20,6 +20,7 @@ public struct PDVideoPlayer<PlayerMenu: View,
     private var controlsVisible: Binding<Bool>?
     private var closeAction: VideoPlayerCloseAction?
     private var longpressAction: VideoPlayerLongpressAction?
+    private var foregroundColor: Color = .white
     
     private let playerMenu: () -> PlayerMenu
     private let controlMenu: () -> ControlMenu
@@ -74,6 +75,7 @@ public struct PDVideoPlayer<PlayerMenu: View,
                     .environment(\.videoPlayerControlsVisible, controlsVisible)
                     .environment(\.videoPlayerCloseAction, closeAction)
                     .environment(\.videoPlayerLongpressAction, longpressAction)
+                    .environment(\.videoPlayerForegroundColor, foregroundColor)
             }
         }
         .task(id: url) {
@@ -156,6 +158,12 @@ public extension PDVideoPlayer {
     func longpressAction(_ action: @escaping (Bool) -> Void) -> Self {
         var copy = self
         copy.longpressAction = VideoPlayerLongpressAction(action)
+        return copy
+    }
+
+    func foregroundColor(_ color: Color) -> Self {
+        var copy = self
+        copy.foregroundColor = color
         return copy
     }
 
