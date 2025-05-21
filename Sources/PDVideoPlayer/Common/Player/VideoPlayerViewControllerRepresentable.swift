@@ -74,7 +74,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.wantsLayer = true
         containerView.layer?.backgroundColor = NSColor.clear.cgColor
-        containerView.tag = 1
         scrollView.documentView = containerView
 
         containerView.addSubview(playerView)
@@ -95,6 +94,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
             playerView.widthAnchor.constraint(equalTo: containerView.widthAnchor),
             playerView.heightAnchor.constraint(equalTo: containerView.heightAnchor)
         ])
+        scrollView.usesPredominantAxisScrolling = false
         scrollView.allowsMagnification = true
         scrollView.minMagnification = 1.0
         scrollView.maxMagnification = 4.0
