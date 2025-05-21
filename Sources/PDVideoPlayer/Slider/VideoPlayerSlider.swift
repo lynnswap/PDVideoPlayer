@@ -10,7 +10,38 @@ import AVFoundation
 #if os(macOS)
 import AppKit
 
+// macOS 用のスライダーセル。ノブ描画をカスタマイズするために使用する。
+final class VideoPlayerSliderCell: NSSliderCell {
+    /// ノブに描画する画像
+    var knobImage: NSImage?
+
+    override func drawKnob(_ knobRect: NSRect) {
+        if let image = knobImage {
+            image.draw(in: knobRect, from: .zero, operation: .sourceOver, fraction: 1.0)
+        } else {
+            super.drawKnob(knobRect)
+        }
+    }
+}
+
+/// 高さ調整とカスタムノブ画像に対応した NSSlider
 class VideoPlayerSlider: NSSlider {
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        self.cell = VideoPlayerSliderCell()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        self.cell = VideoPlayerSliderCell()
+    }
+
+    /// カスタムノブ画像。`VideoPlayerSliderCell` 経由で保持する。
+    var knobImage: NSImage? {
+        get { (cell as? VideoPlayerSliderCell)?.knobImage }
+        set { (cell as? VideoPlayerSliderCell)?.knobImage = newValue }
+    }
+
     override var intrinsicContentSize: NSSize {
         let size = super.intrinsicContentSize
         return NSSize(width: size.width, height: size.height + 20)
