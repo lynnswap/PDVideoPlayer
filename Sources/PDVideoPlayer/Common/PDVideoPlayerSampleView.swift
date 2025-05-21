@@ -27,7 +27,6 @@ struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
-                    //.playerOverlay(overlay)
 #if os(macOS)
                         .resizeAction({ view, size in
                             
