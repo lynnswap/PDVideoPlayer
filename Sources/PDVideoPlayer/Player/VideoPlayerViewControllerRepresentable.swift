@@ -38,6 +38,11 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         
     }
     
+    @Environment(\.videoPlayerCloseAction) private var closeAction
+    @Environment(\.videoPlayerIsMuted) private var isMutedBinding
+    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
+    @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.isPresentedMedia) private var isPresented
     
     
@@ -75,6 +80,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         
         playerView.allowsPictureInPicturePlayback = true
         playerView.player?.appliesMediaSelectionCriteriaAutomatically = false
+        playerView.player?.isMuted = isMutedBinding?.wrappedValue ?? false
         
         if resizeAction != nil, let playerItem = playerView.player?.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
@@ -95,6 +101,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     }
 
     public func updateNSView(_ uiView: AVPlayerView, context: Context) {
+        uiView.player?.isMuted = isMutedBinding?.wrappedValue ?? false
         // 必要があれば、動画ソースが変わったときに再監視させるなど
     }
 }
