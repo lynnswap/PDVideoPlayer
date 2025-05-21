@@ -8,6 +8,9 @@
 
 import SwiftUI
 import AVKit
+#if os(macOS)
+import AppKit
+#endif
 
 
 
@@ -49,7 +52,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         var presentationSizeObservation: NSKeyValueObservation?
     }
     public static func dismantleNSView(
-        _ nsView: PlayerNSView,
+        _ nsView: NSScrollView,
         coordinator: Coordinator
     ){
         coordinator.presentationSizeObservation?.invalidate()
@@ -61,9 +64,18 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         return coordinator
     }
     
-    public func makeNSView(context: Context) -> PlayerNSView {
+    public func makeNSView(context: Context) -> NSScrollView {
         let playerView = model.setupPlayerView()
         playerView.setPlayer(model.player, videoGravity: .resizeAspect)
+
+        let scrollView = model.scrollView
+        scrollView.documentView = playerView
+        scrollView.allowsMagnification = true
+        scrollView.minMagnification = 1.0
+        scrollView.maxMagnification = 4.0
+        scrollView.hasVerticalScroller = false
+        scrollView.hasHorizontalScroller = false
+        scrollView.drawsBackground = false
 
 
         if #available(macOS 14.4, *) {
@@ -90,10 +102,10 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
             }
         }
         
-        return playerView
+        return scrollView
     }
 
-    public func updateNSView(_ uiView: PlayerNSView, context: Context) {
+    public func updateNSView(_ uiView: NSScrollView, context: Context) {
     }
 }
 
@@ -173,10 +185,7 @@ public class PlayerNSView: NSView {
     }
 
     public override func magnify(with event: NSEvent) {
-        var newScale = zoomScale + event.magnification
-        newScale = min(max(newScale, minZoom), maxZoom)
-        zoomScale = newScale
-        updateTransform()
+        super.magnify(with: event)
     }
 
     // UIView の layerClass 相当
