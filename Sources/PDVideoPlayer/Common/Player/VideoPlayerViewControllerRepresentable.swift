@@ -50,8 +50,18 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     
     
     // CoordinatorでKVOを扱い、プレイヤーサイズが確定したら1度だけリサイズ処理を呼び出す
-    final public class Coordinator {
+    final public class Coordinator: NSObject {
         var presentationSizeObservation: NSKeyValueObservation?
+        var parent: PDVideoPlayerView_macOS
+        weak var playerView: PlayerNSView?
+
+        init(_ parent: PDVideoPlayerView_macOS) {
+            self.parent = parent
+        }
+
+        @objc func handleClick(_ recognizer: NSClickGestureRecognizer) {
+            parent.tapAction?()
+        }
     }
     public static func dismantleNSView(
         _ nsView: NSScrollView,
@@ -62,13 +72,17 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     }
 
     public func makeCoordinator() -> Coordinator {
-        let coordinator = Coordinator()
-        return coordinator
+        Coordinator(self)
     }
     
     public func makeNSView(context: Context) -> NSScrollView {
         let playerView = model.setupPlayerView()
         playerView.setPlayer(model.player, videoGravity: .resizeAspect)
+        context.coordinator.playerView = playerView
+
+        let singleClickGestureRecognizer = NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:)))
+        singleClickGestureRecognizer.numberOfClicksRequired = 1
+        playerView.addGestureRecognizer(singleClickGestureRecognizer)
 
         let scrollView = model.scrollView
 
@@ -243,6 +257,11 @@ public class PlayerNSView: NSView {
         }
         playerLayer.player = player
         playerLayer.videoGravity = videoGravity
+    }
+
+    var videoBounds: CGRect {
+        guard let playerLayer = self.layer as? AVPlayerLayer else { return .zero }
+        return playerLayer.videoRect
     }
 }
 
