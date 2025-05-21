@@ -10,7 +10,10 @@ private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecordin
 #if os(macOS)
 struct ContentView: View {
     @State private var player = AVPlayer(url:sampleURL)
-    
+    @State private var isMuted: Bool = true
+    @State private var controlsVisible: Bool = true
+    @State private var originalRate: Float = 1.0
+
     var body: some View {
         PDVideoPlayer(
             url: sampleURL,
@@ -35,6 +38,9 @@ struct ContentView: View {
             }
         )
 
+        .isMuted($isMuted)
+        .controlsVisible($controlsVisible)
+        .originalRate($originalRate)
         .longpressAction { value in
             print("longpressAction",value)
         }
