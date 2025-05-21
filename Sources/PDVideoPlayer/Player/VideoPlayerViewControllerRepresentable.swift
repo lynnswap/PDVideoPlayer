@@ -21,9 +21,9 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     public typealias ResizeAction = ((_ view: NSView, _ size: CGSize) -> Void)
     
     var player: AVPlayer
-    private let menuContent: () -> MenuContent
-    private let resizeAction: ResizeAction?
-    private let playerViewConfigurator:PlayerViewConfigurator?
+    let menuContent: () -> MenuContent
+    let resizeAction: ResizeAction?
+    let playerViewConfigurator: PlayerViewConfigurator?
     
     public init(
         player: AVPlayer,
