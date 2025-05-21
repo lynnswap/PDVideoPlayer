@@ -43,6 +43,15 @@ public extension PDVideoPlayer {
         copy.foregroundColor = color
         return copy
     }
+
+#if os(macOS)
+    /// Allows the window to move when dragging on the player view.
+    func windowDraggable(_ value: Bool = true) -> Self {
+        var copy = self
+        copy.windowDraggable = value
+        return copy
+    }
+#endif
 }
 
 #if os(iOS)
