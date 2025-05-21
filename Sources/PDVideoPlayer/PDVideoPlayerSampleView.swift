@@ -28,7 +28,7 @@ struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
-                        .windowDragEnabled()
+//                        .playerOverlay(overlay)
                         .ignoresSafeArea()
                     proxy.control
                     VStack {
