@@ -24,29 +24,25 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
     public var body: some View {
         ZStack {
             if controlsVisibleBinding?.wrappedValue ?? true {
-                VStack {
-                    Spacer()
-                    VStack {
-                        HStack {
-                            Button { model.togglePlay() } label: {
-                                Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
-                                    .foregroundStyle(.white)
-                            }
-                            Spacer()
-                            Menu(content: menuContent) {
-                                Image(systemName: "ellipsis.circle")
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                        .buttonStyle(.plain)
+                ZStack(alignment:.bottom){
+                    VideoPlayerSliderView(viewModel: model)
                         .padding(.horizontal)
-
-                        VideoPlayerSliderView(viewModel: model)
-                            .padding(.horizontal)
+                        .contentShape(Rectangle())
+                    HStack {
+                        Button { model.togglePlay() } label: {
+                            Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+                                .foregroundStyle(.white)
+                        }
+                        Spacer()
+                        Menu(content: menuContent) {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundStyle(.white)
+                        }
                     }
-                    .frame(maxWidth: 600)
+                    .buttonStyle(.plain)
+                    .padding(.horizontal)
+                    .padding(.bottom,20)
                 }
-                .padding(.bottom)
             }
         }
         .animation(.smooth(duration:0.12), value: controlsVisibleBinding?.wrappedValue)
@@ -89,59 +85,54 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
         ZStack {
             if controlsVisibleBinding?.wrappedValue ?? true {
                 VStack {
-                    Spacer()
-                    
-                    VStack {
-                        HStack(alignment: .bottom, spacing: 0) {
-                            playButton()
-                                .frame(width: 90, height: 60)
-                                .padding(.horizontal)
-                                .contentShape(Rectangle())
-                            Spacer()
+                    HStack(alignment: .bottom, spacing: 0) {
+                        playButton()
+                            .frame(width: 90, height: 60)
+                            .padding(.horizontal)
+                            .contentShape(Rectangle())
+                        Spacer()
+                        
+                        ZStack(alignment:.bottomTrailing){
+                            VideoPlayerDurationView(model:model)
+                                .padding(.trailing,48)
                             
-                            ZStack(alignment:.bottomTrailing){
-                                VideoPlayerDurationView(model:model)
-                                    .padding(.trailing,48)
-                                
-                                Menu {
-                                    menuContent()
-                                } label: {
-                                    ZStack(alignment: .bottomTrailing) {
-                                        Rectangle()
-                                            .foregroundStyle(.clear)
-                                            .contentShape(Rectangle())
-                                        Image(systemName: "ellipsis.circle")
-                                            .font(.callout)
-                                            .foregroundStyle(.white)
-                                            .opacity(0.8)
-                                            .padding(.top, 12)
-                                        
-                                    }
+                            Menu {
+                                menuContent()
+                            } label: {
+                                ZStack(alignment: .bottomTrailing) {
+                                    Rectangle()
+                                        .foregroundStyle(.clear)
+                                        .contentShape(Rectangle())
+                                    Image(systemName: "ellipsis.circle")
+                                        .font(.callout)
+                                        .foregroundStyle(.white)
+                                        .opacity(0.8)
+                                        .padding(.top, 12)
                                     
-                                    .frame(width: 60, height: 60)
-                                    .padding(.trailing)
-                                    .padding(.leading,4)
-                                    .contentShape(Rectangle())
                                 }
+                                
+                                .frame(width: 60, height: 60)
+                                .padding(.trailing)
+                                .padding(.leading,4)
+                                .contentShape(Rectangle())
                             }
                         }
-                        .transition(.opacity)
-                        VideoPlayerSliderView(viewModel: model)
-                            .frame(height: 36)
-                            .padding(.horizontal)
-                            .padding(.vertical,8)
-                            .contentShape(Rectangle())
                     }
-                    .frame(maxWidth: 600)
+                    VideoPlayerSliderView(viewModel: model)
+                        .frame(height: 36)
+                        .padding(.horizontal)
+                        .padding(.vertical,8)
+                        .contentShape(Rectangle())
                 }
                 .transition(.opacity)
             }
         }
         .animation(.smooth(duration:0.12), value: controlsVisibleBinding?.wrappedValue)
-        .overlay{
+        .background{
             Button("") {
                 model.togglePlay()
             }
+            .buttonStyle(.plain)
             .foregroundStyle(.clear)
             .keyboardShortcut(.space, modifiers: [])
         }

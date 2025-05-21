@@ -9,32 +9,59 @@ import SwiftUI
 import AVFoundation
 #if os(macOS)
 import AppKit
+class VideoPlayerSliderCell: NSSliderCell {
 
-final class VideoPlayerSliderCell: NSSliderCell {
     private let knobDiameter: CGFloat = 12
-    private let barHeight: CGFloat = 2
-    private let minColor = NSColor.white.withAlphaComponent(0.8)
-    private let maxColor = NSColor.white.withAlphaComponent(0.3)
+    private let barHeight:    CGFloat = 2
+    private let minColor  = NSColor.white.withAlphaComponent(0.8)
+    private let maxColor  = NSColor.white.withAlphaComponent(0.3)
+    private let verticalInset: CGFloat = 2
 
     override var trackRect: NSRect {
         guard let ctrl = controlView else { return .zero }
 
-        let inset = knobDiameter / 2
-        let y = (ctrl.bounds.height - barHeight) / 2
+        let xInset  = knobDiameter / 2
+        let isFlipped = ctrl.isFlipped
+
+        let centerY: CGFloat = isFlipped
+            ? ctrl.bounds.height - verticalInset - knobDiameter / 2
+            : verticalInset + knobDiameter / 2
 
         return NSRect(
-            x: inset,
-            y: y,
-            width: ctrl.bounds.width - knobDiameter,
+            x:      xInset,
+            y:      centerY - barHeight / 2,
+            width:  ctrl.bounds.width - knobDiameter,
             height: barHeight
         )
     }
+
+    override func knobRect(flipped: Bool) -> NSRect {
+        guard let ctrl = controlView else { return .zero }
+
+        let track = self.trackRect
+        let ratio = CGFloat((doubleValue - minValue) / (maxValue - minValue))
+        let x     = track.minX + ratio * track.width - knobDiameter / 2
+
+        let isFlipped = ctrl.isFlipped
+        let originY: CGFloat = isFlipped
+            ? ctrl.bounds.height - verticalInset - knobDiameter
+            : verticalInset
+
+        return NSRect(
+            x: x.rounded(.toNearestOrAwayFromZero),
+            y: originY.rounded(.toNearestOrAwayFromZero),
+            width:  knobDiameter,
+            height: knobDiameter
+        )
+    }
+
     override func drawBar(inside _: NSRect, flipped: Bool) {
         let track = self.trackRect
         maxColor.setFill()
         track.fill()
+
         let fraction = CGFloat(doubleValue - minValue) / CGFloat(maxValue - minValue)
-        var played = track
+        var played   = track
         played.size.width *= fraction
         minColor.setFill()
         played.fill()
@@ -44,25 +71,9 @@ final class VideoPlayerSliderCell: NSSliderCell {
         minColor.setFill()
         path.fill()
     }
-    override func knobRect(flipped: Bool) -> NSRect {
-        guard let ctrl = controlView else { return .zero }
-
-        let track = self.trackRect
-        let ratio = CGFloat((doubleValue - minValue) / (maxValue - minValue))
-
-        let x = track.minX + ratio * track.width - knobDiameter / 2
-        let y = (ctrl.bounds.height - knobDiameter) / 2
-
-        return NSRect(
-            x: x.rounded(.toNearestOrAwayFromZero),
-            y: y.rounded(.toNearestOrAwayFromZero),
-            width: knobDiameter,
-            height: knobDiameter
-        )
-    }
 }
-
 class VideoPlayerSlider: NSSlider {
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         cell = VideoPlayerSliderCell()
@@ -74,28 +85,25 @@ class VideoPlayerSlider: NSSlider {
     }
     override var intrinsicContentSize: NSSize {
         let s = super.intrinsicContentSize
-        return .init(width: s.width, height: 20)
+        return NSSize(width: s.width, height: s.height + 40)
     }
     var onScroll: ((NSEvent.Phase, Double) -> Void)?
-    
     override func scrollWheel(with event: NSEvent) {
         if !event.momentumPhase.isEmpty { return }
-        
+
         let phase = event.phase
-        
         if abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY),
            event.scrollingDeltaX != 0 || event.scrollingDeltaY != 0 {
-            
+
             let sign: Double = event.isDirectionInvertedFromDevice ? 1 : -1
             let sensitivity: Double = event.hasPreciseScrollingDeltas ? 0.002 : 0.0003
             let next = doubleValue + event.scrollingDeltaX * sign * sensitivity
             doubleValue = min(max(next, minValue), maxValue)
         }
-        
+
         if !phase.isEmpty {
             onScroll?(phase, doubleValue)
         }
-        
         if phase == .changed { return }
         super.scrollWheel(with: event)
     }
