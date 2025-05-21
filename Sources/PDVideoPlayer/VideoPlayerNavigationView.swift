@@ -30,6 +30,7 @@ public struct VideoPlayerNavigationView: View {
                             .foregroundStyle(.white)
                     }
                 }
+                .buttonStyle(.plain)
                 .padding(.horizontal)
                 .frame(height: 44)
             }

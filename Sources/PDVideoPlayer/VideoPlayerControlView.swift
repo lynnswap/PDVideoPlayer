@@ -38,6 +38,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                                     .foregroundStyle(.white)
                             }
                         }
+                        .buttonStyle(.plain)
                         .padding(.horizontal)
 
                         VideoPlayerSliderView(viewModel: model)
