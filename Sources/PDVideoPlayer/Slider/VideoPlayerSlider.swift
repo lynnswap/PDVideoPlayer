@@ -13,8 +13,9 @@ class VideoPlayerSliderCell: NSSliderCell {
 
     private let knobDiameter: CGFloat = 12
     private let barHeight:    CGFloat = 2
-    private let minColor  = NSColor.white.withAlphaComponent(0.8)
-    private let maxColor  = NSColor.white.withAlphaComponent(0.3)
+    var baseColor: NSColor = .white { didSet { controlView?.needsDisplay = true } }
+    private var minColor: NSColor { baseColor.withAlphaComponent(0.8) }
+    private var maxColor: NSColor { baseColor.withAlphaComponent(0.3) }
     private let verticalInset: CGFloat = 2
 
     override var trackRect: NSRect {
@@ -82,6 +83,10 @@ class VideoPlayerSlider: NSSlider {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         cell = VideoPlayerSliderCell()
+    }
+    var baseColor: NSColor {
+        get { (cell as? VideoPlayerSliderCell)?.baseColor ?? .white }
+        set { (cell as? VideoPlayerSliderCell)?.baseColor = newValue }
     }
     override var intrinsicContentSize: NSSize {
         let s = super.intrinsicContentSize

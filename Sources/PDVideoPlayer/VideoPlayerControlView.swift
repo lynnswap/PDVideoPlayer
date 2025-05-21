@@ -10,6 +10,7 @@ import SwiftUI
 public struct VideoPlayerControlView<MenuContent: View>: View {
     var model: PDPlayerModel
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     private let menuContent: () -> MenuContent
 
@@ -31,12 +32,12 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                     HStack {
                         Button { model.togglePlay() } label: {
                             Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
-                                .foregroundStyle(.white)
+                                .foregroundStyle(foregroundColor)
                         }
                         Spacer()
                         Menu(content: menuContent) {
                             Image(systemName: "ellipsis.circle")
-                                .foregroundStyle(.white)
+                                .foregroundStyle(foregroundColor)
                         }
                     }
                     .buttonStyle(.plain)
@@ -55,7 +56,7 @@ private struct VideoPlayerDurationView: View {
         Text("\(formatTime(model.currentTime)) / \(formatTime(model.duration))")
             .monospaced()
             .font(.caption)
-            .foregroundStyle(.white)
+            .foregroundStyle(foregroundColor)
             .opacity(0.8)
     }
     // MARK: - 時刻表示フォーマッタ
@@ -70,7 +71,8 @@ private struct VideoPlayerDurationView: View {
 public struct VideoPlayerControlView<MenuContent: View>: View {
     var model: PDPlayerModel
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
-    
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
+
     private let menuContent: () -> MenuContent
 
     public init(
@@ -105,7 +107,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                                         .contentShape(Rectangle())
                                     Image(systemName: "ellipsis.circle")
                                         .font(.callout)
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(foregroundColor)
                                         .opacity(0.8)
                                         .padding(.top, 12)
                                     
@@ -151,7 +153,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                     PlayPauseIcon(model: model)
                     if model.isBuffering{
                         ProgressView()
-                            .tint(.white.opacity(0.8))
+                            .tint(foregroundColor.opacity(0.8))
                     }
                     Spacer(minLength: 0)
                 }
@@ -171,7 +173,7 @@ struct PlayPauseIcon: View {
         Image(systemName: model.isPlaying ? "pause" : "play")
             .symbolVariant(.fill)
             .imageScale(.large)
-            .foregroundStyle(.white)
+            .foregroundStyle(foregroundColor)
             .opacity(0.8)
             .scaleEffect(isPressed ? 0.8 : 1.0)
             .animation(.default, value: isPressed)

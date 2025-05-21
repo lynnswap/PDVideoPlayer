@@ -10,13 +10,14 @@ import AVKit
 #if os(macOS) || os(visionOS)
 #else
 public struct AirPlayRoutePicker: UIViewRepresentable {
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     public func makeUIView(context: Context) -> AVRoutePickerView {
         let picker = AVRoutePickerView()
         picker.prioritizesVideoDevices = true
         picker.contentMode = .scaleAspectFit
         picker.activeTintColor = .systemBlue
-        picker.tintColor = UIColor(Color.white.opacity(0.8))
+        picker.tintColor = UIColor(foregroundColor.opacity(0.8))
 
         if let button = picker.subviews.compactMap({ $0 as? UIButton }).first {
             button.layer.sublayers?.first?.isHidden = true
@@ -42,11 +43,12 @@ public struct AirPlayRoutePicker: UIViewRepresentable {
     }
 }
 struct AirPlayRouteLabelView:View{
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     var body:some View{
         ZStack{
             Color.clear
             Image(systemName:"airplayvideo")
-                .foregroundStyle(.white)
+                .foregroundStyle(foregroundColor)
                 .fontDesign(.rounded)
                 .opacity(0.8)
         }
