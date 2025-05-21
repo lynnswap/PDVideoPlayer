@@ -12,17 +12,35 @@ struct ContentView: View {
     @State private var player = AVPlayer(url:sampleURL)
     
     var body: some View {
-        
         PDVideoPlayer(
-            player: player,
-            menuContent:{
-            Button("Sample 1") {
-                print("Button Tapped 1")
+            url: sampleURL,
+            menuContent: {
+                Button("Sample 1") {
+                    print("Button Tapped 1")
+                }
+                Button("Sample 2") {
+                    print("Button Tapped 2")
+                }
+            },
+            content: { proxy in
+                ZStack {
+                    proxy.player
+                        .ignoresSafeArea()
+                    proxy.control
+                    VStack {
+                        proxy.navigation
+                        Spacer()
+                    }
+                }
             }
-            Button("Sample 2") {
-                print("Button Tapped 2")
-            }
-        })
+        )
+
+        .longpressAction { value in
+            print("longpressAction",value)
+        }
+        .closeAction { value in
+            print("closeAction",value)
+        }
     }
 }
 #endif
