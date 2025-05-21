@@ -3,8 +3,8 @@ import AppKit
 
 /// NSScrollView used in macOS video player.
 /// Disables scrolling when magnification is at the minimum level.
-class PlayerScrollView: NSScrollView {
-    override func scrollWheel(with event: NSEvent) {
+public class PlayerScrollView: NSScrollView {
+    public override func scrollWheel(with event: NSEvent) {
         if magnification <= minMagnification {
             return
         }
