@@ -50,7 +50,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
             if let model {
                 let proxy = PDVideoPlayerProxy(
                     player: PDVideoPlayerRepresentable(
-                        player: model.player,
+                        model: model,
                         playerViewConfigurator: { $0.controlsStyle = .none },
                         menuContent: menuContent
                     ),

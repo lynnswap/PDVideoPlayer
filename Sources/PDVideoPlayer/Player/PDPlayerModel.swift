@@ -417,8 +417,10 @@ extension UIView {
         self.player = player
     }
 
-
-    func setupPlayerView(_ view: AVPlayerView) {
+    private var playerView:CustomAVPlayerView?
+    func setupPlayerView() -> CustomAVPlayerView {
+        let view = CustomAVPlayerView()
+        self.playerView = view
         view.player = player
         player.publisher(for: \.timeControlStatus)
             .receive(on: DispatchQueue.main)
@@ -440,6 +442,7 @@ extension UIView {
         if let item = player.currentItem {
             duration = CMTimeGetSeconds(item.duration)
         }
+        return view
     }
 
     private func addPeriodicTimeObserver() {

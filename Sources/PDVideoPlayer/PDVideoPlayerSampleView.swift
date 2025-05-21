@@ -105,4 +105,7 @@ private struct ContentView: View {
 #endif
 #Preview{
     ContentView()
+#if os(macOS)
+        .frame(width:400,height:600)
+#endif
 }
