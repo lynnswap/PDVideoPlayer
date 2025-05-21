@@ -101,6 +101,14 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 public class PlayerNSView: NSView {
     weak var model: PDPlayerModel?
 
+    private var zoomScale: CGFloat = 1.0
+    private let minZoom: CGFloat = 1.0
+    private let maxZoom: CGFloat = 4.0
+
+    private func updateTransform() {
+        self.layer?.setAffineTransform(CGAffineTransform(scaleX: zoomScale, y: zoomScale))
+    }
+
     // MARK: - Lifecycle
 
     public override init(frame frameRect: NSRect) {
@@ -162,6 +170,13 @@ public class PlayerNSView: NSView {
         }
 
         super.keyDown(with: event)
+    }
+
+    public override func magnify(with event: NSEvent) {
+        var newScale = zoomScale + event.magnification
+        newScale = min(max(newScale, minZoom), maxZoom)
+        zoomScale = newScale
+        updateTransform()
     }
 
     // UIView の layerClass 相当
