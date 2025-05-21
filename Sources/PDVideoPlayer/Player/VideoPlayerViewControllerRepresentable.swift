@@ -102,6 +102,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
 
 public class PlayerNSView: NSView {
+    weak var model: PDPlayerModel?
 
     // MARK: - Lifecycle
 
@@ -115,6 +116,55 @@ public class PlayerNSView: NSView {
         super.init(coder: coder)
         // Nib/Storyboard経由の場合もレイヤーを持つようにする
         self.wantsLayer = true
+    }
+
+    // This view needs to receive key events for playback shortcuts
+    override var acceptsFirstResponder: Bool { true }
+
+    public override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.makeFirstResponder(self)
+    }
+
+    public override func keyDown(with event: NSEvent) {
+        guard let model else {
+            super.keyDown(with: event)
+            return
+        }
+
+        if let key = event.specialKey {
+            switch key {
+            case .leftArrow:
+                model.stepFrames(by: -1)
+                return
+            case .rightArrow:
+                model.stepFrames(by: 1)
+                return
+            default:
+                break
+            }
+        }
+
+        if let chars = event.charactersIgnoringModifiers?.lowercased() {
+            switch chars {
+            case " ":
+                model.togglePlay()
+                return
+            case "j":
+                model.cycleRewindRate()
+                return
+            case "k":
+                model.pause()
+                return
+            case "l":
+                model.cycleForwardRate()
+                return
+            default:
+                break
+            }
+        }
+
+        super.keyDown(with: event)
     }
 
     // UIView の layerClass 相当
