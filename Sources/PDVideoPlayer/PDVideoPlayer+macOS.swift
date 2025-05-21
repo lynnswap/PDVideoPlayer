@@ -3,7 +3,7 @@ import SwiftUI
 import AVKit
 
 public struct PDVideoPlayerProxy<MenuContent: View> {
-    public let player: PDVideoPlayerRepresentable
+    public let player: PDVideoPlayerRepresentable<MenuContent>
     public let control: VideoPlayerControlView<MenuContent>
     public let navigation: VideoPlayerNavigationView
 }
