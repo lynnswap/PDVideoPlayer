@@ -12,6 +12,7 @@ import AppKit
 
 public struct VideoPlayerSliderView: NSViewRepresentable {
     var viewModel: PDPlayerModel
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     public init(viewModel: PDPlayerModel) {
         self.viewModel = viewModel
@@ -19,6 +20,7 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
 
     public func makeNSView(context: Context) -> NSSlider {
         let slider = viewModel.slider
+        slider.baseColor = NSColor(foregroundColor)
         slider.minValue = 0
         slider.maxValue = 1
         slider.doubleValue = 0
@@ -114,6 +116,7 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
 #else
 public struct VideoPlayerSliderView: UIViewRepresentable {
     var viewModel: PDPlayerModel
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     public init(
         viewModel:PDPlayerModel
@@ -134,8 +137,8 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
             scale: .default
         )
 
-        let leftColor:UIColor = UIColor(Color.white.opacity(0.8))
-        let rightColor:UIColor = UIColor(Color.white.opacity(0.3))
+        let leftColor:UIColor = UIColor(foregroundColor.opacity(0.8))
+        let rightColor:UIColor = UIColor(foregroundColor.opacity(0.3))
 
         let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
             .withTintColor(leftColor, renderingMode: .alwaysOriginal)

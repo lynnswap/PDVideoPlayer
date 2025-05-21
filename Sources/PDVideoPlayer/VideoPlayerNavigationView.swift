@@ -13,6 +13,7 @@ public struct VideoPlayerNavigationView: View {
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     public var body: some View {
         VStack {
@@ -20,14 +21,14 @@ public struct VideoPlayerNavigationView: View {
                 HStack {
                     Button { closeAction?(0) } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(foregroundColor)
                     }
                     Spacer()
                     Button {
                         isMutedBinding?.wrappedValue.toggle()
                     } label: {
                         Image(systemName: (isMutedBinding?.wrappedValue ?? false) ? "speaker.slash.fill" : "speaker.fill")
-                            .foregroundStyle(.white)
+                            .foregroundStyle(foregroundColor)
                     }
                 }
                 .buttonStyle(.plain)
@@ -47,6 +48,7 @@ public struct VideoPlayerNavigationView:View{
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(PDPlayerModel.self) private var model
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     public var body:some View{
         VStack {
             ZStack{
@@ -59,7 +61,7 @@ public struct VideoPlayerNavigationView:View{
                                 ZStack{
                                     Color.clear
                                     Image(systemName:"xmark.circle.fill")
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(foregroundColor)
                                         .fontDesign(.rounded)
                                         .opacity(0.8)
                                 }
@@ -101,7 +103,7 @@ public struct VideoPlayerNavigationView:View{
         .fontDesign(.rounded)
         .fontWeight(.semibold)
         .font(.callout)
-        .foregroundStyle(.white)
+        .foregroundStyle(foregroundColor)
         .opacity(0.8)
         .padding(.vertical,4)
         .padding(.horizontal,12)
@@ -131,7 +133,7 @@ public struct VideoPlayerNavigationView:View{
                 }
             }
             .contentShape(Rectangle())
-            .foregroundStyle(.white)
+            .foregroundStyle(foregroundColor)
             .fontDesign(.rounded)
             .opacity(0.8)
         }
@@ -143,7 +145,7 @@ public struct VideoPlayerNavigationView:View{
             ZStack{
                 Color.clear
                 Image(systemName:"pip.enter")
-                    .foregroundStyle(.white)
+                    .foregroundStyle(foregroundColor)
                     .fontDesign(.rounded)
                     .opacity(0.8)
             }
