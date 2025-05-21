@@ -161,7 +161,7 @@ public extension PDVideoPlayer {
         return copy
     }
 
-    func foregroundColor(_ color: Color) -> Self {
+    func playerForegroundColor(_ color: Color) -> Self {
         var copy = self
         copy.foregroundColor = color
         return copy
