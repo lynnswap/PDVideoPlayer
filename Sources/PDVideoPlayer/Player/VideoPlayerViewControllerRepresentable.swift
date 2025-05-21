@@ -41,7 +41,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
-    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.isPresentedMedia) private var isPresented
     
@@ -215,7 +214,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
-    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.isPresentedMedia) private var isPresented
 
@@ -372,17 +370,17 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             switch recognizer.state {
             case .began:
                 // 今の再生レートを保持
-                self.parent.originalRateBinding?.wrappedValue = model.player.rate
+                self.parent.model.originalRate = model.player.rate
                 // もし再生中であれば（rateが0でなければ）
                 if self.parent.model.isPlaying {
                     // 現在のレートの2倍にする
-                    self.parent.model.player.rate = min((self.parent.originalRateBinding?.wrappedValue ?? 1.0) * 2.0,2.0)
+                    self.parent.model.player.rate = min(self.parent.model.originalRate * 2.0, 2.0)
                     self.parent.model.isLongpress = true
                     self.parent.longpressAction?(true)
                 }
             case .ended, .cancelled, .failed:
                 // 長押し終了時に元のレートに戻す
-                self.parent.model.player.rate = self.parent.originalRateBinding?.wrappedValue ?? self.parent.model.player.rate
+                self.parent.model.player.rate = self.parent.model.originalRate
                 self.parent.model.isLongpress = false
                 self.parent.longpressAction?(false)
             default:
