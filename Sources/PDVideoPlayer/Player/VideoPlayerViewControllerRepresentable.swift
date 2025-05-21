@@ -68,6 +68,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         playerView.showsSharingServiceButton = true
         playerView.videoGravity = .resizeAspect
         playerView.controlsStyle = .floating
+        playerView.allowsScrubbing = false
        
         
         if #available(macOS 14.4, *) {
