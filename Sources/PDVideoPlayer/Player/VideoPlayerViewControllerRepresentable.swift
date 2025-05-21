@@ -113,8 +113,8 @@ class CustomAVPlayerView: AVPlayerView {
 
     override func updateLayer() {
         super.updateLayer()
+        layer?.isOpaque = false
         layer?.backgroundColor = NSColor.clear.cgColor
-        playerLayer.backgroundColor = NSColor.clear.cgColor
     }
     override func menu(for event: NSEvent) -> NSMenu? {
         if let contextMenu = contextMenu {
