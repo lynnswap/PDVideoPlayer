@@ -49,6 +49,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                 .padding(.bottom)
             }
         }
+        .animation(.smooth(duration:0.12), value: controlsVisibleBinding?.wrappedValue)
     }
 }
 #else

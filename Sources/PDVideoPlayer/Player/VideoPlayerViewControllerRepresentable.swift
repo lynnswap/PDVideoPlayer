@@ -105,14 +105,39 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     }
 }
 
+private let ADJSUT_GESTURE_INSET: CGFloat = 150
+
 class CustomAVPlayerView: AVPlayerView {
     var contextMenu: NSMenu?
+    override var isOpaque: Bool { false }
+
+    override func updateLayer() {
+        super.updateLayer()
+        layer?.backgroundColor = NSColor.clear.cgColor
+        playerLayer.backgroundColor = NSColor.clear.cgColor
+    }
     override func menu(for event: NSEvent) -> NSMenu? {
         if let contextMenu = contextMenu {
             return contextMenu
         } else {
             return super.menu(for: event)
         }
+    }
+
+    override func scrollWheel(with event: NSEvent) {
+        // Restrict horizontal scrubbing to the area near the bottom slider
+        if abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) {
+            let location = convert(event.locationInWindow, from: nil)
+            let height = bounds.height
+            let adjustInset = min(ADJSUT_GESTURE_INSET, height / 5)
+            let bottomSafeAreaStart = height - adjustInset
+            if location.y < bottomSafeAreaStart {
+                // Ignore horizontal scrolls outside the slider area
+                nextResponder?.scrollWheel(with: event)
+                return
+            }
+        }
+        super.scrollWheel(with: event)
     }
 }
 public class PlayerNSView: NSView {

@@ -10,41 +10,71 @@ import AVFoundation
 #if os(macOS)
 import AppKit
 
-// macOS 用のスライダーセル。ノブ描画をカスタマイズするために使用する。
 final class VideoPlayerSliderCell: NSSliderCell {
-    /// ノブに描画する画像
-    var knobImage: NSImage?
+    private let knobDiameter: CGFloat = 12
+    private let barHeight: CGFloat = 2
+    private let minColor = NSColor.white.withAlphaComponent(0.8)
+    private let maxColor = NSColor.white.withAlphaComponent(0.3)
 
+    override var trackRect: NSRect {
+        guard let ctrl = controlView else { return .zero }
+
+        let inset = knobDiameter / 2
+        let y = (ctrl.bounds.height - barHeight) / 2
+
+        return NSRect(
+            x: inset,
+            y: y,
+            width: ctrl.bounds.width - knobDiameter,
+            height: barHeight
+        )
+    }
+    override func drawBar(inside _: NSRect, flipped: Bool) {
+        let track = self.trackRect
+        maxColor.setFill()
+        track.fill()
+        let fraction = CGFloat(doubleValue - minValue) / CGFloat(maxValue - minValue)
+        var played = track
+        played.size.width *= fraction
+        minColor.setFill()
+        played.fill()
+    }
     override func drawKnob(_ knobRect: NSRect) {
-        if let image = knobImage {
-            image.draw(in: knobRect, from: .zero, operation: .sourceOver, fraction: 1.0)
-        } else {
-            super.drawKnob(knobRect)
-        }
+        let path = NSBezierPath(ovalIn: knobRect)
+        minColor.setFill()
+        path.fill()
+    }
+    override func knobRect(flipped: Bool) -> NSRect {
+        guard let ctrl = controlView else { return .zero }
+
+        let track = self.trackRect
+        let ratio = CGFloat((doubleValue - minValue) / (maxValue - minValue))
+
+        let x = track.minX + ratio * track.width - knobDiameter / 2
+        let y = (ctrl.bounds.height - knobDiameter) / 2
+
+        return NSRect(
+            x: x.rounded(.toNearestOrAwayFromZero),
+            y: y.rounded(.toNearestOrAwayFromZero),
+            width: knobDiameter,
+            height: knobDiameter
+        )
     }
 }
 
-/// 高さ調整とカスタムノブ画像に対応した NSSlider
 class VideoPlayerSlider: NSSlider {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        self.cell = VideoPlayerSliderCell()
+        cell = VideoPlayerSliderCell()
+        allowsTickMarkValuesOnly = false
     }
-
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        self.cell = VideoPlayerSliderCell()
+        cell = VideoPlayerSliderCell()
     }
-
-    /// カスタムノブ画像。`VideoPlayerSliderCell` 経由で保持する。
-    var knobImage: NSImage? {
-        get { (cell as? VideoPlayerSliderCell)?.knobImage }
-        set { (cell as? VideoPlayerSliderCell)?.knobImage = newValue }
-    }
-
     override var intrinsicContentSize: NSSize {
-        let size = super.intrinsicContentSize
-        return NSSize(width: size.width, height: size.height + 20)
+        let s = super.intrinsicContentSize
+        return .init(width: s.width, height: 20)
     }
 }
 
