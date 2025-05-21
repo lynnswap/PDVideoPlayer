@@ -16,11 +16,11 @@ public struct PDVideoPlayer<PlayerMenu: View,
     private var url: URL?
     private var player: AVPlayer?
     
-    private var isMuted: Binding<Bool>?
-    private var controlsVisible: Binding<Bool>?
-    private var closeAction: VideoPlayerCloseAction?
-    private var longpressAction: VideoPlayerLongpressAction?
-    private var foregroundColor: Color = .white
+    var isMuted: Binding<Bool>?
+    var controlsVisible: Binding<Bool>?
+    var closeAction: VideoPlayerCloseAction?
+    var longpressAction: VideoPlayerLongpressAction?
+    var foregroundColor: Color = .white
     
     private let playerMenu: () -> PlayerMenu
     private let controlMenu: () -> ControlMenu

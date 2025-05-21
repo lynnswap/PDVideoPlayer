@@ -15,12 +15,12 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var url: URL?
     private var player: AVPlayer?
 
-    private var isMuted: Binding<Bool>?
-    private var controlsVisible: Binding<Bool>?
-    private var foregroundColor: Color = .white
-    private var closeAction: VideoPlayerCloseAction?
-    private var longpressAction: VideoPlayerLongpressAction?
-    private var panGesture: PDVideoPlayerPanGesture = .rotation
+    var isMuted: Binding<Bool>?
+    var controlsVisible: Binding<Bool>?
+    var foregroundColor: Color = .white
+    var closeAction: VideoPlayerCloseAction?
+    var longpressAction: VideoPlayerLongpressAction?
+    var panGesture: PDVideoPlayerPanGesture = .rotation
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
