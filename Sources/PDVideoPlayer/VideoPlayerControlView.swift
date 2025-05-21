@@ -52,6 +52,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
 #else
 private struct VideoPlayerDurationView: View {
     var model:PDPlayerModel
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     var body:some View{
         Text("\(formatTime(model.currentTime)) / \(formatTime(model.duration))")
             .monospaced()
@@ -166,7 +167,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
 }
 struct PlayPauseIcon: View {
     @Environment(\.isPressed) private var isPressed
-
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     var model: PDPlayerModel
     
     var body: some View {
