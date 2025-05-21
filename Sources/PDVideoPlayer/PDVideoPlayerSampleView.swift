@@ -7,13 +7,13 @@ import AVKit
 
 private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
 
-#if os(macOS)
+#if DEBUG
 struct ContentView: View {
     @State private var player = AVPlayer(url:sampleURL)
     @State private var isMuted: Bool = true
     @State private var controlsVisible: Bool = true
     @State private var originalRate: Float = 1.0
-
+    
     var body: some View {
         PDVideoPlayer(
             url: sampleURL,
@@ -28,53 +28,14 @@ struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
-//                        .playerOverlay(overlay)
-                        .ignoresSafeArea()
-                    VStack {
-                        proxy.navigation
-                        Spacer()
-                        proxy.control
-                            .padding(.bottom)
-                    }
-                    .frame(maxWidth: 600)
-                }
-            }
-        )
-
-        .isMuted($isMuted)
-        .controlsVisible($controlsVisible)
-        .originalRate($originalRate)
-        .longpressAction { value in
-            print("longpressAction",value)
-        }
-        .closeAction { value in
-            print("closeAction",value)
-        }
-    }
-}
+                    //.playerOverlay(overlay)
+#if os(macOS)
+                        .resizeAction({ view, size in
+                            
+                        })
 #endif
-
-
-#if os(iOS) && DEBUG
-private struct ContentView: View {
-    @State private var isMuted: Bool = true
-    @State private var controlsVisible: Bool = true
-    @State private var originalRate: Float = 1.0
-
-    var body:some View{
-        PDVideoPlayer(
-            url: sampleURL,
-            menu: {
-                Button("Sample 1") {
-                    print("Button Tapped 1")
-                }
-                Button("Sample 2") {
-                    print("Button Tapped 2")
-                }
-            },
-            content: { proxy in
-                ZStack {
-                    proxy.player
+                    
+#if os(iOS)
                         .panGesture(.rotation)
                         .contextMenuProvider{ location in
                             let contextMenus :[UIMenuElement] = [
@@ -91,16 +52,19 @@ private struct ContentView: View {
                             )
                         }
                         .rippleEffect()
+#endif
                         .ignoresSafeArea()
                     VStack {
                         proxy.navigation
                         Spacer()
                         proxy.control
+                            .padding(.bottom)
                     }
                     .frame(maxWidth: 600)
                 }
             }
         )
+        
         .isMuted($isMuted)
         .controlsVisible($controlsVisible)
         .originalRate($originalRate)
@@ -112,10 +76,11 @@ private struct ContentView: View {
         }
     }
 }
-#endif
+
 #Preview{
     ContentView()
 #if os(macOS)
         .frame(width:400,height:600)
 #endif
 }
+#endif
