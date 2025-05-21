@@ -101,8 +101,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     }
 
     public func updateNSView(_ uiView: AVPlayerView, context: Context) {
-        uiView.player?.isMuted = isMutedBinding?.wrappedValue ?? false
-        // 必要があれば、動画ソースが変わったときに再監視させるなど
     }
 }
 
