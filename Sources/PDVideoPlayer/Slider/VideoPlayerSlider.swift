@@ -93,6 +93,9 @@ class VideoPlayerSlider: NSSlider {
         return NSSize(width: s.width, height: s.height + 40)
     }
     var onScroll: ((NSEvent.Phase, Double) -> Void)?
+    override func wantsScrollEventsForSwipeTracking(on axis: NSEvent.GestureAxis) -> Bool {
+        axis == .horizontal
+    }
     override func scrollWheel(with event: NSEvent) {
         if !event.momentumPhase.isEmpty { return }
 
@@ -104,12 +107,16 @@ class VideoPlayerSlider: NSSlider {
             let sensitivity: Double = event.hasPreciseScrollingDeltas ? 0.002 : 0.0003
             let next = doubleValue + event.scrollingDeltaX * sign * sensitivity
             doubleValue = min(max(next, minValue), maxValue)
+
+            if !phase.isEmpty {
+                onScroll?(phase, doubleValue)
+            }
+            if phase != .changed {
+                super.scrollWheel(with: event)
+            }
+            return
         }
 
-        if !phase.isEmpty {
-            onScroll?(phase, doubleValue)
-        }
-        if phase == .changed { return }
         super.scrollWheel(with: event)
     }
 }
