@@ -17,7 +17,7 @@ public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_macOS
 
 public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> NSMenu?
-    public typealias PlayerViewConfigurator = (AVPlayerView) -> Void
+    public typealias PlayerViewConfigurator = (PlayerNSView) -> Void
     public typealias ResizeAction = ((_ view: NSView, _ size: CGSize) -> Void)
     
     var model: PDPlayerModel
@@ -51,7 +51,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         var presentationSizeObservation: NSKeyValueObservation?
     }
     public static func dismantleNSView(
-        _ nsView: AVPlayerView,
+        _ nsView: PlayerNSView,
         coordinator: Coordinator
     ){
         coordinator.presentationSizeObservation?.invalidate()
@@ -63,26 +63,22 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         return coordinator
     }
     
-    public func makeNSView(context: Context) -> AVPlayerView {
+    public func makeNSView(context: Context) -> PlayerNSView {
         let playerView = model.setupPlayerView()
-        playerView.showsSharingServiceButton = true
-        playerView.videoGravity = .resizeAspect
-        playerView.controlsStyle = .floating
-       
-        
+        playerView.setPlayer(model.player, videoGravity: .resizeAspect)
+
+
         if #available(macOS 14.4, *) {
             let hostingMenu = NSHostingMenu(rootView: menuContent())
-            playerView.actionPopUpButtonMenu = hostingMenu
-            playerView.contextMenu = hostingMenu
+            playerView.menu = hostingMenu
         }
         playerViewConfigurator?(playerView)
 
-        
-        playerView.allowsPictureInPicturePlayback = true
-        playerView.player?.appliesMediaSelectionCriteriaAutomatically = false
-        playerView.player?.isMuted = isMutedBinding?.wrappedValue ?? false
-        
-        if resizeAction != nil, let playerItem = playerView.player?.currentItem {
+
+        model.player.appliesMediaSelectionCriteriaAutomatically = false
+        model.player.isMuted = isMutedBinding?.wrappedValue ?? false
+
+        if resizeAction != nil, let playerItem = model.player.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
             context.coordinator.presentationSizeObservation = nil
             context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, change in
@@ -100,45 +96,11 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         return playerView
     }
 
-    public func updateNSView(_ uiView: AVPlayerView, context: Context) {
+    public func updateNSView(_ uiView: PlayerNSView, context: Context) {
     }
 }
 
-private let ADJSUT_GESTURE_INSET: CGFloat = 150
 
-class CustomAVPlayerView: AVPlayerView {
-    var contextMenu: NSMenu?
-    override var isOpaque: Bool { false }
-
-    override func updateLayer() {
-        super.updateLayer()
-        layer?.isOpaque = false
-        layer?.backgroundColor = NSColor.clear.cgColor
-    }
-    override func menu(for event: NSEvent) -> NSMenu? {
-        if let contextMenu = contextMenu {
-            return contextMenu
-        } else {
-            return super.menu(for: event)
-        }
-    }
-
-    override func scrollWheel(with event: NSEvent) {
-        // Restrict horizontal scrubbing to the area near the bottom slider
-        if abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) {
-            let location = convert(event.locationInWindow, from: nil)
-            let height = bounds.height
-            let adjustInset = min(ADJSUT_GESTURE_INSET, height / 5)
-            let bottomSafeAreaStart = height - adjustInset
-            if location.y < bottomSafeAreaStart {
-                // Ignore horizontal scrolls outside the slider area
-                nextResponder?.scrollWheel(with: event)
-                return
-            }
-        }
-        super.scrollWheel(with: event)
-    }
-}
 public class PlayerNSView: NSView {
 
     // MARK: - Lifecycle

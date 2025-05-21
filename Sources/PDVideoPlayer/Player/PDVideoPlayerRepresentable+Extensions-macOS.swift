@@ -10,21 +10,17 @@ public extension PDVideoPlayerRepresentable {
         Self(model: self.model, playerViewConfigurator: self.playerViewConfigurator, resizeAction: action, menuContent: self.menuContent)
     }
 
-    func playerOverlay( _ overlay:some View) -> Self {
+    func playerOverlay(_ overlay: some View) -> Self {
         let configurator = self.playerViewConfigurator
         let newConfigurator: PlayerViewConfigurator = { view in
             configurator?(view)
-            if let customView = view as? CustomAVPlayerView {
-                if let contentOverlayView = customView.contentOverlayView {
-                   let overlayHostingView = NSHostingView(rootView: overlay)
-                   contentOverlayView.addSubview(overlayHostingView)
-                   overlayHostingView.translatesAutoresizingMaskIntoConstraints = false
-                   overlayHostingView.topAnchor.constraint(equalTo: contentOverlayView.topAnchor).isActive = true
-                   overlayHostingView.trailingAnchor.constraint(equalTo: contentOverlayView.trailingAnchor).isActive = true
-                   overlayHostingView.bottomAnchor.constraint(equalTo: contentOverlayView.bottomAnchor).isActive = true
-                   overlayHostingView.leadingAnchor.constraint(equalTo: contentOverlayView.leadingAnchor).isActive = true
-               }
-            }
+            let overlayHostingView = NSHostingView(rootView: overlay)
+            view.addSubview(overlayHostingView)
+            overlayHostingView.translatesAutoresizingMaskIntoConstraints = false
+            overlayHostingView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+            overlayHostingView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
+            overlayHostingView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+            overlayHostingView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         }
         return Self(model: self.model, playerViewConfigurator: newConfigurator, resizeAction: self.resizeAction, menuContent: self.menuContent)
     }

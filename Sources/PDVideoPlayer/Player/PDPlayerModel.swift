@@ -420,14 +420,14 @@ extension UIView {
         self.player = player
     }
 
-    private var playerView:CustomAVPlayerView?
-    func setupPlayerView() -> CustomAVPlayerView {
-        let view = CustomAVPlayerView()
+    private var playerView: PlayerNSView?
+    func setupPlayerView() -> PlayerNSView {
+        let view = PlayerNSView()
         self.playerView = view
         view.wantsLayer = true
         view.layer?.isOpaque = false
         view.layer?.backgroundColor = NSColor.clear.cgColor
-        view.player = player
+        view.setPlayer(player, videoGravity: .resizeAspect)
         player.publisher(for: \.timeControlStatus)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
