@@ -20,18 +20,18 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     public typealias PlayerViewConfigurator = (AVPlayerView) -> Void
     public typealias ResizeAction = ((_ view: NSView, _ size: CGSize) -> Void)
     
-    var player: AVPlayer
+    var model: PDPlayerModel
     let menuContent: () -> MenuContent
     let resizeAction: ResizeAction?
     let playerViewConfigurator: PlayerViewConfigurator?
     
     public init(
-        player: AVPlayer,
+        model: PDPlayerModel,
         playerViewConfigurator:PlayerViewConfigurator? = nil,
         resizeAction: ResizeAction? = nil,
         @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
-        self.player = player
+        self.model = model
         self.playerViewConfigurator = playerViewConfigurator
         self.menuContent = menuContent
         self.resizeAction = resizeAction
@@ -40,7 +40,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     
     @Environment(\.isPresentedMedia) private var isPresented
     
-    private let playerView = CustomAVPlayerView()
     
     // CoordinatorでKVOを扱い、プレイヤーサイズが確定したら1度だけリサイズ処理を呼び出す
     final public class Coordinator {
@@ -60,7 +59,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     }
     
     public func makeNSView(context: Context) -> AVPlayerView {
-        playerView.player = player
+        let playerView = model.setupPlayerView()
         playerView.showsSharingServiceButton = true
         playerView.videoGravity = .resizeAspect
         playerView.controlsStyle = .floating
@@ -75,9 +74,9 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
         
         playerView.allowsPictureInPicturePlayback = true
-        player.appliesMediaSelectionCriteriaAutomatically = false
+        playerView.player?.appliesMediaSelectionCriteriaAutomatically = false
         
-        if resizeAction != nil, let playerItem = player.currentItem {
+        if resizeAction != nil, let playerItem = playerView.player?.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
             context.coordinator.presentationSizeObservation = nil
             context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, change in
@@ -86,7 +85,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
                     Task{ @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
-                        resizeAction?(self.playerView,size)
+                        resizeAction?(playerView,size)
                     }
                 }
             }
