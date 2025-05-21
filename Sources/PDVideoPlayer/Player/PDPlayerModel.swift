@@ -5,6 +5,9 @@
 //  Created by Kazuki Nakashima on 2025/02/16.
 //
 
+#if os(macOS)
+import AppKit
+#endif
 import SwiftUI
 import AVFoundation
 import AVKit
@@ -421,6 +424,9 @@ extension UIView {
     func setupPlayerView() -> CustomAVPlayerView {
         let view = CustomAVPlayerView()
         self.playerView = view
+        view.wantsLayer = true
+        view.layer?.isOpaque = false
+        view.layer?.backgroundColor = NSColor.clear.cgColor
         view.player = player
         player.publisher(for: \.timeControlStatus)
             .receive(on: DispatchQueue.main)
