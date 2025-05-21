@@ -55,15 +55,16 @@ struct ContentView: View {
                         .rippleEffect()
 #endif
                         .ignoresSafeArea()
-                    VStack {
+                    VStack(alignment:.center) {
                         if controlsVisible{
                             proxy.navigation
                             Spacer()
                             proxy.control
-                                .frame(maxWidth: 600)
-                                .padding(.bottom)
+                                .frame(maxWidth: 500,alignment: .center)
                         }
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom)
                   
                 }
             }
