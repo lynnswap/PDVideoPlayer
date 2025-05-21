@@ -437,6 +437,7 @@ extension UIView {
     public var player: AVPlayer
     public var closeAction: VideoPlayerCloseAction?
     public var originalRate: Float = 1.0
+    public var scrollView = NSScrollView()
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     private var timeObserverToken: Any?
