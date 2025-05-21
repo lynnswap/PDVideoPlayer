@@ -20,6 +20,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var originalRate: Binding<Float>?
     private var closeAction: VideoPlayerCloseAction?
     private var longpressAction: VideoPlayerLongpressAction?
+    private var foregroundColor: Color = .white
     private var panGesture: PDVideoPlayerPanGesture = .rotation
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
@@ -70,6 +71,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                     .environment(\.videoPlayerOriginalRate, originalRate)
                     .environment(\.videoPlayerCloseAction, closeAction)
                     .environment(\.videoPlayerLongpressAction, longpressAction)
+                    .environment(\.videoPlayerForegroundColor, foregroundColor)
             }
         }
         .task(id: url) {
@@ -154,6 +156,12 @@ public extension PDVideoPlayer {
     func longpressAction(_ action: @escaping (Bool) -> Void) -> Self {
         var copy = self
         copy.longpressAction = VideoPlayerLongpressAction(action)
+        return copy
+    }
+    /// Sets the foreground color used for UI elements.
+    func foregroundColor(_ color: Color) -> Self {
+        var copy = self
+        copy.foregroundColor = color
         return copy
     }
     /// Sets the pan gesture style used for dismissing the video.

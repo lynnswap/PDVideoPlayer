@@ -38,6 +38,10 @@ private struct VideoPlayerLongpressActionKey: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: VideoPlayerLongpressAction? = nil
 }
 
+private struct VideoPlayerForegroundColorKey: EnvironmentKey {
+    static let defaultValue: Color = .white
+}
+
 public extension EnvironmentValues {
     var videoPlayerCloseAction: VideoPlayerCloseAction? {
         get { self[VideoPlayerCloseActionKey.self] }
@@ -58,5 +62,15 @@ public extension EnvironmentValues {
     var videoPlayerLongpressAction: VideoPlayerLongpressAction? {
         get { self[VideoPlayerLongpressActionKey.self] }
         set { self[VideoPlayerLongpressActionKey.self] = newValue }
+    }
+    var videoPlayerForegroundColor: Color {
+        get { self[VideoPlayerForegroundColorKey.self] }
+        set { self[VideoPlayerForegroundColorKey.self] = newValue }
+    }
+}
+
+public extension View {
+    func videoPlayerForegroundColor(_ color: Color) -> some View {
+        environment(\.videoPlayerForegroundColor, color)
     }
 }
