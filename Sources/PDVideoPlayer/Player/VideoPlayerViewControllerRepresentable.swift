@@ -108,6 +108,13 @@ private let ADJSUT_GESTURE_INSET: CGFloat = 150
 
 class CustomAVPlayerView: AVPlayerView {
     var contextMenu: NSMenu?
+    override var isOpaque: Bool { false }
+
+    override func updateLayer() {
+        super.updateLayer()
+        layer?.backgroundColor = NSColor.clear.cgColor
+        playerLayer.backgroundColor = NSColor.clear.cgColor
+    }
     override func menu(for event: NSEvent) -> NSMenu? {
         if let contextMenu = contextMenu {
             return contextMenu
