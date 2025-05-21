@@ -138,6 +138,9 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 public class PlayerNSView: NSView {
     weak var model: PDPlayerModel?
 
+    /// When true, dragging on this view moves the containing window.
+    var isWindowDraggable: Bool = false
+
     private var zoomScale: CGFloat = 1.0
     private let minZoom: CGFloat = 1.0
     private let maxZoom: CGFloat = 4.0
@@ -166,6 +169,14 @@ public class PlayerNSView: NSView {
     public override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         window?.makeFirstResponder(self)
+    }
+
+    public override func mouseDown(with event: NSEvent) {
+        if isWindowDraggable {
+            window?.performDrag(with: event)
+        } else {
+            super.mouseDown(with: event)
+        }
     }
 
     public override func keyDown(with event: NSEvent) {

@@ -437,6 +437,8 @@ extension UIView {
     public var player: AVPlayer
     public var closeAction: VideoPlayerCloseAction?
     public var originalRate: Float = 1.0
+    /// When true, dragging on the player view moves the window.
+    public var windowDraggable: Bool = false
     public var scrollView = PlayerScrollView()
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
@@ -454,6 +456,7 @@ extension UIView {
     func setupPlayerView() -> PlayerNSView {
         let view = PlayerNSView()
         view.model = self
+        view.isWindowDraggable = windowDraggable
         self.playerView = view
         view.wantsLayer = true
         view.layer?.isOpaque = false
