@@ -64,9 +64,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 )
 
                 content(proxy)
-                    .onHover(perform: { isHovering in
-                        controlsVisible?.wrappedValue = isHovering
-                    })
                     .environment(model)
                     .environment(\.videoPlayerIsMuted, isMuted)
                     .environment(\.videoPlayerControlsVisible, controlsVisible)
