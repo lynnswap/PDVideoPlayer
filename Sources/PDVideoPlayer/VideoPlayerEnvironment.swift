@@ -62,8 +62,3 @@ public extension EnvironmentValues {
     }
 }
 
-public extension View {
-    func videoPlayerForegroundColor(_ color: Color) -> some View {
-        environment(\.videoPlayerForegroundColor, color)
-    }
-}
