@@ -31,6 +31,16 @@ public struct VideoPlayerLongpressAction {
     }
 }
 
+public struct VideoPlayerTapAction {
+    let action: () -> Void
+    public init(_ action: @escaping () -> Void) {
+        self.action = action
+    }
+    public func callAsFunction() {
+        action()
+    }
+}
+
 private struct VideoPlayerLongpressActionKey: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: VideoPlayerLongpressAction? = nil
 }

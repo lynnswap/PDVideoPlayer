@@ -27,17 +27,20 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     let menuContent: () -> MenuContent
     let resizeAction: ResizeAction?
     let playerViewConfigurator: PlayerViewConfigurator?
+    let tapAction: VideoPlayerTapAction?
     
     public init(
         model: PDPlayerModel,
         playerViewConfigurator:PlayerViewConfigurator? = nil,
         resizeAction: ResizeAction? = nil,
+        tapAction: VideoPlayerTapAction? = nil,
         @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
         self.model = model
         self.playerViewConfigurator = playerViewConfigurator
         self.menuContent = menuContent
         self.resizeAction = resizeAction
+        self.tapAction = tapAction
         
     }
     
@@ -255,18 +258,21 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     let panGesture: PDVideoPlayerPanGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
+    let tapAction: VideoPlayerTapAction?
  
     public init(
         model: PDPlayerModel,
         panGesture: PDVideoPlayerPanGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
-        contextMenuProvider: ContextMenuProvider? = nil
+        contextMenuProvider: ContextMenuProvider? = nil,
+        tapAction: VideoPlayerTapAction? = nil
 
     ) {
         self.model = model
         self.panGesture = panGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
+        self.tapAction = tapAction
 
     }
     @Environment(\.videoPlayerCloseAction) private var closeAction
@@ -403,7 +409,9 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
             if self.parent.model.doubleTapCount == 0 {
-                if let binding = self.parent.controlsVisibleBinding {
+                if let action = self.parent.tapAction {
+                    action()
+                } else if let binding = self.parent.controlsVisibleBinding {
                     binding.wrappedValue.toggle()
                 }
             }
@@ -412,9 +420,11 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             guard let playerView else { return }
             let locationInPlayerView = recognizer.location(in: playerView.view)
             let videoRect = playerView.videoBounds
-            
+
             if videoRect.contains(locationInPlayerView) {
-                if let binding = parent.controlsVisibleBinding {
+                if let action = parent.tapAction {
+                    action()
+                } else if let binding = parent.controlsVisibleBinding {
                     binding.wrappedValue.toggle()
                 }
             } else {
