@@ -30,24 +30,24 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     /// Creates a player from a URL.
     public init(
         url: URL,
-        @ViewBuilder menuContent: @escaping () -> MenuContent,
+        @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ){
         self.url = url
         self.player = nil
-        self.menuContent = menuContent
+        self.menuContent = menu
         self.content = content
     }
     
     /// Creates a player from an existing AVPlayer instance.
     public init(
         player: AVPlayer,
-        @ViewBuilder menuContent: @escaping () -> MenuContent,
+        @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ){
         self.player = player
         self.url = nil
-        self.menuContent = menuContent
+        self.menuContent = menu
         self.content = content
     }
     
@@ -95,7 +95,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         url: URL,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(url: url, menuContent: { EmptyView() }, content: content)
+        self.init(url: url, menu: { EmptyView() }, content: content)
     }
 
     /// Convenience initializer when no menu content is provided.
@@ -103,7 +103,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         player: AVPlayer,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(player: player, menuContent: { EmptyView() }, content: content)
+        self.init(player: player, menu: { EmptyView() }, content: content)
     }
 }
 
