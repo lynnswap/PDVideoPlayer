@@ -26,6 +26,11 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
         slider.target = context.coordinator
         slider.action = #selector(Coordinator.onValueChanged(_:))
         slider.sendAction(on: [.leftMouseDown, .leftMouseDragged, .leftMouseUp])
+        let gesture = NSPanGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handlePan(_:))
+        )
+        slider.addGestureRecognizer(gesture)
         return slider
     }
 
@@ -78,6 +83,47 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
         private func seek(to ratio: Double) {
             let total = parent.viewModel.duration
             parent.viewModel.seekPrecisely(to: ratio * total)
+        }
+
+        @objc func handlePan(_ gesture: NSPanGestureRecognizer) {
+            let slider = parent.viewModel.slider
+            switch gesture.state {
+            case .began:
+                parent.viewModel.isTracking = true
+                wasPlayingBeforeTracking = parent.viewModel.isPlaying
+                if wasPlayingBeforeTracking {
+                    parent.viewModel.pause()
+                }
+            case .changed:
+                let translation = gesture.translation(in: slider)
+                let deltaX = translation.x
+                let sensitivity: Double = 0.001
+                let newValue = slider.doubleValue + deltaX * sensitivity
+                let clamped = min(max(newValue, slider.minValue), slider.maxValue)
+                slider.doubleValue = clamped
+                gesture.setTranslation(.zero, in: slider)
+                if parent.viewModel.duration > 0 {
+                    let total = parent.viewModel.duration
+                    let seconds = slider.doubleValue * total
+                    parent.viewModel.seekPrecisely(to: seconds)
+                }
+            case .ended, .cancelled:
+                parent.viewModel.isTracking = false
+                if parent.viewModel.duration > 0 {
+                    let total = parent.viewModel.duration
+                    let rawSeconds = slider.doubleValue * total
+                    let step = 0.03
+                    let snappedSeconds = (rawSeconds / step).rounded() * step
+                    let snappedRatio = snappedSeconds / total
+                    slider.doubleValue = snappedRatio
+                    parent.viewModel.seekPrecisely(to: snappedSeconds)
+                }
+                if wasPlayingBeforeTracking {
+                    parent.viewModel.play()
+                }
+            default:
+                break
+            }
         }
     }
 }
