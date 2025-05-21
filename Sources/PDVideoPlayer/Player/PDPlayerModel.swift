@@ -393,7 +393,7 @@ extension UIView {
 }
 #endif
 
-#elseif os(macOS)
+#if os(macOS)
 @MainActor
 @Observable public class PDPlayerModel: NSObject, DynamicProperty {
     public var isPlaying: Bool = false
@@ -417,21 +417,19 @@ extension UIView {
         self.player = player
     }
 
-    deinit {
-        removePeriodicTimeObserver()
-    }
 
     func setupPlayerView(_ view: AVPlayerView) {
         view.player = player
-        player.publisher(for: \.
-            timeControlStatus)
+        player.publisher(for: \.timeControlStatus)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
                 guard let self else { return }
                 switch status {
                 case .playing:
+                    addPeriodicTimeObserver()
                     self.isPlaying = true
                 case .paused:
+                    removePeriodicTimeObserver()
                     self.isPlaying = false
                 default:
                     break
@@ -442,22 +440,22 @@ extension UIView {
         if let item = player.currentItem {
             duration = CMTimeGetSeconds(item.duration)
         }
-
-        addPeriodicTimeObserver()
     }
 
     private func addPeriodicTimeObserver() {
         guard timeObserverToken == nil else { return }
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: .main) { [weak self] time in
             guard let self else { return }
-            currentTime = CMTimeGetSeconds(time)
-            if let item = player.currentItem {
-                let total = CMTimeGetSeconds(item.duration)
-                if total.isFinite { duration = total }
-            }
-            if !self.isTracking {
-                let ratio = (self.duration > 0) ? self.currentTime / self.duration : 0
-                self.slider.doubleValue = ratio
+            MainActor.assumeIsolated {
+                currentTime = CMTimeGetSeconds(time)
+                if let item = player.currentItem {
+                    let total = CMTimeGetSeconds(item.duration)
+                    if total.isFinite { duration = total }
+                }
+                if !self.isTracking {
+                    let ratio = (self.duration > 0) ? self.currentTime / self.duration : 0
+                    self.slider.doubleValue = ratio
+                }
             }
         }
     }

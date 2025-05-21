@@ -41,7 +41,7 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
     public func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-
+    @MainActor
     public class Coordinator: NSObject {
         var parent: VideoPlayerSliderView
         private var wasPlayingBeforeTracking = false
