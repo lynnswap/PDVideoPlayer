@@ -8,6 +8,7 @@ import SwiftUI
 #if canImport(UIKit)
 struct RippleEffectModifier: ViewModifier {
     @Environment(PDPlayerModel.self) private var model
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     
     func body(content: Content) -> some View {
         content
@@ -78,7 +79,7 @@ struct RippleEffectModifier: ViewModifier {
                         .transition(.opacity)
                         .font(.body)
                         .fontWeight(.bold)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(foregroundColor)
                         .opacity(0.8)
                         .position(x: xPos, y: yPos)
                     }
