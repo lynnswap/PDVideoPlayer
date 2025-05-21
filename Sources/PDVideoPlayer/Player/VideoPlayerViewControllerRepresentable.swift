@@ -119,7 +119,7 @@ public class PlayerNSView: NSView {
     }
 
     // This view needs to receive key events for playback shortcuts
-    override var acceptsFirstResponder: Bool { true }
+    public override var acceptsFirstResponder: Bool { true }
 
     public override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
