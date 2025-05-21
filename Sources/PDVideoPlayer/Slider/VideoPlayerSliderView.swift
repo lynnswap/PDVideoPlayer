@@ -25,12 +25,9 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
         slider.isContinuous = true
         slider.target = context.coordinator
         slider.action = #selector(Coordinator.onValueChanged(_:))
-        slider.sendAction(on: [.leftMouseDown, .leftMouseDragged, .leftMouseUp])
-        let gesture = NSPanGestureRecognizer(
-            target: context.coordinator,
-            action: #selector(Coordinator.handlePan(_:))
-        )
-        slider.addGestureRecognizer(gesture)
+        slider.onScroll = { phase, value in
+            context.coordinator.handleScroll(phase: phase, ratioValue: value)
+        }
         return slider
     }
 
@@ -44,31 +41,31 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
     public class Coordinator: NSObject {
         var parent: VideoPlayerSliderView
         private var wasPlayingBeforeTracking = false
-
+        private var wasPlayingBeforeScroll = false
         init(_ parent: VideoPlayerSliderView) {
             self.parent = parent
         }
-
+        
         @objc func onValueChanged(_ sender: NSSlider) {
             guard parent.viewModel.duration > 0,
                   let event = NSApp.currentEvent else { return }
-
+            
             switch event.type {
             case .leftMouseDown:
                 parent.viewModel.isTracking = true
                 wasPlayingBeforeTracking = parent.viewModel.isPlaying
                 parent.viewModel.pause()
-
+                
             case .leftMouseDragged:
                 seek(to: sender.doubleValue)
             case .leftMouseUp:
                 parent.viewModel.isTracking = false
                 snapAndSeek(to: sender.doubleValue)
-
+                
                 if wasPlayingBeforeTracking {
                     parent.viewModel.play()
                 }
-
+                
             default:
                 break
             }
@@ -84,46 +81,33 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
             let total = parent.viewModel.duration
             parent.viewModel.seekPrecisely(to: ratio * total)
         }
+        
+        func handleScroll(phase: NSEvent.Phase, ratioValue: Double) {
+            guard parent.viewModel.duration > 0 else { return }
+            let total = parent.viewModel.duration
 
-        @objc func handlePan(_ gesture: NSPanGestureRecognizer) {
-            let slider = parent.viewModel.slider
-            switch gesture.state {
+            switch phase {
             case .began:
+                wasPlayingBeforeScroll = parent.viewModel.isPlaying
+                parent.viewModel.pause()
                 parent.viewModel.isTracking = true
-                wasPlayingBeforeTracking = parent.viewModel.isPlaying
-                if wasPlayingBeforeTracking {
-                    parent.viewModel.pause()
-                }
             case .changed:
-                let translation = gesture.translation(in: slider)
-                let deltaX = translation.x
-                let sensitivity: Double = 0.001
-                let newValue = slider.doubleValue + deltaX * sensitivity
-                let clamped = min(max(newValue, slider.minValue), slider.maxValue)
-                slider.doubleValue = clamped
-                gesture.setTranslation(.zero, in: slider)
-                if parent.viewModel.duration > 0 {
-                    let total = parent.viewModel.duration
-                    let seconds = slider.doubleValue * total
-                    parent.viewModel.seekPrecisely(to: seconds)
-                }
-            case .ended, .cancelled:
-                parent.viewModel.isTracking = false
-                if parent.viewModel.duration > 0 {
-                    let total = parent.viewModel.duration
-                    let rawSeconds = slider.doubleValue * total
-                    let step = 0.03
-                    let snappedSeconds = (rawSeconds / step).rounded() * step
-                    let snappedRatio = snappedSeconds / total
-                    slider.doubleValue = snappedRatio
-                    parent.viewModel.seekPrecisely(to: snappedSeconds)
-                }
-                if wasPlayingBeforeTracking {
-                    parent.viewModel.play()
-                }
+                parent.viewModel.seekPrecisely(to: ratioValue * total)
+            case .ended,.cancelled:
+                snap(to: ratioValue)
             default:
                 break
             }
+        }
+
+        private func snap(to ratioValue: Double) {
+            let total = parent.viewModel.duration
+            let step  = 0.03
+            let snapped = (ratioValue * total / step).rounded() * step
+            parent.viewModel.seekPrecisely(to: snapped)
+            parent.viewModel.slider.doubleValue = snapped / total
+            parent.viewModel.isTracking = false
+            if wasPlayingBeforeScroll { parent.viewModel.play() }
         }
     }
 }

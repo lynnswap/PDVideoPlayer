@@ -76,6 +76,29 @@ class VideoPlayerSlider: NSSlider {
         let s = super.intrinsicContentSize
         return .init(width: s.width, height: 20)
     }
+    var onScroll: ((NSEvent.Phase, Double) -> Void)?
+    
+    override func scrollWheel(with event: NSEvent) {
+        if !event.momentumPhase.isEmpty { return }
+        
+        let phase = event.phase
+        
+        if abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY),
+           event.scrollingDeltaX != 0 || event.scrollingDeltaY != 0 {
+            
+            let sign: Double = event.isDirectionInvertedFromDevice ? 1 : -1
+            let sensitivity: Double = event.hasPreciseScrollingDeltas ? 0.002 : 0.0003
+            let next = doubleValue + event.scrollingDeltaX * sign * sensitivity
+            doubleValue = min(max(next, minValue), maxValue)
+        }
+        
+        if !phase.isEmpty {
+            onScroll?(phase, doubleValue)
+        }
+        
+        if phase == .changed { return }
+        super.scrollWheel(with: event)
+    }
 }
 
 #else
