@@ -101,11 +101,20 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
 class CustomAVPlayerView: AVPlayerView {
     var contextMenu: NSMenu?
+    var enableWindowDrag: Bool = false
     override func menu(for event: NSEvent) -> NSMenu? {
         if let contextMenu = contextMenu {
             return contextMenu
         } else {
             return super.menu(for: event)
+        }
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        if enableWindowDrag, let window {
+            window.performDrag(with: event)
+        } else {
+            super.mouseDown(with: event)
         }
     }
 }

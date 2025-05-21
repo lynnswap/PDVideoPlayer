@@ -9,5 +9,16 @@ public extension PDVideoPlayerRepresentable {
     func resizeAction(_ action: @escaping ResizeAction) -> Self {
         Self(model: self.model, playerViewConfigurator: self.playerViewConfigurator, resizeAction: action, menuContent: self.menuContent)
     }
+
+    func windowDragEnabled(_ enabled: Bool = true) -> Self {
+        let configurator = self.playerViewConfigurator
+        let newConfigurator: PlayerViewConfigurator = { view in
+            configurator?(view)
+            if let customView = view as? CustomAVPlayerView {
+                customView.enableWindowDrag = enabled
+            }
+        }
+        return Self(model: self.model, playerViewConfigurator: newConfigurator, resizeAction: self.resizeAction, menuContent: self.menuContent)
+    }
 }
 #endif
