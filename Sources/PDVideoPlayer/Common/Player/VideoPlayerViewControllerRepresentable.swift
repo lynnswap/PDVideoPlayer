@@ -45,7 +45,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     }
     
     @Environment(\.videoPlayerCloseAction) private var closeAction
-    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.isPresentedMedia) private var isPresented
     
@@ -276,7 +275,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
     }
     @Environment(\.videoPlayerCloseAction) private var closeAction
-    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.isPresentedMedia) private var isPresented
 
@@ -409,11 +407,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
             if self.parent.model.doubleTapCount == 0 {
-                if let action = self.parent.tapAction {
-                    action()
-                } else if let binding = self.parent.controlsVisibleBinding {
-                    binding.wrappedValue.toggle()
-                }
+                self.parent.tapAction?()
             }
         }
         @objc func handleSingleTap_mac(_ recognizer: UITapGestureRecognizer) {
@@ -422,11 +416,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             let videoRect = playerView.videoBounds
 
             if videoRect.contains(locationInPlayerView) {
-                if let action = parent.tapAction {
-                    action()
-                } else if let binding = parent.controlsVisibleBinding {
-                    binding.wrappedValue.toggle()
-                }
+                parent.tapAction?()
             } else {
                 parent.closeAction?(0)
             }
@@ -543,35 +533,4 @@ extension PDVideoPlayerRepresentable.Coordinator: UIContextMenuInteractionDelega
         }
     }
 }
-extension PDVideoPlayerRepresentable.Coordinator: UIPointerInteractionDelegate {
-    public func pointerInteraction(
-        _ interaction: UIPointerInteraction,
-        regionFor request: UIPointerRegionRequest,
-        defaultRegion: UIPointerRegion
-    ) -> UIPointerRegion? {
-        guard let playerView else { return nil }
-        let bounds = playerView.view.bounds
-        return UIPointerRegion(rect: bounds)
-    }
-
-    public func pointerInteraction(
-        _ interaction: UIPointerInteraction,
-        willEnter region: UIPointerRegion,
-        animator: any UIPointerInteractionAnimating
-    ){
-        if let binding = self.parent.controlsVisibleBinding, !binding.wrappedValue {
-            binding.wrappedValue = true
-        }
-    }
-    public func pointerInteraction(
-        _ interaction: UIPointerInteraction,
-        willExit region: UIPointerRegion,
-        animator: any UIPointerInteractionAnimating
-    ){
-        if let binding = self.parent.controlsVisibleBinding, binding.wrappedValue {
-            binding.wrappedValue = false
-        }
-    }
-}
-
 #endif

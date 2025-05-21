@@ -7,13 +7,7 @@ public extension PDVideoPlayer {
         copy.isMuted = binding
         return copy
     }
-
-    func controlsVisible(_ binding: Binding<Bool>) -> Self {
-        var copy = self
-        copy.controlsVisible = binding
-        return copy
-    }
-
+    
     func closeAction(_ action: VideoPlayerCloseAction) -> Self {
         var copy = self
         copy.closeAction = action
