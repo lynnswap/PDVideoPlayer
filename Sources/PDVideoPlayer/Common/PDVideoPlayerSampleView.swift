@@ -27,6 +27,9 @@ struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
+                        .tapAction{
+                            print("tapAction")
+                        }
 #if os(macOS)
                         .resizeAction({ view, size in
                             
@@ -64,7 +67,6 @@ struct ContentView: View {
             }
         )
         .isMuted($isMuted)
-        .controlsVisible($controlsVisible)
         .longpressAction { value in
             print("longpressAction",value)
         }
