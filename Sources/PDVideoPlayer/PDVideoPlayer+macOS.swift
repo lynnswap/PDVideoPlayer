@@ -143,8 +143,5 @@ public extension PDVideoPlayer {
         return copy
     }
 
-    func panGesture(_ gesture: PDVideoPlayerPanGesture) -> Self {
-        self
-    }
 }
 #endif
