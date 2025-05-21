@@ -237,6 +237,33 @@ enum SkipDirection {
         player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
         self.currentTime = seconds
     }
+
+    // MARK: - Keyboard Navigation Support
+    func stepFrames(by count: Int) {
+        pause()
+        player.currentItem?.step(byCount: count)
+        if let current = player.currentItem?.currentTime() {
+            currentTime = CMTimeGetSeconds(current)
+        }
+    }
+
+    private var rateIndex: Int = 0
+    private let rateValues: [Float] = [1, 2, 4, 8, 16]
+    private var isRewind: Bool = false
+
+    func cycleForwardRate() {
+        if isRewind { rateIndex = 0; isRewind = false }
+        rateIndex = min(rateIndex + 1, rateValues.count - 1)
+        player.rate = rateValues[rateIndex]
+        isPlaying = true
+    }
+
+    func cycleRewindRate() {
+        if !isRewind { rateIndex = 0; isRewind = true }
+        rateIndex = min(rateIndex + 1, rateValues.count - 1)
+        player.rate = -rateValues[rateIndex]
+        isPlaying = true
+    }
     
     var initialCenter = CGPoint()
     var isOnTheta: Bool = false
@@ -423,6 +450,7 @@ extension UIView {
     private var playerView: PlayerNSView?
     func setupPlayerView() -> PlayerNSView {
         let view = PlayerNSView()
+        view.model = self
         self.playerView = view
         view.wantsLayer = true
         view.layer?.isOpaque = false
@@ -497,6 +525,33 @@ extension UIView {
         let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
         currentTime = seconds
+    }
+
+    // MARK: - Keyboard Navigation Support
+    func stepFrames(by count: Int) {
+        pause()
+        player.currentItem?.step(byCount: count)
+        if let current = player.currentItem?.currentTime() {
+            currentTime = CMTimeGetSeconds(current)
+        }
+    }
+
+    private var rateIndex: Int = 0
+    private let rateValues: [Float] = [1, 2, 4, 8, 16]
+    private var isRewind: Bool = false
+
+    func cycleForwardRate() {
+        if isRewind { rateIndex = 0; isRewind = false }
+        rateIndex = min(rateIndex + 1, rateValues.count - 1)
+        player.rate = rateValues[rateIndex]
+        isPlaying = true
+    }
+
+    func cycleRewindRate() {
+        if !isRewind { rateIndex = 0; isRewind = true }
+        rateIndex = min(rateIndex + 1, rateValues.count - 1)
+        player.rate = -rateValues[rateIndex]
+        isPlaying = true
     }
 }
 #endif
