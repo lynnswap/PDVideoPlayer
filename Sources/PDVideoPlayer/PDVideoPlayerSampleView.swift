@@ -30,11 +30,13 @@ struct ContentView: View {
                     proxy.player
 //                        .playerOverlay(overlay)
                         .ignoresSafeArea()
-                    proxy.control
                     VStack {
                         proxy.navigation
                         Spacer()
+                        proxy.control
+                            .padding(.bottom)
                     }
+                    .frame(maxWidth: 600)
                 }
             }
         )
@@ -90,11 +92,12 @@ private struct ContentView: View {
                         }
                         .rippleEffect()
                         .ignoresSafeArea()
-                    proxy.control
                     VStack {
                         proxy.navigation
                         Spacer()
+                        proxy.control
                     }
+                    .frame(maxWidth: 600)
                 }
             }
         )
