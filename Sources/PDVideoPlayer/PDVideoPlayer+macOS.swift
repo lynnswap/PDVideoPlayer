@@ -59,7 +59,7 @@ public struct PDVideoPlayer<PlayerMenu: View,
                 let proxy = PDVideoPlayerProxy(
                     player: PDVideoPlayerRepresentable(
                         model: model,
-                        playerViewConfigurator: { $0.controlsStyle = .none },
+                        playerViewConfigurator: { _ in },
                         menuContent: playerMenu
                     ),
                     control: VideoPlayerControlView(
