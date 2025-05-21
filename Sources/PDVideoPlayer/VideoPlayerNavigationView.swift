@@ -13,7 +13,6 @@ public struct VideoPlayerNavigationView: View {
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
-    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     public var body: some View {
@@ -47,7 +46,6 @@ public struct VideoPlayerNavigationView:View{
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
-    @Environment(\.videoPlayerOriginalRate) private var originalRateBinding
     @Environment(PDPlayerModel.self) private var model
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
@@ -98,7 +96,7 @@ public struct VideoPlayerNavigationView:View{
     }
     private var fastView: some View {
         HStack(spacing:4){
-            Text("\(min(2.0,(originalRateBinding?.wrappedValue ?? 1.0) * 2.0), specifier: "%.1f")x")
+            Text("\(min(2.0, model.originalRate * 2.0), specifier: "%.1f")x")
             Image(systemName:"forward.fill")
                 .imageScale(.small)
         }
