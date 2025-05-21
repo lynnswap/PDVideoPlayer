@@ -12,31 +12,25 @@ public struct VideoPlayerNavigationView: View {
 
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
-    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     public var body: some View {
-        VStack {
-            if controlsVisibleBinding?.wrappedValue ?? true {
-                HStack {
-                    Button { closeAction?(0) } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(foregroundColor)
-                    }
-                    Spacer()
-                    Button {
-                        isMutedBinding?.wrappedValue.toggle()
-                    } label: {
-                        Image(systemName: (isMutedBinding?.wrappedValue ?? false) ? "speaker.slash.fill" : "speaker.fill")
-                            .foregroundStyle(foregroundColor)
-                    }
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal)
-                .frame(height: 44)
+        HStack {
+            Button { closeAction?(0) } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(foregroundColor)
             }
             Spacer()
+            Button {
+                isMutedBinding?.wrappedValue.toggle()
+            } label: {
+                Image(systemName: (isMutedBinding?.wrappedValue ?? false) ? "speaker.slash.fill" : "speaker.fill")
+                    .foregroundStyle(foregroundColor)
+            }
         }
+        .buttonStyle(.plain)
+        .padding(.horizontal)
+        .frame(height: 44)
     }
 }
 #elseif canImport(UIKit) && !os(visionOS)
@@ -45,39 +39,33 @@ public struct VideoPlayerNavigationView:View{
 
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
-    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(PDPlayerModel.self) private var model
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     public var body:some View{
         VStack {
-            ZStack{
-                if controlsVisibleBinding?.wrappedValue ?? true{
-                    HStack(spacing:4){
-                        if UIDevice.current.userInterfaceIdiom == .pad{
-                            Button {
-                                closeAction?(0)
-                            } label: {
-                                ZStack{
-                                    Color.clear
-                                    Image(systemName:"xmark.circle.fill")
-                                        .foregroundStyle(foregroundColor)
-                                        .fontDesign(.rounded)
-                                        .opacity(0.8)
-                                }
-                                .contentShape(Rectangle())
-                                
-                            }
-                            .frame(width:44,height:44)
+            HStack(spacing:4){
+                if UIDevice.current.userInterfaceIdiom == .pad{
+                    Button {
+                        closeAction?(0)
+                    } label: {
+                        ZStack{
+                            Color.clear
+                            Image(systemName:"xmark.circle.fill")
+                                .foregroundStyle(foregroundColor)
+                                .fontDesign(.rounded)
+                                .opacity(0.8)
                         }
-                        AirPlayRoutePicker()
-                            .transition(.opacity)
-                            .frame(width:44,height:44)
-                        Spacer()
-                        volumeButton
-                            .frame(width:44,height:44)
+                        .contentShape(Rectangle())
+                        
                     }
+                    .frame(width:44,height:44)
                 }
+                AirPlayRoutePicker()
+                    .frame(width:44,height:44)
+                Spacer()
+                volumeButton
+                    .frame(width:44,height:44)
             }
             .frame(height:44)
             .padding(.horizontal,12)
@@ -88,7 +76,6 @@ public struct VideoPlayerNavigationView:View{
             }
         }
         .animation(.smooth(duration:0.12),value:model.isLongpress)
-        .animation(.smooth(duration:0.12),value:controlsVisibleBinding?.wrappedValue)
         .onChange(of: model.isLongpress) {
             longpressAction?(model.isLongpress)
         }

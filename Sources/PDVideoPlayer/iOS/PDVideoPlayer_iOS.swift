@@ -16,7 +16,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var player: AVPlayer?
 
     var isMuted: Binding<Bool>?
-    var controlsVisible: Binding<Bool>?
     var foregroundColor: Color = .white
     var closeAction: VideoPlayerCloseAction?
     var longpressAction: VideoPlayerLongpressAction?
@@ -66,7 +65,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 content(proxy)
                     .environment(model)
                     .environment(\.videoPlayerIsMuted, isMuted)
-                    .environment(\.videoPlayerControlsVisible, controlsVisible)
                     .environment(\.videoPlayerCloseAction, closeAction)
                     .environment(\.videoPlayerLongpressAction, longpressAction)
                     .environment(\.videoPlayerForegroundColor, foregroundColor)

@@ -9,7 +9,6 @@ import SwiftUI
 #if os(macOS)
 public struct VideoPlayerControlView<MenuContent: View>: View {
     var model: PDPlayerModel
-    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     private let menuContent: () -> MenuContent
@@ -23,30 +22,25 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
     }
 
     public var body: some View {
-        ZStack {
-            if controlsVisibleBinding?.wrappedValue ?? true {
-                ZStack(alignment:.bottom){
-                    VideoPlayerSliderView(viewModel: model)
-                        .padding(.horizontal)
-                        .contentShape(Rectangle())
-                    HStack {
-                        Button { model.togglePlay() } label: {
-                            Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
-                                .foregroundStyle(foregroundColor)
-                        }
-                        Spacer()
-                        Menu(content: menuContent) {
-                            Image(systemName: "ellipsis.circle")
-                                .foregroundStyle(foregroundColor)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal)
-                    .padding(.bottom,20)
+        ZStack(alignment:.bottom){
+            VideoPlayerSliderView(viewModel: model)
+                .padding(.horizontal)
+                .contentShape(Rectangle())
+            HStack {
+                Button { model.togglePlay() } label: {
+                    Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+                        .foregroundStyle(foregroundColor)
+                }
+                Spacer()
+                Menu(content: menuContent) {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundStyle(foregroundColor)
                 }
             }
+            .buttonStyle(.plain)
+            .padding(.horizontal)
+            .padding(.bottom,20)
         }
-        .animation(.smooth(duration:0.12), value: controlsVisibleBinding?.wrappedValue)
     }
 }
 #else
@@ -71,7 +65,6 @@ private struct VideoPlayerDurationView: View {
 }
 public struct VideoPlayerControlView<MenuContent: View>: View {
     var model: PDPlayerModel
-    @Environment(\.videoPlayerControlsVisible) private var controlsVisibleBinding
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     private let menuContent: () -> MenuContent
@@ -85,52 +78,46 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
     }
 
     public var body: some View {
-        ZStack {
-            if controlsVisibleBinding?.wrappedValue ?? true {
-                VStack {
-                    HStack(alignment: .bottom, spacing: 0) {
-                        playButton()
-                            .frame(width: 90, height: 60)
-                            .padding(.horizontal)
-                            .contentShape(Rectangle())
-                        Spacer()
-                        
-                        ZStack(alignment:.bottomTrailing){
-                            VideoPlayerDurationView(model:model)
-                                .padding(.trailing,48)
-                            
-                            Menu {
-                                menuContent()
-                            } label: {
-                                ZStack(alignment: .bottomTrailing) {
-                                    Rectangle()
-                                        .foregroundStyle(.clear)
-                                        .contentShape(Rectangle())
-                                    Image(systemName: "ellipsis.circle")
-                                        .font(.callout)
-                                        .foregroundStyle(foregroundColor)
-                                        .opacity(0.8)
-                                        .padding(.top, 12)
-                                    
-                                }
-                                
-                                .frame(width: 60, height: 60)
-                                .padding(.trailing)
-                                .padding(.leading,4)
+        VStack {
+            HStack(alignment: .bottom, spacing: 0) {
+                playButton()
+                    .frame(width: 90, height: 60)
+                    .padding(.horizontal)
+                    .contentShape(Rectangle())
+                Spacer()
+                
+                ZStack(alignment:.bottomTrailing){
+                    VideoPlayerDurationView(model:model)
+                        .padding(.trailing,48)
+                    
+                    Menu {
+                        menuContent()
+                    } label: {
+                        ZStack(alignment: .bottomTrailing) {
+                            Rectangle()
+                                .foregroundStyle(.clear)
                                 .contentShape(Rectangle())
-                            }
+                            Image(systemName: "ellipsis.circle")
+                                .font(.callout)
+                                .foregroundStyle(foregroundColor)
+                                .opacity(0.8)
+                                .padding(.top, 12)
+                            
                         }
-                    }
-                    VideoPlayerSliderView(viewModel: model)
-                        .frame(height: 36)
-                        .padding(.horizontal)
-                        .padding(.vertical,8)
+                        
+                        .frame(width: 60, height: 60)
+                        .padding(.trailing)
+                        .padding(.leading,4)
                         .contentShape(Rectangle())
+                    }
                 }
-                .transition(.opacity)
             }
+            VideoPlayerSliderView(viewModel: model)
+                .frame(height: 36)
+                .padding(.horizontal)
+                .padding(.vertical,8)
+                .contentShape(Rectangle())
         }
-        .animation(.smooth(duration:0.12), value: controlsVisibleBinding?.wrappedValue)
         .background{
             Button("") {
                 model.togglePlay()

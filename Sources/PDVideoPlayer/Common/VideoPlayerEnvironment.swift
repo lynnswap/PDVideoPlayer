@@ -58,10 +58,6 @@ public extension EnvironmentValues {
         get { self[VideoPlayerIsMutedKey.self] }
         set { self[VideoPlayerIsMutedKey.self] = newValue }
     }
-    var videoPlayerControlsVisible: Binding<Bool>? {
-        get { self[VideoPlayerControlsVisibleKey.self] }
-        set { self[VideoPlayerControlsVisibleKey.self] = newValue }
-    }
     var videoPlayerLongpressAction: VideoPlayerLongpressAction? {
         get { self[VideoPlayerLongpressActionKey.self] }
         set { self[VideoPlayerLongpressActionKey.self] = newValue }

@@ -56,11 +56,13 @@ struct ContentView: View {
 #endif
                         .ignoresSafeArea()
                     VStack {
-                        proxy.navigation
-                        Spacer()
-                        proxy.control
-                            .frame(maxWidth: 600)
-                            .padding(.bottom)
+                        if controlsVisible{
+                            proxy.navigation
+                            Spacer()
+                            proxy.control
+                                .frame(maxWidth: 600)
+                                .padding(.bottom)
+                        }
                     }
                   
                 }
@@ -74,6 +76,10 @@ struct ContentView: View {
             print("closeAction",value)
         }
         .playerForegroundColor(.white)
+        .onHover{ value in
+            controlsVisible = value
+        }
+        .animation(.smooth(duration:0.12), value: controlsVisible)
     }
 }
 
