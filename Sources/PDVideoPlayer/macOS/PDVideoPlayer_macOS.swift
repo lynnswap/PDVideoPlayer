@@ -21,6 +21,8 @@ public struct PDVideoPlayer<PlayerMenu: View,
     var closeAction: VideoPlayerCloseAction?
     var longpressAction: VideoPlayerLongpressAction?
     var foregroundColor: Color = .white
+    /// Enables moving the window when dragging on the player view.
+    var windowDraggable: Bool = false
     
     private let playerMenu: () -> PlayerMenu
     private let controlMenu: () -> ControlMenu
@@ -85,6 +87,7 @@ public struct PDVideoPlayer<PlayerMenu: View,
             if let url {
                 let m = PDPlayerModel(url: url)
                 m.closeAction = closeAction
+                m.windowDraggable = windowDraggable
                 model = m
             }
         }
@@ -92,6 +95,7 @@ public struct PDVideoPlayer<PlayerMenu: View,
             if let player {
                 let m = PDPlayerModel(player: player)
                 m.closeAction = closeAction
+                m.windowDraggable = windowDraggable
                 model = m
             }
         }
