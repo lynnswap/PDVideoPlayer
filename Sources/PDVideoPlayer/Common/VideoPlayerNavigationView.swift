@@ -20,6 +20,7 @@ public struct VideoPlayerNavigationView: View {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundStyle(foregroundColor)
             }
+            AirPlayRoutePicker()
             Spacer()
             Button {
                 isMutedBinding?.wrappedValue.toggle()
