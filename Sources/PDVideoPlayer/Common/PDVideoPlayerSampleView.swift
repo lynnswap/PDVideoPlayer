@@ -52,7 +52,7 @@ struct ContentView: View {
                                 children: contextMenus
                             )
                         }
-                        .rippleEffect()
+                        .skipRippleEffect()
 #endif
                         .ignoresSafeArea()
                     VStack(alignment:.center) {
