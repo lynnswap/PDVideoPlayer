@@ -461,9 +461,7 @@ extension UIView {
         view.model = self
         view.isWindowDraggable = windowDraggable
         self.playerView = view
-        view.wantsLayer = true
-        view.layer?.isOpaque = false
-        view.layer?.backgroundColor = NSColor.clear.cgColor
+       
         view.setPlayer(player, videoGravity: .resizeAspect)
         player.publisher(for: \.timeControlStatus)
             .receive(on: DispatchQueue.main)
