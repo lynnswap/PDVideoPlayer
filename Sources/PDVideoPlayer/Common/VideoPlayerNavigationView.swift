@@ -27,6 +27,7 @@ public struct VideoPlayerNavigationView: View {
             } label: {
                 Image(systemName: (isMutedBinding?.wrappedValue ?? false) ? "speaker.slash.fill" : "speaker.fill")
                     .foregroundStyle(foregroundColor)
+                    .adaptiveSymbolReplaceTransition()
             }
         }
         .buttonStyle(.plain)
@@ -110,15 +111,9 @@ public struct VideoPlayerNavigationView:View{
         }label:{
             ZStack{
                 Color.clear
-                if #available(iOS 18.0, *,visionOS 2.0, *) {
-                    Image(systemName:"speaker")
-                        .symbolVariant((isMutedBinding?.wrappedValue ?? false) ? .slash.fill : .fill)
-                        .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.byLayer), options: .nonRepeating))
-                } else {
-                    Image(systemName:"speaker")
-                        .symbolVariant((isMutedBinding?.wrappedValue ?? false) ? .slash.fill : .fill)
-                        .contentTransition(.symbolEffect(.replace))
-                }
+                Image(systemName:"speaker")
+                    .symbolVariant((isMutedBinding?.wrappedValue ?? false) ? .slash.fill : .fill)
+                    .adaptiveSymbolReplaceTransition()
             }
             .contentShape(Rectangle())
             .foregroundStyle(foregroundColor)
@@ -143,3 +138,13 @@ public struct VideoPlayerNavigationView:View{
     }
 }
 #endif
+private extension View {
+    @ViewBuilder
+    func adaptiveSymbolReplaceTransition() -> some View {
+        if #available(iOS 18.0, *, visionOS 2.0, *, macOS 15.0, *) {
+            self.contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.byLayer), options: .nonRepeating))
+        }else{
+            self.contentTransition(.symbolEffect(.replace))
+        }
+    }
+}
