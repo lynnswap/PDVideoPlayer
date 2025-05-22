@@ -122,7 +122,7 @@ struct RippleEffectModifier: ViewModifier {
 }
 
 extension View {
-    public func rippleEffect() -> some View {
+    public func skipRippleEffect() -> some View {
         modifier(RippleEffectModifier())
     }
 }
