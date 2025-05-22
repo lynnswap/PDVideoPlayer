@@ -27,9 +27,6 @@ public struct PDVideoPlayer<PlayerMenu: View,
     private let controlMenu: () -> ControlMenu
     private let content: (PDVideoPlayerProxy<PlayerMenu, ControlMenu>) -> Content
     
-    
-    private var playerID: ObjectIdentifier? { player.map { ObjectIdentifier($0) } }
-    
     public init(
         url: URL,
         @ViewBuilder playerMenu: @escaping () -> PlayerMenu,
@@ -55,53 +52,62 @@ public struct PDVideoPlayer<PlayerMenu: View,
     }
     
     public var body: some View {
-        ZStack {
-            if let model {
-                let proxy = PDVideoPlayerProxy(
-                    player: PDVideoPlayerRepresentable(
-                        model: model,
-                        playerViewConfigurator: { _ in },
-                        menuContent: playerMenu
-                    ),
-                    control: VideoPlayerControlView(
-                        model: model,
-                        menuContent: controlMenu
-                    ),
-                    navigation: VideoPlayerNavigationView()
-                )
-                
-                content(proxy)
-                    .videoPlayerKeyboardShortcuts(model)
-                    .environment(model)
-                    .environment(\.videoPlayerIsMuted, isMuted)
-                    .environment(\.videoPlayerCloseAction, closeAction)
-                    .environment(\.videoPlayerLongpressAction, longpressAction)
-                    .environment(\.videoPlayerForegroundColor, foregroundColor)
-            }
+        if let model {
+            let proxy = PDVideoPlayerProxy(
+                player: PDVideoPlayerRepresentable(
+                    model: model,
+                    playerViewConfigurator: { _ in },
+                    menuContent: playerMenu
+                ),
+                control: VideoPlayerControlView(
+                    model: model,
+                    menuContent: controlMenu
+                ),
+                navigation: VideoPlayerNavigationView()
+            )
+            
+            content(proxy)
+                .videoPlayerKeyboardShortcuts(model)
+                .environment(model)
+                .environment(\.videoPlayerIsMuted, isMuted)
+                .environment(\.videoPlayerCloseAction, closeAction)
+                .environment(\.videoPlayerLongpressAction, longpressAction)
+                .environment(\.videoPlayerForegroundColor, foregroundColor)
+                .onChange(of: isMuted?.wrappedValue){
+                    if let isMuted{
+                        model.player.isMuted = isMuted.wrappedValue
+                    }
+                }
+                .onChange(of:foregroundColor){
+                    model.slider.baseColor = NSColor(foregroundColor)
+                }
+                .onChange(of: url) {
+                    setModel(url: url, player: nil)
+                }
+                .onChange(of: player) {
+                    setModel(url: nil, player: player)
+                }
+        }else{
+            Color.clear
+                .task{
+                    setModel(url: url, player: player)
+                }
         }
-        .onChange(of: isMuted?.wrappedValue){
-            if let isMuted{
-                model?.player.isMuted = isMuted.wrappedValue
-            }
-        }
-        .onChange(of:foregroundColor){
-            model?.slider.baseColor = NSColor(foregroundColor)
-        }
-        .task(id: url) {
-            if let url {
-                let m = PDPlayerModel(url: url)
-                m.closeAction = closeAction
-                m.windowDraggable = windowDraggable
-                model = m
-            }
-        }
-        .task(id: playerID) {
-            if let player {
-                let m = PDPlayerModel(player: player)
-                m.closeAction = closeAction
-                m.windowDraggable = windowDraggable
-                model = m
-            }
+    }
+    private func setModel(
+        url:URL?,
+        player:AVPlayer?
+    ){
+        if let url{
+            let m = PDPlayerModel(url: url)
+            m.closeAction = closeAction
+            m.windowDraggable = windowDraggable
+            model = m
+        }else if let player{
+            let m = PDPlayerModel(player: player)
+            m.closeAction = closeAction
+            m.windowDraggable = windowDraggable
+            model = m
         }
     }
 }

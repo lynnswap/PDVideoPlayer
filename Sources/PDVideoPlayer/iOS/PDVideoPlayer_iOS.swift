@@ -23,8 +23,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
-
-    private var playerID: ObjectIdentifier? { player.map { ObjectIdentifier($0) } }
     
     /// Creates a player from a URL.
     public init(
@@ -51,63 +49,71 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     }
     
     public var body: some View {
-        ZStack {
-            if let model {
-                let proxy = PDVideoPlayerProxy(
-                    player: PDVideoPlayerRepresentable(
-                        model: model,
-                        panGesture: panGesture
-                    ),
-                    control: VideoPlayerControlView(model: model, menuContent: menuContent),
-                    navigation: VideoPlayerNavigationView()
-                )
-
-                content(proxy)
-                    .videoPlayerKeyboardShortcuts(model)
-                    .environment(model)
-                    .environment(\.videoPlayerIsMuted, isMuted)
-                    .environment(\.videoPlayerCloseAction, closeAction)
-                    .environment(\.videoPlayerLongpressAction, longpressAction)
-                    .environment(\.videoPlayerForegroundColor, foregroundColor)
-            }
-        }
-        .onChange(of: isMuted?.wrappedValue){
-            if let isMuted{
-                model?.player.isMuted = isMuted.wrappedValue
-            }
-        }
-        .onChange(of:foregroundColor){
-            guard let slider = model?.slider else { return }
-            
-            
-            let config = UIImage.SymbolConfiguration(
-                pointSize: 6,
-                weight: .regular,
-                scale: .default
+        if let model {
+            let proxy = PDVideoPlayerProxy(
+                player: PDVideoPlayerRepresentable(
+                    model: model,
+                    panGesture: panGesture
+                ),
+                control: VideoPlayerControlView(model: model, menuContent: menuContent),
+                navigation: VideoPlayerNavigationView()
             )
-            let leftColor:UIColor = UIColor(foregroundColor.opacity(0.8))
-            let rightColor:UIColor = UIColor(foregroundColor.opacity(0.3))
 
-            let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
-                .withTintColor(leftColor, renderingMode: .alwaysOriginal)
-            slider.setThumbImage(thumbImage, for: .normal)
+            content(proxy)
+                .videoPlayerKeyboardShortcuts(model)
+                .environment(model)
+                .environment(\.videoPlayerIsMuted, isMuted)
+                .environment(\.videoPlayerCloseAction, closeAction)
+                .environment(\.videoPlayerLongpressAction, longpressAction)
+                .environment(\.videoPlayerForegroundColor, foregroundColor)
+                .onChange(of: isMuted?.wrappedValue){
+                    if let isMuted{
+                        model.player.isMuted = isMuted.wrappedValue
+                    }
+                }
+                .onChange(of:foregroundColor){
+                    let slider = model.slider
+                    
+                    let config = UIImage.SymbolConfiguration(
+                        pointSize: 6,
+                        weight: .regular,
+                        scale: .default
+                    )
+                    let leftColor:UIColor = UIColor(foregroundColor.opacity(0.8))
+                    let rightColor:UIColor = UIColor(foregroundColor.opacity(0.3))
 
-            slider.minimumTrackTintColor = leftColor
-            slider.maximumTrackTintColor = rightColor
+                    let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
+                        .withTintColor(leftColor, renderingMode: .alwaysOriginal)
+                    slider.setThumbImage(thumbImage, for: .normal)
+
+                    slider.minimumTrackTintColor = leftColor
+                    slider.maximumTrackTintColor = rightColor
+                }
+                .onChange(of: url) {
+                    setModel(url: url, player: nil)
+                }
+                .onChange(of: player) {
+                    setModel(url: nil, player: player)
+                }
+        }else{
+            Color.clear
+                .task{
+                    setModel(url: url, player: player)
+                }
         }
-        .task(id: url) {
-            if let url {
-                let newModel = PDPlayerModel(url: url)
-                newModel.closeAction = closeAction
-                model = newModel
-            }
-        }
-        .task(id: playerID) {
-            if let player {
-                let newModel = PDPlayerModel(player: player)
-                newModel.closeAction = closeAction
-                model = newModel
-            }
+    }
+    private func setModel(
+        url:URL?,
+        player:AVPlayer?
+    ){
+        if let url{
+            let newModel = PDPlayerModel(url: url)
+            newModel.closeAction = closeAction
+            model = newModel
+        }else if let player{
+            let newModel = PDPlayerModel(player: player)
+            newModel.closeAction = closeAction
+            model = newModel
         }
     }
 }
