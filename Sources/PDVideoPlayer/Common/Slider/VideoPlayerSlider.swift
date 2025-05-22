@@ -11,7 +11,7 @@ import AVFoundation
 import AppKit
 class VideoPlayerSliderCell: NSSliderCell {
 
-    private let knobDiameter: CGFloat = 12
+    fileprivate let knobDiameter: CGFloat = 12
     private let barHeight:    CGFloat = 2
     var baseColor: NSColor = .white { didSet { controlView?.needsDisplay = true } }
     private var minColor: NSColor { baseColor.withAlphaComponent(0.8) }
@@ -94,14 +94,18 @@ class VideoPlayerSlider: NSSlider {
     }
     var onScroll: ((NSEvent.Phase, Double) -> Void)?
 
-    /// Restrict drag interactions to the lower half of the view while keeping
+    /// Restrict drag interactions to within the knob's height while keeping
     /// scroll gestures active for the full height.
     override func hitTest(_ point: NSPoint) -> NSView? {
         if let event = NSApp.currentEvent {
             switch event.type {
             case .leftMouseDown, .leftMouseDragged, .leftMouseUp:
-                let dragHeight = bounds.height / 2
-                if point.y > dragHeight { return nil }
+                if let cell = self.cell as? VideoPlayerSliderCell {
+                    let knobRect = cell.knobRect(flipped: isFlipped)
+                    if point.y < knobRect.minY || point.y > knobRect.maxY {
+                        return nil
+                    }
+                }
             default:
                 break
             }
