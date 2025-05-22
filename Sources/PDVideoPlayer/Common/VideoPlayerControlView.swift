@@ -89,6 +89,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                 ZStack(alignment:.bottomTrailing){
                     VideoPlayerDurationView(model:model)
                         .padding(.trailing,48)
+                        .padding(.bottom,1.5)
                     
                     Menu {
                         menuContent()
@@ -111,6 +112,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                         .contentShape(Rectangle())
                     }
                 }
+                .frame(height:60)
             }
             VideoPlayerSliderView(viewModel: model)
                 .frame(height: 36)
