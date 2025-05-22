@@ -21,14 +21,10 @@ public struct VideoPlayerNavigationView: View {
                     .foregroundStyle(foregroundColor)
             }
             AirPlayRoutePicker()
+                .frame(width:44,height:44)
             Spacer()
-            Button {
-                isMutedBinding?.wrappedValue.toggle()
-            } label: {
-                Image(systemName: (isMutedBinding?.wrappedValue ?? false) ? "speaker.slash.fill" : "speaker.fill")
-                    .foregroundStyle(foregroundColor)
-                    .adaptiveSymbolReplaceTransition()
-            }
+            MuteButton()
+                .frame(width:44,height:44)
         }
         .buttonStyle(.plain)
         .padding(.horizontal)
