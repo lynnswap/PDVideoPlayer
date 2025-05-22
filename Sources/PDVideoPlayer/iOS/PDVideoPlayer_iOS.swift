@@ -70,6 +70,11 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                     .environment(\.videoPlayerForegroundColor, foregroundColor)
             }
         }
+        .onChange(of: isMuted?.wrappedValue){
+            if let isMuted{
+                model?.player.isMuted = isMuted.wrappedValue
+            }
+        }
         .onChange(of:foregroundColor){
             guard let slider = model?.slider else { return }
             

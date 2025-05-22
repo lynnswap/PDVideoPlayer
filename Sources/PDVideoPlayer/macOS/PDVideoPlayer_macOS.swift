@@ -78,6 +78,11 @@ public struct PDVideoPlayer<PlayerMenu: View,
                     .environment(\.videoPlayerForegroundColor, foregroundColor)
             }
         }
+        .onChange(of: isMuted?.wrappedValue){
+            if let isMuted{
+                model?.player.isMuted = isMuted.wrappedValue
+            }
+        }
         .onChange(of:foregroundColor){
             model?.slider.baseColor = NSColor(foregroundColor)
         }
