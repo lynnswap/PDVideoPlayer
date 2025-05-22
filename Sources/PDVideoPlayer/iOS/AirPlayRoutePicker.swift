@@ -11,7 +11,7 @@ import AVKit
 #else
 public struct AirPlayRoutePicker: UIViewRepresentable {
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
-
+    public init() {}
     public func makeUIView(context: Context) -> AVRoutePickerView {
         let picker = AVRoutePickerView()
         picker.prioritizesVideoDevices = true
