@@ -26,11 +26,8 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
             VideoPlayerSliderView(viewModel: model)
                 .padding(.horizontal)
                 .contentShape(Rectangle())
-            HStack {
-                Button { model.togglePlay() } label: {
-                    Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
-                        .foregroundStyle(foregroundColor)
-                }
+            HStack(alignment: .bottom) {
+                PlayPauseButton(model:model)
                 Spacer()
                 VideoPlayerDurationView(model:model)
                 Menu(content: menuContent) {
@@ -62,7 +59,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
     public var body: some View {
         VStack {
             HStack(alignment: .bottom, spacing: 0) {
-                playButton()
+                PlayPauseButton(model:model)
                     .frame(width: 90, height: 60)
                     .padding(.horizontal)
                     .contentShape(Rectangle())
@@ -103,9 +100,38 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                 .contentShape(Rectangle())
         }
     }
+}
+
+#endif
+private struct VideoPlayerDurationView: View {
+    var model:PDPlayerModel
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
+    var body:some View{
+        Text("\(formatTime(model.currentTime)) / \(formatTime(model.duration))")
+            .monospaced()
+            .font(.caption)
+            .foregroundStyle(foregroundColor)
+            .opacity(0.8)
+    }
+    // MARK: - 時刻表示フォーマッタ
+    private func formatTime(_ time: Double) -> String {
+        guard time.isFinite && time >= 0 else { return "00:00" }
+        let totalSec = Int(time)
+        let minutes = totalSec / 60
+        let seconds = totalSec % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+public struct PlayPauseButton: View{
+    public var model: PDPlayerModel
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     
-    // MARK: - 再生/一時停止ボタン
-    private func playButton() -> some View {
+    public init(
+        model:PDPlayerModel
+    ){
+        self.model = model
+    }
+    public var body:some View{
         Button {
             model.togglePlay()
         } label: {
@@ -126,7 +152,6 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
         }
         .buttonStyle(PlayButtonStyle())
     }
-
 }
 struct PlayPauseIcon: View {
     @Environment(\.isPressed) private var isPressed
@@ -158,25 +183,5 @@ extension EnvironmentValues {
     var isPressed: Bool {
         get { self[IsPressedKey.self] }
         set { self[IsPressedKey.self] = newValue }
-    }
-}
-#endif
-private struct VideoPlayerDurationView: View {
-    var model:PDPlayerModel
-    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
-    var body:some View{
-        Text("\(formatTime(model.currentTime)) / \(formatTime(model.duration))")
-            .monospaced()
-            .font(.caption)
-            .foregroundStyle(foregroundColor)
-            .opacity(0.8)
-    }
-    // MARK: - 時刻表示フォーマッタ
-    private func formatTime(_ time: Double) -> String {
-        guard time.isFinite && time >= 0 else { return "00:00" }
-        let totalSec = Int(time)
-        let minutes = totalSec / 60
-        let seconds = totalSec % 60
-        return String(format: "%02d:%02d", minutes, seconds)
     }
 }

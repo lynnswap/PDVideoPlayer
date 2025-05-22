@@ -436,7 +436,8 @@ extension UIView {
 
     let slider = VideoPlayerSlider()
     public var isTracking = false
-
+    public var isBuffering: Bool = false
+    
     public var player: AVPlayer
     public var closeAction: VideoPlayerCloseAction?
     public var originalRate: Float = 1.0
