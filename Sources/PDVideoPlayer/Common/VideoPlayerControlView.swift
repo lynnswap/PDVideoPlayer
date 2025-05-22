@@ -42,6 +42,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
             .padding(.horizontal)
             .padding(.bottom,20)
         }
+        .videoPlayerKeyboardShortcuts()
     }
 }
 #else
@@ -102,14 +103,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                 .padding(.vertical,8)
                 .contentShape(Rectangle())
         }
-        .background{
-            Button("") {
-                model.togglePlay()
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.clear)
-            .keyboardShortcut(.space, modifiers: [])
-        }
+        .videoPlayerKeyboardShortcuts()
     }
     
     // MARK: - 再生/一時停止ボタン
