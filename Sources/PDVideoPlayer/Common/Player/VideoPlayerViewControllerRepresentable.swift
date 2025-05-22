@@ -46,8 +46,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
-    @Environment(\.isPresentedMedia) private var isPresented
-    
     
     @MainActor
     final public class Coordinator: NSObject {
@@ -250,19 +248,16 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
         self.tapAction = tapAction
-
     }
     @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
-    @Environment(\.isPresentedMedia) private var isPresented
-
 
     public func makeUIView(context: Context) -> UIScrollView {
         let scrollView = model.scrollView
-        
-        if !isPresented{
+        if context.coordinator.dismantled{
             return scrollView
         }
+        
         let playerView = model.setupPlayer()
         context.coordinator.playerView = playerView
         
@@ -357,13 +352,18 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     }
     public func updateUIView(_ uiView: UIScrollView, context: Context) {}
 
-
+    public static func dismantleUIView(
+        _ uiView: Self.UIViewType,
+        coordinator: Self.Coordinator
+    ){
+        coordinator.dismantled = true
+    }
     public func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-
     public class Coordinator: NSObject, UIScrollViewDelegate {
         var parent: PDVideoPlayerRepresentable
+        var dismantled:Bool = false
         weak var playerView:AVPlayerViewController?
         init(_ parent: PDVideoPlayerRepresentable) {
             self.parent = parent
