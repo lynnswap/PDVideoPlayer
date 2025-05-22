@@ -10,8 +10,7 @@ import AVFoundation
 #if os(macOS)
 import AppKit
 class VideoPlayerSliderCell: NSSliderCell {
-
-    fileprivate let knobDiameter: CGFloat = 12
+    public var knobDiameter: CGFloat = 12
     private let barHeight:    CGFloat = 2
     var baseColor: NSColor = .white { didSet { controlView?.needsDisplay = true } }
     private var minColor: NSColor { baseColor.withAlphaComponent(0.8) }
@@ -74,7 +73,7 @@ class VideoPlayerSliderCell: NSSliderCell {
     }
 }
 class VideoPlayerSlider: NSSlider {
-
+    public var knobDiameter: CGFloat = 12
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         cell = VideoPlayerSliderCell()
@@ -100,12 +99,7 @@ class VideoPlayerSlider: NSSlider {
         if let event = NSApp.currentEvent {
             switch event.type {
             case .leftMouseDown, .leftMouseDragged, .leftMouseUp:
-                if let cell = self.cell as? VideoPlayerSliderCell {
-                    let knobRect = cell.knobRect(flipped: isFlipped)
-                    if point.y < knobRect.minY || point.y > knobRect.maxY {
-                        return nil
-                    }
-                }
+                if point.y > knobDiameter { return nil }
             default:
                 break
             }
