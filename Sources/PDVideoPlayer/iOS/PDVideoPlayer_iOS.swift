@@ -63,6 +63,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 )
 
                 content(proxy)
+                    .videoPlayerKeyboardShortcuts(model)
                     .environment(model)
                     .environment(\.videoPlayerIsMuted, isMuted)
                     .environment(\.videoPlayerCloseAction, closeAction)

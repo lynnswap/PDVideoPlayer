@@ -2,35 +2,39 @@
 import SwiftUI
 
 /// Provides keyboard shortcuts for common playback controls.
-struct VideoPlayerKeyboardShortcutModifier: ViewModifier {
-    @Environment(PDPlayerModel.self) private var model
+public struct VideoPlayerKeyboardShortcutModifier: ViewModifier {
+    public var model:PDPlayerModel
 
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         content
             .background(
-                KeyboardShortcutButtons()
+                ZStack {
+                    Button("") { model.togglePlay() }
+                        .keyboardShortcut(.space, modifiers: [])
+                    Button("") { model.stepFrames(by: -1) }
+                        .keyboardShortcut(.leftArrow, modifiers: [])
+                    Button("") { model.stepFrames(by: 1) }
+                        .keyboardShortcut(.rightArrow, modifiers: [])
+                    
+                    Button("") { model.cycleRewindRate() }
+                        .keyboardShortcut("j", modifiers: [])
+                    Button("") { model.pause() }
+                        .keyboardShortcut("k", modifiers: [])
+                    Button("") { model.cycleForwardRate() }
+                        .keyboardShortcut("l", modifiers: [])
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.clear)
             )
-    }
-
-    @ViewBuilder
-    private func KeyboardShortcutButtons() -> some View {
-        ZStack {
-            Button("") { model.togglePlay() }
-                .keyboardShortcut(.space, modifiers: [])
-            Button("") { model.stepFrames(by: -1) }
-                .keyboardShortcut(.leftArrow, modifiers: [])
-            Button("") { model.stepFrames(by: 1) }
-                .keyboardShortcut(.rightArrow, modifiers: [])
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(.clear)
     }
 }
 
 extension View {
     /// Adds keyboard shortcuts for controlling playback.
-    public func videoPlayerKeyboardShortcuts() -> some View {
-        modifier(VideoPlayerKeyboardShortcutModifier())
+    public func videoPlayerKeyboardShortcuts(
+        _ model:PDPlayerModel
+    ) -> some View {
+        modifier(VideoPlayerKeyboardShortcutModifier(model:model))
     }
 }
 #endif

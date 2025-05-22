@@ -195,47 +195,6 @@ public class PlayerNSView: NSView {
         }
     }
 
-    public override func keyDown(with event: NSEvent) {
-        guard let model else {
-            super.keyDown(with: event)
-            return
-        }
-
-        if let key = event.specialKey {
-            switch key {
-            case .leftArrow:
-                model.stepFrames(by: -1)
-                return
-            case .rightArrow:
-                model.stepFrames(by: 1)
-                return
-            default:
-                break
-            }
-        }
-
-        if let chars = event.charactersIgnoringModifiers?.lowercased() {
-            switch chars {
-            case " ":
-                model.togglePlay()
-                return
-            case "j":
-                model.cycleRewindRate()
-                return
-            case "k":
-                model.pause()
-                return
-            case "l":
-                model.cycleForwardRate()
-                return
-            default:
-                break
-            }
-        }
-
-        super.keyDown(with: event)
-    }
-
     public override func magnify(with event: NSEvent) {
         super.magnify(with: event)
     }
