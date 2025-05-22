@@ -68,7 +68,7 @@ class VideoPlayerSliderCell: NSSliderCell {
     }
     override func drawKnob(_ knobRect: NSRect) {
         let path = NSBezierPath(ovalIn: knobRect)
-        minColor.setFill()
+        baseColor.setFill()
         path.fill()
     }
 }
