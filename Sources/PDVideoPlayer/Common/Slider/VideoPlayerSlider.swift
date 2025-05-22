@@ -101,11 +101,7 @@ class VideoPlayerSlider: NSSlider {
             switch event.type {
             case .leftMouseDown, .leftMouseDragged, .leftMouseUp:
                 let dragHeight = bounds.height / 2
-                if self.isFlipped {
-                    if point.y < bounds.height - dragHeight { return nil }
-                } else {
-                    if point.y > dragHeight { return nil }
-                }
+                if point.y > dragHeight { return nil }
             default:
                 break
             }
