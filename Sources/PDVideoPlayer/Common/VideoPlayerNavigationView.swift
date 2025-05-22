@@ -120,7 +120,7 @@ public struct VideoPlayerNavigationView:View{
     }
 }
 #endif
-private extension View {
+extension View {
     @ViewBuilder
     func adaptiveSymbolReplaceTransition() -> some View {
         if #available(iOS 18.0, *, visionOS 2.0, *, macOS 15.0, *) {
