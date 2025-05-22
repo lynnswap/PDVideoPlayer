@@ -28,6 +28,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                 .contentShape(Rectangle())
             HStack(alignment: .bottom) {
                 PlayPauseButton(model:model)
+                    .frame(width: 40, height: 40)
                 Spacer()
                 VideoPlayerDurationView(model:model)
                 Menu(content: menuContent) {
