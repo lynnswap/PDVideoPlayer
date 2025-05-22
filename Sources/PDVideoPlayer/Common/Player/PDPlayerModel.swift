@@ -270,7 +270,7 @@ enum SkipDirection {
     }
     
     var initialCenter = CGPoint()
-    var isOnTheta: Bool = false
+    var isRotatingGestureActive: Bool = false
     var initialGesturePoint = CGPoint.zero
 }
 
@@ -294,8 +294,8 @@ extension PDPlayerModel:UIGestureRecognizerDelegate{
             containerView.setAnchorPoint(anchorPointInContainerView: gestureStartPointInContainerView, forView: scrollView)
         case .changed:
             let translation = recognizer.translation(in: scrollView)
-            if isOnTheta || abs(translation.y) >= 20 {
-                isOnTheta = true
+            if isRotatingGestureActive || abs(translation.y) >= 20 {
+                isRotatingGestureActive = true
                 containerView.center = CGPoint(x: self.initialCenter.x + translation.x,
                                                y: self.initialCenter.y + translation.y)
                 let angleFactor = self.initialGesturePoint.x > 0 ? -1.0 : 1.0
@@ -303,7 +303,7 @@ extension PDPlayerModel:UIGestureRecognizerDelegate{
                 containerView.transform = CGAffineTransform(rotationAngle: angle)
             }
         case .ended:
-            isOnTheta = false
+            isRotatingGestureActive = false
             let velocity = recognizer.velocity(in: scrollView)
             if abs(velocity.x) < abs(velocity.y) && abs(velocity.y) > 500 {
                 let predictedEndCenter = CGPoint(
@@ -403,7 +403,7 @@ extension PDPlayerModel:UIGestureRecognizerDelegate{
                 return abs(translation.y) <= abs(translation.x)
             }
         }
-        return scrollView.zoomScale <= scrollView.minimumZoomScale && !isOnTheta
+        return scrollView.zoomScale <= scrollView.minimumZoomScale && !isRotatingGestureActive
     }
 }
 extension UIView {
