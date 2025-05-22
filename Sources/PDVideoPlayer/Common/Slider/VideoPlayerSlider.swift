@@ -110,14 +110,7 @@ class VideoPlayerSlider: NSSlider {
         axis == .horizontal
     }
     override func scrollWheel(with event: NSEvent) {
-        if !event.momentumPhase.isEmpty {
-            let phase = event.phase
-            if phase == .ended || phase == .cancelled {
-                onScroll?(phase, doubleValue)
-                super.scrollWheel(with: event)
-            }
-            return
-        }
+        if !event.momentumPhase.isEmpty { return }
 
         let phase = event.phase
         if abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY),
@@ -135,6 +128,10 @@ class VideoPlayerSlider: NSSlider {
                 super.scrollWheel(with: event)
             }
             return
+        }else{
+            if phase == .ended || phase == .cancelled {
+                onScroll?(phase, doubleValue)
+            }
         }
 
         super.scrollWheel(with: event)
