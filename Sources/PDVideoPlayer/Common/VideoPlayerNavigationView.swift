@@ -66,7 +66,7 @@ public struct VideoPlayerNavigationView:View{
                 AirPlayRoutePicker()
                     .frame(width:44,height:44)
                 Spacer()
-                volumeButton
+                MuteButton()
                     .frame(width:44,height:44)
             }
             .frame(height:44)
@@ -101,24 +101,6 @@ public struct VideoPlayerNavigationView:View{
                 .fill(.ultraThinMaterial)
                 .environment(\.colorScheme, .dark)
             
-        }
-    }
-    private var volumeButton: some View {
-        Button{
-            if let binding = isMutedBinding {
-                binding.wrappedValue.toggle()
-            }
-        }label:{
-            ZStack{
-                Color.clear
-                Image(systemName:"speaker")
-                    .symbolVariant((isMutedBinding?.wrappedValue ?? false) ? .slash.fill : .fill)
-                    .adaptiveSymbolReplaceTransition()
-            }
-            .contentShape(Rectangle())
-            .foregroundStyle(foregroundColor)
-            .fontDesign(.rounded)
-            .opacity(0.8)
         }
     }
     private var pipButton: some View{
