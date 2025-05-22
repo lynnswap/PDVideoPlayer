@@ -93,6 +93,25 @@ class VideoPlayerSlider: NSSlider {
         return NSSize(width: s.width, height: s.height + 40)
     }
     var onScroll: ((NSEvent.Phase, Double) -> Void)?
+
+    /// Restrict drag interactions to the lower half of the view while keeping
+    /// scroll gestures active for the full height.
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        if let event = NSApp.currentEvent {
+            switch event.type {
+            case .leftMouseDown, .leftMouseDragged, .leftMouseUp:
+                let dragHeight = bounds.height / 2
+                if self.isFlipped {
+                    if point.y < bounds.height - dragHeight { return nil }
+                } else {
+                    if point.y > dragHeight { return nil }
+                }
+            default:
+                break
+            }
+        }
+        return super.hitTest(point)
+    }
     override func wantsScrollEventsForSwipeTracking(on axis: NSEvent.GestureAxis) -> Bool {
         axis == .horizontal
     }
