@@ -9,8 +9,12 @@ import SwiftUI
 import AVKit
 #if os(macOS)
 public struct AirPlayRoutePicker: NSViewRepresentable {
-    public var iconSize: CGFloat = 24
-
+    public var iconSize: CGFloat
+    public init(
+        iconSize:CGFloat = 24
+    ) {
+        self.iconSize = iconSize
+    }
     public func makeNSView(context: Context) -> AVRoutePickerView {
         let picker = AVRoutePickerView()
         picker.isRoutePickerButtonBordered = false
