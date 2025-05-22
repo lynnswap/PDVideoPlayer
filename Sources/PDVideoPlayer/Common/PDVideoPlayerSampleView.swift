@@ -77,9 +77,9 @@ struct ContentView: View {
             print("closeAction",value)
         }
         .playerForegroundColor(.white)
-        .onHover{ value in
-            controlsVisible = value
-        }
+//        .onHover{ value in
+//            controlsVisible = value
+//        }
         .animation(.smooth(duration:0.12), value: controlsVisible)
     }
 }
