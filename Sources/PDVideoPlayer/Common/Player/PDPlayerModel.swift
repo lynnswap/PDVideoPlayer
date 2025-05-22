@@ -208,6 +208,9 @@ enum SkipDirection {
     }
     
     func play() {
+        if duration > 0 && (currentTime >= duration || (duration - currentTime) < 0.1) {
+            seek(to: 0)
+        }
         player.play()
     }
     
@@ -510,7 +513,12 @@ extension UIView {
         }
     }
 
-    func play() { player.play() }
+    func play() {
+        if duration > 0 && (currentTime >= duration || (duration - currentTime) < 0.1) {
+            seek(to: 0)
+        }
+        player.play()
+    }
     func pause() { player.pause() }
 
     public func togglePlay() {
