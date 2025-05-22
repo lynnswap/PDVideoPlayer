@@ -49,7 +49,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     @Environment(\.isPresentedMedia) private var isPresented
     
     
-    // CoordinatorでKVOを扱い、プレイヤーサイズが確定したら1度だけリサイズ処理を呼び出す
+    @MainActor
     final public class Coordinator: NSObject {
         var presentationSizeObservation: NSKeyValueObservation?
         var parent: PDVideoPlayerView_macOS
