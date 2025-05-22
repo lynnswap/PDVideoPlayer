@@ -75,7 +75,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     
     public func makeNSView(context: Context) -> NSScrollView {
         let playerView = model.setupPlayerView()
-        playerView.setPlayer(model.player, videoGravity: .resizeAspect)
         context.coordinator.playerView = playerView
 
         let singleClickGestureRecognizer = NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:)))
