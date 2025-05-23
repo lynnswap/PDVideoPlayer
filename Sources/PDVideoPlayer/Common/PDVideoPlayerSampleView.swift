@@ -30,7 +30,7 @@ struct ContentView: View {
                         .onTap { inside in
                             print("onTap", inside)
                         }
-#if os(macOS)
+#if os(macOS) || os(iOS)
                         .onPresentationSizeChange({ view, size in
 
                         })
