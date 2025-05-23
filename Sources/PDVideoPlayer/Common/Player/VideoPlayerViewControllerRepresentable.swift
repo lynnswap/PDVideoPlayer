@@ -58,7 +58,15 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         }
 
         @objc func handleClick(_ recognizer: NSClickGestureRecognizer) {
-            parent.tapAction?()
+            guard let playerView else {
+                parent.tapAction?(true)
+                return
+            }
+
+            let locationInPlayerView = recognizer.location(in: playerView)
+            let videoRect = playerView.videoBounds
+            let inside = videoRect.contains(locationInPlayerView)
+            parent.tapAction?(inside)
         }
     }
     public static func dismantleNSView(
@@ -384,19 +392,24 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
             if self.parent.model.doubleTapCount == 0 {
-                self.parent.tapAction?()
+                var inside = true
+                if let playerView {
+                    let location = recognizer.location(in: playerView.view)
+                    let videoRect = playerView.videoBounds
+                    inside = videoRect.contains(location)
+                }
+                self.parent.tapAction?(inside)
             }
         }
         @objc func handleSingleTap_mac(_ recognizer: UITapGestureRecognizer) {
-            guard let playerView else { return }
+            guard let playerView else {
+                parent.tapAction?(true)
+                return
+            }
             let locationInPlayerView = recognizer.location(in: playerView.view)
             let videoRect = playerView.videoBounds
-
-            if videoRect.contains(locationInPlayerView) {
-                parent.tapAction?()
-            } else {
-                parent.closeAction?(0)
-            }
+            let inside = videoRect.contains(locationInPlayerView)
+            parent.tapAction?(inside)
         }
         @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
             let model = parent.model
