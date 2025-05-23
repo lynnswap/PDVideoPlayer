@@ -34,7 +34,7 @@ enum SkipDirection {
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     
     public var player: AVPlayer
-    public var closeAction: VideoPlayerCloseAction?
+    public var onClose: VideoPlayerCloseAction?
     
     var doubleTapCount: Int = 0
     private var doubleTapBaseTime: Double = 0
@@ -317,7 +317,7 @@ extension PDPlayerModel:UIGestureRecognizerDelegate{
                 } else if stoptime < 0.2 {
                     stoptime = 0.2
                 }
-                closeAction?(stoptime * 0.5)
+                onClose?(stoptime * 0.5)
                
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
@@ -374,7 +374,7 @@ extension PDPlayerModel:UIGestureRecognizerDelegate{
                 } else if stoptime < 0.18{
                     stoptime = 0.15
                 }
-                closeAction?(stoptime * 0.5)
+                onClose?(stoptime * 0.5)
            
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
@@ -439,7 +439,7 @@ extension UIView {
     public var isBuffering: Bool = false
     
     public var player: AVPlayer
-    public var closeAction: VideoPlayerCloseAction?
+    public var onClose: VideoPlayerCloseAction?
     public var originalRate: Float = 1.0
     /// When true, dragging on the player view moves the window.
     public var windowDraggable: Bool = false

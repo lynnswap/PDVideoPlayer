@@ -40,7 +40,7 @@ struct ContentView: View {
         }) { proxy in
             ZStack {
                 proxy.player
-                    .tapAction { inside in
+                    .onTap { inside in
                         print("tap", inside)
                     }
                 VStack {
@@ -61,8 +61,9 @@ struct ContentView: View {
 `PDVideoPlayer` provides several modifiers to customize behavior:
 
 - `isMuted(_:)` – Bind the mute state.
-- `closeAction(_:)` – Handle closing the player.
-- `longpressAction(_:)` – Respond to long‑press gestures.
+- `onClose(_:)` – Handle closing the player.
+- `onLongPress(_:)` – Respond to long‑press gestures.
+- `onResize(_:)` – Observe the presentation size on macOS.
 - `playerForegroundColor(_:)` – Set tint color for controls.
 - `panGesture(_:)` – Choose the pan gesture type on iOS.
 - `windowDraggable(_:)` – Allow dragging the macOS window by the player view.
