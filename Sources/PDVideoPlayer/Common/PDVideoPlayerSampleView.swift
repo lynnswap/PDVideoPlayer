@@ -28,7 +28,7 @@ struct ContentView: View {
                 ZStack {
                     proxy.player
                         .onTap { inside in
-                            print("tapAction", inside)
+                            print("onTap", inside)
                         }
 #if os(macOS)
                         .onResize({ view, size in

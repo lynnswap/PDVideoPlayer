@@ -27,20 +27,20 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     let menuContent: () -> MenuContent
     let onResize: ResizeAction?
     let playerViewConfigurator: PlayerViewConfigurator?
-    let tapAction: VideoPlayerTapAction?
+    let onTap: VideoPlayerTapAction?
     
     public init(
         model: PDPlayerModel,
         playerViewConfigurator:PlayerViewConfigurator? = nil,
         onResize: ResizeAction? = nil,
-        tapAction: VideoPlayerTapAction? = nil,
+        onTap: VideoPlayerTapAction? = nil,
         @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
         self.model = model
         self.playerViewConfigurator = playerViewConfigurator
         self.menuContent = menuContent
         self.onResize = onResize
-        self.tapAction = tapAction
+        self.onTap = onTap
         
     }
     
@@ -58,14 +58,14 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
         @objc func handleClick(_ recognizer: NSClickGestureRecognizer) {
             guard let playerView else {
-                parent.tapAction?(true)
+                parent.onTap?(true)
                 return
             }
 
             let locationInPlayerView = recognizer.location(in: playerView)
             let videoRect = playerView.videoBounds
             let inside = videoRect.contains(locationInPlayerView)
-            parent.tapAction?(inside)
+            parent.onTap?(inside)
         }
     }
     public static func dismantleNSView(
@@ -239,21 +239,21 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     let panGesture: PDVideoPlayerPanGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
-    let tapAction: VideoPlayerTapAction?
+    let onTap: VideoPlayerTapAction?
  
     public init(
         model: PDPlayerModel,
         panGesture: PDVideoPlayerPanGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
         contextMenuProvider: ContextMenuProvider? = nil,
-        tapAction: VideoPlayerTapAction? = nil
+        onTap: VideoPlayerTapAction? = nil
 
     ) {
         self.model = model
         self.panGesture = panGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
-        self.tapAction = tapAction
+        self.onTap = onTap
     }
     @Environment(\.videoPlayerOnLongPress) private var onLongPress
 
@@ -396,18 +396,18 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     let videoRect = playerView.videoBounds
                     inside = videoRect.contains(location)
                 }
-                self.parent.tapAction?(inside)
+                self.parent.onTap?(inside)
             }
         }
         @objc func handleSingleTap_mac(_ recognizer: UITapGestureRecognizer) {
             guard let playerView else {
-                parent.tapAction?(true)
+                parent.onTap?(true)
                 return
             }
             let locationInPlayerView = recognizer.location(in: playerView.view)
             let videoRect = playerView.videoBounds
             let inside = videoRect.contains(locationInPlayerView)
-            parent.tapAction?(inside)
+            parent.onTap?(inside)
         }
         @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
             let model = parent.model

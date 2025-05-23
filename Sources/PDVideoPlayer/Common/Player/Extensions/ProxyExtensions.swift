@@ -7,7 +7,7 @@ public extension PDVideoPlayerProxy {
         panGesture: PDVideoPlayerPanGesture? = nil,
         scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator? = nil,
         contextMenuProvider: PDVideoPlayerRepresentable.ContextMenuProvider? = nil,
-        tapAction: VideoPlayerTapAction? = nil
+        onTap: VideoPlayerTapAction? = nil
     ) -> PDVideoPlayerRepresentable {
         var view = self.player
         if let panGesture {
@@ -19,8 +19,8 @@ public extension PDVideoPlayerProxy {
         if let contextMenuProvider {
             view = view.contextMenuProvider(contextMenuProvider)
         }
-        if let tapAction {
-            view = view.tapAction(tapAction)
+        if let onTap {
+            view = view.onTap(onTap)
         }
         return view
     }
