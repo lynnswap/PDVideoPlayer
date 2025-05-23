@@ -58,6 +58,7 @@ struct ContentView: View {
                             proxy.navigation
                             Spacer()
                             proxy.control
+                                .trackpadSeeking()
 #if os(macOS)
                                 .buttonStyle(.plain)
                                 .padding(.horizontal)

@@ -6,7 +6,7 @@ private final class PassThroughView: NSView {
 }
 
 struct TrackpadSwipeOverlay: NSViewRepresentable {
-    var model: PDPlayerModel
+    @Environment(PDPlayerModel.self) private var model
 
     @MainActor
     final class Coordinator {
@@ -59,8 +59,8 @@ struct TrackpadSwipeOverlay: NSViewRepresentable {
 
 public extension View {
     /// Enables trackpad swipe seeking using the provided player model.
-    func trackpadSeeking(_ model: PDPlayerModel) -> some View {
-        overlay(TrackpadSwipeOverlay(model: model))
+    func trackpadSeeking() -> some View {
+        overlay(TrackpadSwipeOverlay())
     }
 }
 #endif
