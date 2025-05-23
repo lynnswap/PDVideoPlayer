@@ -5,41 +5,21 @@ import AVFoundation
 /// A menu that lets the user choose between available subtitle tracks.
 public struct SubtitleMenuView: View {
     @Environment(PDPlayerModel.self) private var model
-    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
-
+    
     public init() {}
-
+    
     public var body: some View {
-        Menu {
-            Button { model.selectSubtitle(nil) } label: {
-                label(for: nil)
-            }
+        Picker(selection: Bindable(model).selectedSubtitle) {
+            Text(String(localized: "Off")).tag(Optional<AVMediaSelectionOption>.none)
             ForEach(model.subtitleOptions, id: \.self) { option in
-                Button { model.selectSubtitle(option) } label: {
-                    label(for: option)
-                }
+                Text(option.displayName)
+                    .tag(Optional(option))
             }
         } label: {
-            ZStack {
-                Color.clear
-                Image(systemName: "captions.bubble.fill")
-                    .foregroundStyle(foregroundColor)
-                    .fontDesign(.rounded)
-                    .opacity(0.8)
-            }
-            .contentShape(Rectangle())
+            Label(String(localized: "Subtitles"), systemImage: "captions.bubble")
+                .symbolVariant(model.selectedSubtitle == nil ? .none : .fill)
         }
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private func label(for option: AVMediaSelectionOption?) -> some View {
-        let title = option?.displayName ?? "Off"
-        if model.selectedSubtitle == option {
-            Label(title, systemImage: "checkmark")
-        } else {
-            Text(title)
-        }
+        .task{ await model.loadSubtitleOptions() }
     }
 }
 #endif
