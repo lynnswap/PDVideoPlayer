@@ -88,8 +88,7 @@ class VideoPlayerSlider: NSSlider {
         set { (cell as? VideoPlayerSliderCell)?.baseColor = newValue }
     }
     override var intrinsicContentSize: NSSize {
-        let s = super.intrinsicContentSize
-        return NSSize(width: s.width, height: s.height + 40)
+        super.intrinsicContentSize
     }
     var onScroll: ((NSEvent.Phase, Double) -> Void)?
 
