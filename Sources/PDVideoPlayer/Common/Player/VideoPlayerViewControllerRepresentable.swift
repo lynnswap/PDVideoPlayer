@@ -359,12 +359,12 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         switch closeGesture {
         case .rotation:
             let panGestureRecognizer = UIPanGestureRecognizer(target: model, action: #selector(PDPlayerModel.handlePanGesture(_:)))
-            panGestureRecognizer.delegate = model
+            panGestureRecognizer.delegate = context.coordinator
             scrollView.isUserInteractionEnabled = true
             scrollView.addGestureRecognizer(panGestureRecognizer)
         case .vertical:
             let panGestureRecognizer = UIPanGestureRecognizer(target: model, action: #selector(PDPlayerModel.handlePanGestureUpDown(_:)))
-            panGestureRecognizer.delegate = model
+            panGestureRecognizer.delegate = context.coordinator
             scrollView.isUserInteractionEnabled = true
             scrollView.addGestureRecognizer(panGestureRecognizer)
         case .none:
