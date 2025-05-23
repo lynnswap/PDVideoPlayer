@@ -7,6 +7,7 @@
 - Universal support for **iOS** and **macOS** using the same code base.
 - Picture-in-Picture on iOS via `PiPManager`.
 - AirPlay route picker for streaming to external displays.
+- Custom context menus on iOS via `contextMenuProvider`.
 - Gesture handling including double-tap skip with ripple effects, long press speed changes, and optional close gestures for rotation or vertical seeking.
 - Customizable keyboard shortcuts for quick navigation.
 - Environment driven configuration such as mute state, close actions, long‑press callbacks and foreground color.
@@ -47,6 +48,7 @@ struct ContentView: View {
 #if os(iOS)
                     .closeGesture(.rotation)
                     .skipRippleEffect()
+                        // adds a ripple animation when double‑tap skipping
 #endif
 #if os(macOS)
                     .onPresentationSizeChange({ view, size in
@@ -85,6 +87,8 @@ struct ContentView: View {
 - `playerForegroundColor(_:)` – Set tint color for controls.
 - `closeGesture(_:)` – Choose the close gesture type on iOS.
 - `windowDraggable(_:)` – Allow dragging the macOS window by the player view.
+- `contextMenuProvider(_:)` – Provide a custom context menu for a tap location on iOS.
+- `skipRippleEffect()` – Show a ripple animation when double‑tap skipping on iOS.
 
 ## License
 

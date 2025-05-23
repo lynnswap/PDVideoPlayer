@@ -59,7 +59,7 @@ enum SkipDirection {
         // ダブルタップの方向を判定 (左: 巻き戻し, 右: 早送り)
         let newDirection: SkipDirection = (tapX < viewWidth / 2) ? .backward : .forward
         
-        // もし方向が変わったらリセットする (YouTube の挙動を想定)
+        // Reset if the direction changes to mimic common video app behavior
         if doubleTapDirection != newDirection {
             // 新たに連続ダブルタップを開始
             doubleTapCount = 0
