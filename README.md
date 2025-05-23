@@ -33,6 +33,7 @@ import PDVideoPlayer
 
 struct ContentView: View {
     let videoURL: URL
+    @State private var isMuted: Bool = false
     var body: some View {
         PDVideoPlayer(url: videoURL, menu: {
             Button("Sample 1") { print("Button 1") }
@@ -40,17 +41,49 @@ struct ContentView: View {
         }) { proxy in
             ZStack {
                 proxy.player
+                
                     .onTap { inside in
                         print("tap", inside)
                     }
+#if os(iOS)
+                    .closeGesture(.rotation)
+                    .contextMenuProvider{ location in
+                        let contextMenus :[UIMenuElement] = [
+                            UIAction(
+                                title: String(localized:"save"),
+                                image: UIImage(systemName: "square.and.arrow.down")
+                            ) { _ in
+                                print("save")
+                            }
+                        ]
+                        return UIMenu(
+                            title: "",
+                            children: contextMenus
+                        )
+                    }
+                    .skipRippleEffect()
+#endif
+#if os(macOS)
+                    .onPresentationSizeChange({ view, size in
+                        // e.g. handle window resizing or other presentation-size changes
+                    })
+#endif
+                    .ignoresSafeArea()
                 VStack {
                     proxy.navigation
                     Spacer()
                     proxy.control
+                        .frame(maxWidth: 500,alignment: .center)
                 }
             }
         }
-        .isMuted(.constant(false))
+        .isMuted($isMuted)
+        .onLongPress { value in
+            print("onLongPress", value)
+        }
+        .onClose { value in
+            print("onClose", value)
+        }
         .playerForegroundColor(.white)
     }
 }
