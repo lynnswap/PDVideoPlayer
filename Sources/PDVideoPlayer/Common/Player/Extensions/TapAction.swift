@@ -19,8 +19,12 @@ public extension PDVideoPlayerRepresentable {
         #endif
     }
 
-    func tapAction(_ action: @escaping () -> Void) -> Self {
+    func tapAction(_ action: @escaping (Bool) -> Void) -> Self {
         tapAction(VideoPlayerTapAction(action))
+    }
+
+    func tapAction(_ action: @escaping () -> Void) -> Self {
+        tapAction { _ in action() }
     }
 }
 
