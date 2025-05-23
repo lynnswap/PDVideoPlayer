@@ -11,7 +11,7 @@ public extension PDVideoPlayerRepresentable {
         #elseif os(macOS)
         Self(model: self.model,
              playerViewConfigurator: self.playerViewConfigurator,
-             resizeAction: self.resizeAction,
+             onResize: self.onResize,
              tapAction: action,
              menuContent: self.menuContent)
         #else
@@ -25,6 +25,21 @@ public extension PDVideoPlayerRepresentable {
 
     func tapAction(_ action: @escaping () -> Void) -> Self {
         tapAction { _ in action() }
+    }
+
+    /// SwiftUI-style alias for ``tapAction(_:)``.
+    func onTap(_ action: VideoPlayerTapAction) -> Self {
+        tapAction(action)
+    }
+
+    /// SwiftUI-style alias for ``tapAction(_:)``.
+    func onTap(_ action: @escaping (Bool) -> Void) -> Self {
+        tapAction(action)
+    }
+
+    /// SwiftUI-style alias for ``tapAction(_:)``.
+    func onTap(_ action: @escaping () -> Void) -> Self {
+        tapAction(action)
     }
 }
 

@@ -17,8 +17,8 @@ public struct PDVideoPlayer<PlayerMenu: View,
     private var player: AVPlayer?
     
     var isMuted: Binding<Bool>?
-    var closeAction: VideoPlayerCloseAction?
-    var longpressAction: VideoPlayerLongpressAction?
+    var onClose: VideoPlayerCloseAction?
+    var onLongPress: VideoPlayerLongpressAction?
     var foregroundColor: Color = .white
     /// Enables moving the window when dragging on the player view.
     var windowDraggable: Bool = false
@@ -70,8 +70,8 @@ public struct PDVideoPlayer<PlayerMenu: View,
                 .videoPlayerKeyboardShortcuts(model)
                 .environment(model)
                 .environment(\.videoPlayerIsMuted, isMuted)
-                .environment(\.videoPlayerCloseAction, closeAction)
-                .environment(\.videoPlayerLongpressAction, longpressAction)
+                .environment(\.videoPlayerOnClose, onClose)
+                .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
                 .onChange(of: isMuted?.wrappedValue){
                     if let isMuted{
@@ -100,12 +100,12 @@ public struct PDVideoPlayer<PlayerMenu: View,
     ){
         if let url{
             let m = PDPlayerModel(url: url)
-            m.closeAction = closeAction
+            m.onClose = onClose
             m.windowDraggable = windowDraggable
             model = m
         }else if let player{
             let m = PDPlayerModel(player: player)
-            m.closeAction = closeAction
+            m.onClose = onClose
             m.windowDraggable = windowDraggable
             model = m
         }
