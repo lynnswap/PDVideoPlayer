@@ -31,7 +31,11 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                     .frame(width: 40, height: 40)
                 Spacer()
                 VideoPlayerDurationView(model:model)
-                Menu(content: menuContent) {
+                Menu{
+                    SubtitleMenuView()
+                    Divider()
+                    menuContent()
+                }label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(foregroundColor)
                 }
@@ -72,6 +76,10 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                         .padding(.bottom,1.5)
                     
                     Menu {
+                        SubtitleMenuView()
+                            .pickerStyle(.menu)
+                            .menuActionDismissBehavior(.disabled)
+                        Divider()
                         menuContent()
                     } label: {
                         ZStack(alignment: .bottomTrailing) {

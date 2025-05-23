@@ -9,7 +9,7 @@
 import AppKit
 #endif
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
 import AVKit
 import Combine
 #if canImport(UIKit)
@@ -46,7 +46,7 @@ enum SkipDirection {
     @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
         // タップ位置でリップルエフェクトだけ先に発火
         let location = recognizer.location(in: recognizer.view)
-       
+        
         
         guard let view = recognizer.view else { return }
         
@@ -92,7 +92,7 @@ enum SkipDirection {
         
         let labelSeconds:Int = targetTime > .zero ? Int(skipSeconds) : .zero
         rippleStore.addRipple(at: location,duration: labelSeconds)
-
+        
         // シーク実行
         seek(to: targetTime)
         
@@ -103,7 +103,7 @@ enum SkipDirection {
         doubleTapResetTask = Task { [weak self] in
             try? await Task.sleep(for:.seconds(1.2))
             guard !Task.isCancelled, let self = self else { return }
-
+            
             self.doubleTapCount = 0
             self.doubleTapBaseTime = 0
             self.doubleTapDirection = nil
@@ -241,7 +241,7 @@ enum SkipDirection {
         player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
         self.currentTime = seconds
     }
-
+    
     // MARK: - Keyboard Navigation Support
     func stepFrames(by count: Int) {
         pause()
@@ -250,18 +250,18 @@ enum SkipDirection {
             currentTime = CMTimeGetSeconds(current)
         }
     }
-
+    
     private var rateIndex: Int = 0
     private let rateValues: [Float] = [1, 2, 4, 8, 16]
     private var isRewind: Bool = false
-
+    
     func cycleForwardRate() {
         if isRewind { rateIndex = 0; isRewind = false }
         rateIndex = min(rateIndex + 1, rateValues.count - 1)
         player.rate = rateValues[rateIndex]
         isPlaying = true
     }
-
+    
     func cycleRewindRate() {
         if !isRewind { rateIndex = 0; isRewind = true }
         rateIndex = min(rateIndex + 1, rateValues.count - 1)
@@ -272,6 +272,12 @@ enum SkipDirection {
     var initialCenter = CGPoint()
     var isRotatingGestureActive: Bool = false
     var initialGesturePoint = CGPoint.zero
+    
+    private var subtitleGroup: AVMediaSelectionGroup?
+    public var subtitleOptions: [AVMediaSelectionOption] = []
+    public var selectedSubtitle: AVMediaSelectionOption? {
+        didSet { Task { await applySelectedSubtitle() } }
+    }
 }
 
 extension PDPlayerModel:UIGestureRecognizerDelegate{
@@ -568,36 +574,37 @@ extension UIView {
         player.rate = -rateValues[rateIndex]
         isPlaying = true
     }
-}
-#endif
-
-#if os(iOS) || os(macOS)
-extension PDPlayerModel {
-    /// Currently available subtitle options.
-    public var subtitleOptions: [AVMediaSelectionOption] {
-        guard let item = player.currentItem,
-              let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) else {
-            return []
-        }
-        return group.options
-    }
-
-    /// The subtitle option currently selected, or `nil` if subtitles are off.
+    
+    private var subtitleGroup: AVMediaSelectionGroup?
+    public var subtitleOptions: [AVMediaSelectionOption] = []
     public var selectedSubtitle: AVMediaSelectionOption? {
-        guard let item = player.currentItem,
-              let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) else {
-            return nil
-        }
-        return item.selectedMediaOption(in: group)
-    }
-
-    /// Selects the given subtitle option. Pass `nil` to turn subtitles off.
-    public func selectSubtitle(_ option: AVMediaSelectionOption?) {
-        guard let item = player.currentItem,
-              let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) else {
-            return
-        }
-        item.select(option, in: group)
+        didSet { Task { await applySelectedSubtitle() } }
     }
 }
 #endif
+
+extension PDPlayerModel{
+    public func loadSubtitleOptions() async {
+        guard let item = player.currentItem else { return }
+        do {
+            guard let group = try await item.asset.loadMediaSelectionGroup(for: .legible) else {
+                self.subtitleGroup  = nil
+                self.subtitleOptions = []
+                self.selectedSubtitle = nil
+                return
+            }
+            self.subtitleGroup  = group
+            self.subtitleOptions = group.options
+            self.selectedSubtitle = item.currentMediaSelection.selectedMediaOption(in: group)
+        } catch {
+#if DEBUG
+            print("⚠️ subtitle group load failed:", error)
+#endif
+        }
+    }
+    private func applySelectedSubtitle() async {
+        guard let item = player.currentItem,
+              let group = subtitleGroup else { return }
+        item.select(selectedSubtitle, in: group)
+    }
+}
