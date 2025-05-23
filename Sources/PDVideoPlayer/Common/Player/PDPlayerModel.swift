@@ -418,6 +418,10 @@ extension UIView {
 }
 #endif
 
+#if os(iOS)
+extension PDPlayerModel: UIGestureRecognizerDelegate {}
+#endif
+
 extension PDPlayerModel {
     public func loadSubtitleOptions() async {
         guard let item = player.currentItem else { return }
