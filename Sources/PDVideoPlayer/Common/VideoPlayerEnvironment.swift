@@ -11,7 +11,7 @@ public struct VideoPlayerCloseAction {
     }
 }
 
-private struct VideoPlayerCloseActionKey: @preconcurrency EnvironmentKey {
+private struct VideoPlayerOnCloseKey: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: VideoPlayerCloseAction? = nil
 }
 private struct VideoPlayerIsMutedKey: EnvironmentKey {
@@ -41,7 +41,7 @@ public struct VideoPlayerTapAction {
     }
 }
 
-private struct VideoPlayerLongpressActionKey: @preconcurrency EnvironmentKey {
+private struct VideoPlayerOnLongPressKey: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: VideoPlayerLongpressAction? = nil
 }
 
@@ -50,17 +50,17 @@ private struct VideoPlayerForegroundColorKey: EnvironmentKey {
 }
 
 public extension EnvironmentValues {
-    var videoPlayerCloseAction: VideoPlayerCloseAction? {
-        get { self[VideoPlayerCloseActionKey.self] }
-        set { self[VideoPlayerCloseActionKey.self] = newValue }
+    var videoPlayerOnClose: VideoPlayerCloseAction? {
+        get { self[VideoPlayerOnCloseKey.self] }
+        set { self[VideoPlayerOnCloseKey.self] = newValue }
     }
     var videoPlayerIsMuted: Binding<Bool>? {
         get { self[VideoPlayerIsMutedKey.self] }
         set { self[VideoPlayerIsMutedKey.self] = newValue }
     }
-    var videoPlayerLongpressAction: VideoPlayerLongpressAction? {
-        get { self[VideoPlayerLongpressActionKey.self] }
-        set { self[VideoPlayerLongpressActionKey.self] = newValue }
+    var videoPlayerOnLongPress: VideoPlayerLongpressAction? {
+        get { self[VideoPlayerOnLongPressKey.self] }
+        set { self[VideoPlayerOnLongPressKey.self] = newValue }
     }
     var videoPlayerForegroundColor: Color {
         get { self[VideoPlayerForegroundColorKey.self] }

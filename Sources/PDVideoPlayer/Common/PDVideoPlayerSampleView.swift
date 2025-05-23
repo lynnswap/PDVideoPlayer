@@ -27,12 +27,12 @@ struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
-                        .tapAction { inside in
+                        .onTap { inside in
                             print("tapAction", inside)
                         }
 #if os(macOS)
-                        .resizeAction({ view, size in
-                            
+                        .onResize({ view, size in
+
                         })
 #endif
                     
@@ -70,11 +70,11 @@ struct ContentView: View {
             }
         )
         .isMuted($isMuted)
-        .longpressAction { value in
-            print("longpressAction",value)
+        .onLongPress { value in
+            print("onLongPress", value)
         }
-        .closeAction { value in
-            print("closeAction",value)
+        .onClose { value in
+            print("onClose", value)
         }
         .playerForegroundColor(.white)
 //        .onHover{ value in

@@ -17,8 +17,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
     var isMuted: Binding<Bool>?
     var foregroundColor: Color = .white
-    var closeAction: VideoPlayerCloseAction?
-    var longpressAction: VideoPlayerLongpressAction?
+    var onClose: VideoPlayerCloseAction?
+    var onLongPress: VideoPlayerLongpressAction?
     var panGesture: PDVideoPlayerPanGesture = .rotation
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
@@ -63,8 +63,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 .videoPlayerKeyboardShortcuts(model)
                 .environment(model)
                 .environment(\.videoPlayerIsMuted, isMuted)
-                .environment(\.videoPlayerCloseAction, closeAction)
-                .environment(\.videoPlayerLongpressAction, longpressAction)
+                .environment(\.videoPlayerOnClose, onClose)
+                .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
                 .onChange(of: isMuted?.wrappedValue){
                     if let isMuted{
@@ -108,11 +108,11 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     ){
         if let url{
             let newModel = PDPlayerModel(url: url)
-            newModel.closeAction = closeAction
+            newModel.onClose = onClose
             model = newModel
         }else if let player{
             let newModel = PDPlayerModel(player: player)
-            newModel.closeAction = closeAction
+            newModel.onClose = onClose
             model = newModel
         }
     }

@@ -10,13 +10,13 @@ import SwiftUI
 public struct VideoPlayerNavigationView: View {
     public init() {}
 
-    @Environment(\.videoPlayerCloseAction) private var closeAction
+    @Environment(\.videoPlayerOnClose) private var onClose
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
 
     public var body: some View {
         HStack {
-            Button { closeAction?(0) } label: {
+            Button { onClose?(0) } label: {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundStyle(foregroundColor)
             }
@@ -35,17 +35,17 @@ public struct VideoPlayerNavigationView: View {
 public struct VideoPlayerNavigationView:View{
     public init() {}
 
-    @Environment(\.videoPlayerCloseAction) private var closeAction
+    @Environment(\.videoPlayerOnClose) private var onClose
     @Environment(\.videoPlayerIsMuted) private var isMutedBinding
     @Environment(PDPlayerModel.self) private var model
-    @Environment(\.videoPlayerLongpressAction) private var longpressAction
+    @Environment(\.videoPlayerOnLongPress) private var onLongPress
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     public var body:some View{
         VStack {
             HStack(spacing:4){
                 if UIDevice.current.userInterfaceIdiom == .pad{
                     Button {
-                        closeAction?(0)
+                        onClose?(0)
                     } label: {
                         ZStack{
                             Color.clear
@@ -75,7 +75,7 @@ public struct VideoPlayerNavigationView:View{
         }
         .animation(.smooth(duration:0.12),value:model.isLongpress)
         .onChange(of: model.isLongpress) {
-            longpressAction?(model.isLongpress)
+            onLongPress?(model.isLongpress)
         }
         
     }
