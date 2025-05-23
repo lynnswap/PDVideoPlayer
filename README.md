@@ -40,8 +40,8 @@ struct ContentView: View {
         }) { proxy in
             ZStack {
                 proxy.player
-                    .tapAction {
-                        print("tap")
+                    .tapAction { inside in
+                        print("tap", inside)
                     }
                 VStack {
                     proxy.navigation

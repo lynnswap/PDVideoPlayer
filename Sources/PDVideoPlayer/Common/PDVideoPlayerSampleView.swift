@@ -27,8 +27,8 @@ struct ContentView: View {
             content: { proxy in
                 ZStack {
                     proxy.player
-                        .tapAction{
-                            print("tapAction")
+                        .tapAction { inside in
+                            print("tapAction", inside)
                         }
 #if os(macOS)
                         .resizeAction({ view, size in
