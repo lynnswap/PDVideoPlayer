@@ -236,21 +236,21 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
     
     var model: PDPlayerModel
-    let panGesture: PDVideoPlayerPanGesture
+    let closeGesture: PDVideoPlayerCloseGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
     let onTap: VideoPlayerTapAction?
  
     public init(
         model: PDPlayerModel,
-        panGesture: PDVideoPlayerPanGesture = .rotation,
+        closeGesture: PDVideoPlayerCloseGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
         contextMenuProvider: ContextMenuProvider? = nil,
         onTap: VideoPlayerTapAction? = nil
 
     ) {
         self.model = model
-        self.panGesture = panGesture
+        self.closeGesture = closeGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
         self.onTap = onTap
@@ -337,7 +337,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             let contextMenuInteraction = UIContextMenuInteraction(delegate: context.coordinator)
             playerView.view.addInteraction(contextMenuInteraction)
         }
-        switch panGesture {
+        switch closeGesture {
         case .rotation:
             let panGestureRecognizer = UIPanGestureRecognizer(target: model, action: #selector(PDPlayerModel.handlePanGesture(_:)))
             panGestureRecognizer.delegate = model

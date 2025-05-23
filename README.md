@@ -7,7 +7,7 @@
 - Universal support for **iOS** and **macOS** using the same code base.
 - Picture-in-Picture on iOS via `PiPManager`.
 - AirPlay route picker for streaming to external displays.
-- Gesture handling including double-tap skip with ripple effects, long press speed changes, and optional pan gestures for rotation or vertical seeking.
+- Gesture handling including double-tap skip with ripple effects, long press speed changes, and optional close gestures for rotation or vertical seeking.
 - Customizable keyboard shortcuts for quick navigation.
 - Environment driven configuration such as mute state, close actions, long‑press callbacks and foreground color.
 - Built using pure SwiftUI with minimal dependencies.
@@ -65,7 +65,7 @@ struct ContentView: View {
 - `onLongPress(_:)` – Respond to long‑press gestures.
 - `onPresentationSizeChange(_:)` – Observe the presentation size on macOS.
 - `playerForegroundColor(_:)` – Set tint color for controls.
-- `panGesture(_:)` – Choose the pan gesture type on iOS.
+- `closeGesture(_:)` – Choose the close gesture type on iOS.
 - `windowDraggable(_:)` – Allow dragging the macOS window by the player view.
 
 ## License

@@ -4,7 +4,7 @@ public extension PDVideoPlayerRepresentable {
     func onTap(_ action: VideoPlayerTapAction) -> Self {
         #if os(iOS)
         Self(model: self.model,
-             panGesture: self.panGesture,
+             closeGesture: self.closeGesture,
              scrollViewConfigurator: self.scrollViewConfigurator,
              contextMenuProvider: self.contextMenuProvider,
              onTap: action)

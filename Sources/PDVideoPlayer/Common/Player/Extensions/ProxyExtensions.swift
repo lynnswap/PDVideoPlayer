@@ -4,14 +4,14 @@ import SwiftUI
 @MainActor
 public extension PDVideoPlayerProxy {
     func player(
-        panGesture: PDVideoPlayerPanGesture? = nil,
+        closeGesture: PDVideoPlayerCloseGesture? = nil,
         scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator? = nil,
         contextMenuProvider: PDVideoPlayerRepresentable.ContextMenuProvider? = nil,
         onTap: VideoPlayerTapAction? = nil
     ) -> PDVideoPlayerRepresentable {
         var view = self.player
-        if let panGesture {
-            view = view.panGesture(panGesture)
+        if let closeGesture {
+            view = view.closeGesture(closeGesture)
         }
         if let scrollViewConfigurator {
             view = view.scrollViewConfigurator(scrollViewConfigurator)
