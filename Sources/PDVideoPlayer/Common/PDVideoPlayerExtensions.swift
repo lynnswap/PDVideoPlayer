@@ -50,9 +50,9 @@ public extension PDVideoPlayer {
 
 #if os(iOS)
 public extension PDVideoPlayer {
-    func panGesture(_ gesture: PDVideoPlayerPanGesture) -> Self {
+    func closeGesture(_ gesture: PDVideoPlayerCloseGesture) -> Self {
         var copy = self
-        copy.panGesture = gesture
+        copy.closeGesture = gesture
         return copy
     }
 }
