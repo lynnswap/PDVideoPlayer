@@ -57,8 +57,9 @@ struct TrackpadSwipeOverlay: NSViewRepresentable {
 }
 
 public extension View {
-    /// Enables trackpad swipe seeking using the provided player model.
-    func trackpadSeeking() -> some View {
+    /// Places an invisible overlay to enlarge the trackpad swipe area
+    /// for scrubbing with two fingers.
+    func trackpadSwipeOverlay() -> some View {
         overlay(TrackpadSwipeOverlay())
     }
 }

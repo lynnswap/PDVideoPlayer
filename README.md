@@ -9,6 +9,7 @@
 - AirPlay route picker for streaming to external displays.
 - Custom context menus on iOS via `contextMenuProvider`.
 - Gesture handling including double-tap skip with ripple effects, long press speed changes, and optional close gestures for rotation or vertical seeking.
+- Optional overlay to enlarge the trackpad swipe seeking area on macOS.
 - Customizable keyboard shortcuts for quick navigation.
 - Environment driven configuration such as mute state, close actions, long‑press callbacks and foreground color.
 - Built using pure SwiftUI with minimal dependencies.
@@ -89,6 +90,7 @@ struct ContentView: View {
 - `windowDraggable(_:)` – Allow dragging the macOS window by the player view.
 - `contextMenuProvider(_:)` – Provide a custom context menu for a tap location on iOS.
 - `skipRippleEffect()` – Show a ripple animation when double‑tap skipping on iOS.
+- `trackpadSwipeOverlay()` – Expand the area for trackpad swipe seeking on macOS.
 
 ## License
 
