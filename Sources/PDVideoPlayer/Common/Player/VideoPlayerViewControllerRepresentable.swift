@@ -44,7 +44,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         
     }
     
-    @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
     
     @MainActor
@@ -256,7 +255,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         self.contextMenuProvider = contextMenuProvider
         self.tapAction = tapAction
     }
-    @Environment(\.videoPlayerCloseAction) private var closeAction
     @Environment(\.videoPlayerLongpressAction) private var longpressAction
 
     public func makeUIView(context: Context) -> UIScrollView {
