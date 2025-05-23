@@ -37,7 +37,7 @@ struct ContentView: View {
 #endif
                     
 #if os(iOS)
-                        .panGesture(.rotation)
+                        .closeGesture(.rotation)
                         .contextMenuProvider{ location in
                             let contextMenus :[UIMenuElement] = [
                                 UIAction(
