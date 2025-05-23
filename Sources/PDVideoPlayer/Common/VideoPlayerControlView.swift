@@ -22,10 +22,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
     }
 
     public var body: some View {
-        ZStack(alignment:.bottom){
-            VideoPlayerSliderView(viewModel: model)
-                .padding(.horizontal)
-                .contentShape(Rectangle())
+        VStack{
             HStack(alignment: .bottom) {
                 PlayPauseButton(model:model)
                     .frame(width: 40, height: 40)
@@ -40,10 +37,57 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                         .foregroundStyle(foregroundColor)
                 }
             }
-            .buttonStyle(.plain)
-            .padding(.horizontal)
-            .padding(.bottom,20)
+            VideoPlayerSliderView(viewModel: model)
         }
+        .contentShape(Rectangle())
+        .overlay(
+            TrackpadSwipeOverlay(model: model)
+                .allowsHitTesting(false)
+        )
+    }
+}
+
+struct TrackpadSwipeOverlay: NSViewRepresentable {
+    var model: PDPlayerModel
+
+    class Coordinator {
+        var monitor: Any?
+        var model: PDPlayerModel
+        init(model: PDPlayerModel) {
+            self.model = model
+        }
+
+        func install() {
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+                guard let self else { return event }
+                if abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) {
+                    model.slider.scrollWheel(with: event)
+                    return nil
+                }
+                return event
+            }
+        }
+
+        func uninstall() {
+            if let monitor { NSEvent.removeMonitor(monitor) }
+            monitor = nil
+        }
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(model: model)
+    }
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        context.coordinator.install()
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
+        coordinator.uninstall()
     }
 }
 #else
