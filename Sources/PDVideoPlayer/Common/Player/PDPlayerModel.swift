@@ -427,6 +427,8 @@ extension UIView {
 }
 #endif
 
+
+
 #if os(macOS)
 @MainActor
 @Observable public class PDPlayerModel: NSObject, DynamicProperty {
@@ -565,6 +567,37 @@ extension UIView {
         rateIndex = min(rateIndex + 1, rateValues.count - 1)
         player.rate = -rateValues[rateIndex]
         isPlaying = true
+    }
+}
+#endif
+
+#if os(iOS) || os(macOS)
+extension PDPlayerModel {
+    /// Currently available subtitle options.
+    public var subtitleOptions: [AVMediaSelectionOption] {
+        guard let item = player.currentItem,
+              let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) else {
+            return []
+        }
+        return group.options
+    }
+
+    /// The subtitle option currently selected, or `nil` if subtitles are off.
+    public var selectedSubtitle: AVMediaSelectionOption? {
+        guard let item = player.currentItem,
+              let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) else {
+            return nil
+        }
+        return item.selectedMediaOption(in: group)
+    }
+
+    /// Selects the given subtitle option. Pass `nil` to turn subtitles off.
+    public func selectSubtitle(_ option: AVMediaSelectionOption?) {
+        guard let item = player.currentItem,
+              let group = item.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) else {
+            return
+        }
+        item.select(option, in: group)
     }
 }
 #endif
