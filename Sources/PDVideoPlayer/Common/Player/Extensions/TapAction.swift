@@ -11,7 +11,7 @@ public extension PDVideoPlayerRepresentable {
         #elseif os(macOS)
         Self(model: self.model,
              playerViewConfigurator: self.playerViewConfigurator,
-             onResize: self.onResize,
+             onPresentationSizeChange: self.onPresentationSizeChange,
              tapAction: action,
              menuContent: self.menuContent)
         #else
