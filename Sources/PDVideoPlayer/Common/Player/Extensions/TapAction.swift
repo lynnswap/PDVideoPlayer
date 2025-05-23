@@ -7,6 +7,7 @@ public extension PDVideoPlayerRepresentable {
              closeGesture: self.closeGesture,
              scrollViewConfigurator: self.scrollViewConfigurator,
              contextMenuProvider: self.contextMenuProvider,
+             onPresentationSizeChange: self.onPresentationSizeChange,
              onTap: action)
         #elseif os(macOS)
         Self(model: self.model,

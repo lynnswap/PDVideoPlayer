@@ -233,12 +233,14 @@ public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_iOS
 public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> UIMenu?
     public typealias ScrollViewConfigurator = (UIScrollView) -> Void
+    public typealias PresentationSizeAction = (_ view: UIView, _ size: CGSize) -> Void
 
-    
+
     var model: PDPlayerModel
     let closeGesture: PDVideoPlayerCloseGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
+    let onPresentationSizeChange: PresentationSizeAction?
     let onTap: VideoPlayerTapAction?
  
     public init(
@@ -246,6 +248,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         closeGesture: PDVideoPlayerCloseGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
         contextMenuProvider: ContextMenuProvider? = nil,
+        onPresentationSizeChange: PresentationSizeAction? = nil,
         onTap: VideoPlayerTapAction? = nil
 
     ) {
@@ -253,6 +256,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         self.closeGesture = closeGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
+        self.onPresentationSizeChange = onPresentationSizeChange
         self.onTap = onTap
     }
     @Environment(\.videoPlayerOnLongPress) private var onLongPress
@@ -265,6 +269,21 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         
         let playerView = model.setupPlayer()
         context.coordinator.playerView = playerView
+
+        if onPresentationSizeChange != nil, let playerItem = model.player.currentItem {
+            context.coordinator.presentationSizeObservation?.invalidate()
+            context.coordinator.presentationSizeObservation = nil
+            context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, _ in
+                let size = item.presentationSize
+                if size.width > 0, size.height > 0 {
+                    Task { @MainActor in
+                        context.coordinator.presentationSizeObservation?.invalidate()
+                        context.coordinator.presentationSizeObservation = nil
+                        onPresentationSizeChange?(playerView.view, size)
+                    }
+                }
+            }
+        }
         
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 4.0
@@ -362,6 +381,8 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         coordinator: Self.Coordinator
     ){
         coordinator.dismantled = true
+        coordinator.presentationSizeObservation?.invalidate()
+        coordinator.presentationSizeObservation = nil
     }
     public func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -370,6 +391,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         var parent: PDVideoPlayerRepresentable
         var dismantled:Bool = false
         weak var playerView:AVPlayerViewController?
+        var presentationSizeObservation: NSKeyValueObservation?
         init(_ parent: PDVideoPlayerRepresentable) {
             self.parent = parent
         }
