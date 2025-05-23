@@ -31,7 +31,7 @@ struct ContentView: View {
                             print("onTap", inside)
                         }
                         .onPresentationSizeChange({ view, size in
-
+                            
                         })
                     
 #if os(iOS)
@@ -58,12 +58,16 @@ struct ContentView: View {
                             proxy.navigation
                             Spacer()
                             proxy.control
+#if os(macOS)
+                                .buttonStyle(.plain)
+                                .padding(.horizontal)
+#endif
                                 .frame(maxWidth: 500,alignment: .center)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.bottom)
-                  
+                    
                 }
             }
         )
@@ -75,9 +79,6 @@ struct ContentView: View {
             print("onClose", value)
         }
         .playerForegroundColor(.white)
-//        .onHover{ value in
-//            controlsVisible = value
-//        }
         .animation(.smooth(duration:0.12), value: controlsVisible)
     }
 }

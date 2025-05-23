@@ -22,7 +22,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
     }
 
     public var body: some View {
-        VStack{
+        VStack(spacing:0){
             HStack(alignment: .bottom) {
                 PlayPauseButton(model:model)
                     .frame(width: 40, height: 40)
@@ -50,6 +50,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
 struct TrackpadSwipeOverlay: NSViewRepresentable {
     var model: PDPlayerModel
 
+    @MainActor
     class Coordinator {
         var monitor: Any?
         var model: PDPlayerModel
