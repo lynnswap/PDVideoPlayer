@@ -36,11 +36,10 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(foregroundColor)
                 }
-            }
+            } 
             VideoPlayerSliderView(viewModel: model)
         }
         .contentShape(Rectangle())
-        .trackpadSeeking(model)
     }
 }
 
