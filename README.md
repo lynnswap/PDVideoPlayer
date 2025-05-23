@@ -41,7 +41,6 @@ struct ContentView: View {
         }) { proxy in
             ZStack {
                 proxy.player
-                
                     .onTap { inside in
                         print("tap", inside)
                     }
