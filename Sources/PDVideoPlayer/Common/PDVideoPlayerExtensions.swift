@@ -8,27 +8,27 @@ public extension PDVideoPlayer {
         return copy
     }
     
-    func closeAction(_ action: VideoPlayerCloseAction) -> Self {
+    func onClose(_ action: VideoPlayerCloseAction) -> Self {
         var copy = self
-        copy.closeAction = action
+        copy.onClose = action
         return copy
     }
 
-    func closeAction(_ action: @escaping (CGFloat) -> Void) -> Self {
+    func onClose(_ action: @escaping (CGFloat) -> Void) -> Self {
         var copy = self
-        copy.closeAction = VideoPlayerCloseAction(action)
+        copy.onClose = VideoPlayerCloseAction(action)
         return copy
     }
 
-    func longpressAction(_ action: VideoPlayerLongpressAction) -> Self {
+    func onLongPress(_ action: VideoPlayerLongpressAction) -> Self {
         var copy = self
-        copy.longpressAction = action
+        copy.onLongPress = action
         return copy
     }
 
-    func longpressAction(_ action: @escaping (Bool) -> Void) -> Self {
+    func onLongPress(_ action: @escaping (Bool) -> Void) -> Self {
         var copy = self
-        copy.longpressAction = VideoPlayerLongpressAction(action)
+        copy.onLongPress = VideoPlayerLongpressAction(action)
         return copy
     }
 

@@ -25,26 +25,26 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     
     var model: PDPlayerModel
     let menuContent: () -> MenuContent
-    let resizeAction: ResizeAction?
+    let onResize: ResizeAction?
     let playerViewConfigurator: PlayerViewConfigurator?
     let tapAction: VideoPlayerTapAction?
     
     public init(
         model: PDPlayerModel,
         playerViewConfigurator:PlayerViewConfigurator? = nil,
-        resizeAction: ResizeAction? = nil,
+        onResize: ResizeAction? = nil,
         tapAction: VideoPlayerTapAction? = nil,
         @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
         self.model = model
         self.playerViewConfigurator = playerViewConfigurator
         self.menuContent = menuContent
-        self.resizeAction = resizeAction
+        self.onResize = onResize
         self.tapAction = tapAction
         
     }
     
-    @Environment(\.videoPlayerLongpressAction) private var longpressAction
+    @Environment(\.videoPlayerOnLongPress) private var onLongPress
     
     @MainActor
     final public class Coordinator: NSObject {
@@ -132,7 +132,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
         model.player.appliesMediaSelectionCriteriaAutomatically = false
 
-        if resizeAction != nil, let playerItem = model.player.currentItem {
+        if onResize != nil, let playerItem = model.player.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
             context.coordinator.presentationSizeObservation = nil
             context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, change in
@@ -141,7 +141,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
                     Task{ @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
-                        resizeAction?(playerView,size)
+                        onResize?(playerView,size)
                     }
                 }
             }
@@ -255,7 +255,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         self.contextMenuProvider = contextMenuProvider
         self.tapAction = tapAction
     }
-    @Environment(\.videoPlayerLongpressAction) private var longpressAction
+    @Environment(\.videoPlayerOnLongPress) private var onLongPress
 
     public func makeUIView(context: Context) -> UIScrollView {
         let scrollView = model.scrollView
@@ -421,13 +421,13 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     // 現在のレートの2倍にする
                     self.parent.model.player.rate = min(self.parent.model.originalRate * 2.0, 2.0)
                     self.parent.model.isLongpress = true
-                    self.parent.longpressAction?(true)
+                    self.parent.onLongPress?(true)
                 }
             case .ended, .cancelled, .failed:
                 // 長押し終了時に元のレートに戻す
                 self.parent.model.player.rate = self.parent.model.originalRate
                 self.parent.model.isLongpress = false
-                self.parent.longpressAction?(false)
+                self.parent.onLongPress?(false)
             default:
                 break
             }
