@@ -26,8 +26,7 @@ struct TrackpadSwipeOverlay: NSViewRepresentable {
 
                 let local = view.convert(event.locationInWindow, from: nil)
 
-                if view.bounds.contains(local),
-                   abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY) {
+                if view.bounds.contains(local){
                     self.model.slider.scrollWheel(with: event)
                     return nil
                 }

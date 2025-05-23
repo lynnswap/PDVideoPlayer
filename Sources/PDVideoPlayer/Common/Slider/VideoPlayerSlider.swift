@@ -107,6 +107,7 @@ class VideoPlayerSlider: NSSlider {
     }
     override func scrollWheel(with event: NSEvent) {
         let phase = event.phase
+        print("scrollWheel",phase)
         if phase == .ended || phase == .cancelled {
             onScroll?(phase, doubleValue)
             super.scrollWheel(with: event)
