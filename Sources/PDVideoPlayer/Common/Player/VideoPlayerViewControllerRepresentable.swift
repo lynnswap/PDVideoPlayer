@@ -21,25 +21,25 @@ public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_macOS
 public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> NSMenu?
     public typealias PlayerViewConfigurator = (PlayerNSView) -> Void
-    public typealias ResizeAction = ((_ view: NSView, _ size: CGSize) -> Void)
+    public typealias PresentationSizeAction = ((_ view: NSView, _ size: CGSize) -> Void)
     
     var model: PDPlayerModel
     let menuContent: () -> MenuContent
-    let onResize: ResizeAction?
+    let onPresentationSizeChange: PresentationSizeAction?
     let playerViewConfigurator: PlayerViewConfigurator?
     let tapAction: VideoPlayerTapAction?
     
     public init(
         model: PDPlayerModel,
         playerViewConfigurator:PlayerViewConfigurator? = nil,
-        onResize: ResizeAction? = nil,
+        onPresentationSizeChange: PresentationSizeAction? = nil,
         tapAction: VideoPlayerTapAction? = nil,
         @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
         self.model = model
         self.playerViewConfigurator = playerViewConfigurator
         self.menuContent = menuContent
-        self.onResize = onResize
+        self.onPresentationSizeChange = onPresentationSizeChange
         self.tapAction = tapAction
         
     }
@@ -132,7 +132,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
         model.player.appliesMediaSelectionCriteriaAutomatically = false
 
-        if onResize != nil, let playerItem = model.player.currentItem {
+        if onPresentationSizeChange != nil, let playerItem = model.player.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
             context.coordinator.presentationSizeObservation = nil
             context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, change in
@@ -141,7 +141,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
                     Task{ @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
-                        onResize?(playerView,size)
+                        onPresentationSizeChange?(playerView,size)
                     }
                 }
             }

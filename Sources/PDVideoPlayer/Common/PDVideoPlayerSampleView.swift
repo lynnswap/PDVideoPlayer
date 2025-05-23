@@ -31,7 +31,7 @@ struct ContentView: View {
                             print("tapAction", inside)
                         }
 #if os(macOS)
-                        .onResize({ view, size in
+                        .onPresentationSizeChange({ view, size in
 
                         })
 #endif
