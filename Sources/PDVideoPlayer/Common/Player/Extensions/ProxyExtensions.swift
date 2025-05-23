@@ -7,6 +7,7 @@ public extension PDVideoPlayerProxy {
         panGesture: PDVideoPlayerPanGesture? = nil,
         scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator? = nil,
         contextMenuProvider: PDVideoPlayerRepresentable.ContextMenuProvider? = nil,
+        onPresentationSizeChange: PDVideoPlayerRepresentable.PresentationSizeAction? = nil,
         onTap: VideoPlayerTapAction? = nil
     ) -> PDVideoPlayerRepresentable {
         var view = self.player
@@ -18,6 +19,9 @@ public extension PDVideoPlayerProxy {
         }
         if let contextMenuProvider {
             view = view.contextMenuProvider(contextMenuProvider)
+        }
+        if let onPresentationSizeChange {
+            view = view.onPresentationSizeChange(onPresentationSizeChange)
         }
         if let onTap {
             view = view.onTap(onTap)

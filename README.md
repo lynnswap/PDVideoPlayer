@@ -63,7 +63,7 @@ struct ContentView: View {
 - `isMuted(_:)` – Bind the mute state.
 - `onClose(_:)` – Handle closing the player.
 - `onLongPress(_:)` – Respond to long‑press gestures.
-- `onPresentationSizeChange(_:)` – Observe the presentation size on macOS.
+ - `onPresentationSizeChange(_:)` – Observe the presentation size on iOS and macOS.
 - `playerForegroundColor(_:)` – Set tint color for controls.
 - `panGesture(_:)` – Choose the pan gesture type on iOS.
 - `windowDraggable(_:)` – Allow dragging the macOS window by the player view.

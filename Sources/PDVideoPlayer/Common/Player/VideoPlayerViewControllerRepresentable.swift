@@ -233,19 +233,21 @@ public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_iOS
 public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> UIMenu?
     public typealias ScrollViewConfigurator = (UIScrollView) -> Void
-
+    public typealias PresentationSizeAction = ((_ view: UIView, _ size: CGSize) -> Void)
     
     var model: PDPlayerModel
     let panGesture: PDVideoPlayerPanGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
     let onTap: VideoPlayerTapAction?
+    let onPresentationSizeChange: PresentationSizeAction?
  
     public init(
         model: PDPlayerModel,
         panGesture: PDVideoPlayerPanGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
         contextMenuProvider: ContextMenuProvider? = nil,
+        onPresentationSizeChange: PresentationSizeAction? = nil,
         onTap: VideoPlayerTapAction? = nil
 
     ) {
@@ -253,6 +255,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         self.panGesture = panGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
+        self.onPresentationSizeChange = onPresentationSizeChange
         self.onTap = onTap
     }
     @Environment(\.videoPlayerOnLongPress) private var onLongPress
@@ -297,8 +300,8 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             containerView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             containerView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             containerView.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
-            
-            
+
+
             playerView.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             playerView.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
             playerView.view.topAnchor.constraint(equalTo: containerView.topAnchor),
@@ -306,6 +309,21 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             playerView.view.widthAnchor.constraint(equalTo: containerView.widthAnchor),
             playerView.view.heightAnchor.constraint(equalTo: containerView.heightAnchor)
         ])
+
+        if onPresentationSizeChange != nil, let playerItem = model.player.currentItem {
+            context.coordinator.presentationSizeObservation?.invalidate()
+            context.coordinator.presentationSizeObservation = nil
+            context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, _ in
+                let size = item.presentationSize
+                if size.width > 0, size.height > 0 {
+                    Task { @MainActor in
+                        context.coordinator.presentationSizeObservation?.invalidate()
+                        context.coordinator.presentationSizeObservation = nil
+                        onPresentationSizeChange?(playerView.view, size)
+                    }
+                }
+            }
+        }
 
         if ProcessInfo.processInfo.isiOSAppOnMac {
             // シングルタップジェスチャ
@@ -361,12 +379,15 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         _ uiView: Self.UIViewType,
         coordinator: Self.Coordinator
     ){
+        coordinator.presentationSizeObservation?.invalidate();
+        coordinator.presentationSizeObservation = nil
         coordinator.dismantled = true
     }
     public func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     public class Coordinator: NSObject, UIScrollViewDelegate {
+        var presentationSizeObservation: NSKeyValueObservation?
         var parent: PDVideoPlayerRepresentable
         var dismantled:Bool = false
         weak var playerView:AVPlayerViewController?
