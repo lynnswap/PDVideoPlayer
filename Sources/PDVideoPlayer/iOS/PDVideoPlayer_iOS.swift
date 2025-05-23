@@ -19,7 +19,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     var foregroundColor: Color = .white
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
-    var panGesture: PDVideoPlayerPanGesture = .rotation
+    var closeGesture: PDVideoPlayerCloseGesture = .rotation
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
@@ -53,7 +53,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
             let proxy = PDVideoPlayerProxy(
                 player: PDVideoPlayerRepresentable(
                     model: model,
-                    panGesture: panGesture
+                    closeGesture: closeGesture
                 ),
                 control: VideoPlayerControlView(model: model, menuContent: menuContent),
                 navigation: VideoPlayerNavigationView()
