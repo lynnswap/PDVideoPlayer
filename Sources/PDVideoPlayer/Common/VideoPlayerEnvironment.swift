@@ -32,12 +32,12 @@ public struct VideoPlayerLongpressAction {
 }
 
 public struct VideoPlayerTapAction {
-    let action: () -> Void
-    public init(_ action: @escaping () -> Void) {
+    let action: (Bool) -> Void
+    public init(_ action: @escaping (Bool) -> Void) {
         self.action = action
     }
-    public func callAsFunction() {
-        action()
+    public func callAsFunction(_ isInsideVideo: Bool) {
+        action(isInsideVideo)
     }
 }
 
