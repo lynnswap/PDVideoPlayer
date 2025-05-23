@@ -87,9 +87,6 @@ class VideoPlayerSlider: NSSlider {
         get { (cell as? VideoPlayerSliderCell)?.baseColor ?? .white }
         set { (cell as? VideoPlayerSliderCell)?.baseColor = newValue }
     }
-    override var intrinsicContentSize: NSSize {
-        super.intrinsicContentSize
-    }
     var onScroll: ((NSEvent.Phase, Double) -> Void)?
 
     /// Restrict drag interactions to within the knob's height while keeping
