@@ -47,20 +47,6 @@ struct ContentView: View {
                     }
 #if os(iOS)
                     .closeGesture(.rotation)
-                    .contextMenuProvider{ location in
-                        let contextMenus :[UIMenuElement] = [
-                            UIAction(
-                                title: String(localized:"save"),
-                                image: UIImage(systemName: "square.and.arrow.down")
-                            ) { _ in
-                                print("save")
-                            }
-                        ]
-                        return UIMenu(
-                            title: "",
-                            children: contextMenus
-                        )
-                    }
                     .skipRippleEffect()
 #endif
 #if os(macOS)
