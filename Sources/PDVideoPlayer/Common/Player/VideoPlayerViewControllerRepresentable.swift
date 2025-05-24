@@ -236,7 +236,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     public typealias PresentationSizeAction = (_ view: UIView, _ size: CGSize) -> Void
 
 
-    var model: PDPlayerModel
+    public var model: PDPlayerModel
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
     let onPresentationSizeChange: PresentationSizeAction?
