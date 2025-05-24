@@ -50,12 +50,7 @@ struct ContentView: View {
                             )
                         } 
                         .scrollViewConfigurator { scrollView in
-                            let pan = UIPanGestureRecognizer(
-                                target: proxy.player.model.panGestureHandler,
-                                action: #selector(PlayerPanGestureHandler.handlePanGesture(_:))
-                            )
-                            pan.delegate = proxy.player.model.panGestureHandler
-                            scrollView.addGestureRecognizer(pan)
+                            
                         }
                         .skipRippleEffect()
 #endif
