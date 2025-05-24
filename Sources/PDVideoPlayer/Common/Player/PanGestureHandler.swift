@@ -2,19 +2,28 @@
 import UIKit
 
 public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
+    /// Called when the close animation should start. The value represents the duration.
     var onClose: ((CGFloat) -> Void)?
+
+    /// The tag of the view to manipulate. Defaults to `1` to preserve existing behaviour.
+    let containerViewTag: Int
 
     private var initialCenter = CGPoint()
     private var isRotatingGestureActive = false
     private var initialGesturePoint = CGPoint.zero
 
-    public init(onClose: ((CGFloat) -> Void)? = nil) {
+    /// Creates a handler.
+    /// - Parameters:
+    ///   - containerViewTag: The tag used to locate the target view.
+    ///   - onClose: Closure called when the player should be dismissed.
+    public init(containerViewTag: Int = 1, onClose: ((CGFloat) -> Void)? = nil) {
+        self.containerViewTag = containerViewTag
         self.onClose = onClose
     }
 
     @objc public func handlePanGesture(_ recognizer: UIPanGestureRecognizer) {
         guard let scrollView = recognizer.view as? UIScrollView,
-              let containerView = scrollView.viewWithTag(1) else { return }
+              let containerView = scrollView.viewWithTag(containerViewTag) else { return }
 
         if scrollView.zoomScale > scrollView.minimumZoomScale {
             recognizer.isEnabled = false
@@ -79,7 +88,7 @@ public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegat
 
     @objc public func handlePanGestureUpDown(_ recognizer: UIPanGestureRecognizer) {
         guard let scrollView = recognizer.view as? UIScrollView,
-              let containerView = scrollView.viewWithTag(1) else { return }
+              let containerView = scrollView.viewWithTag(containerViewTag) else { return }
 
         if scrollView.zoomScale > scrollView.minimumZoomScale {
             recognizer.isEnabled = false
