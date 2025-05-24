@@ -10,6 +10,7 @@ public extension PDVideoPlayerRepresentable {
              onTap: action)
         #elseif os(macOS)
         Self(model: self.model,
+             scrollViewConfigurator: self.scrollViewConfigurator,
              playerViewConfigurator: self.playerViewConfigurator,
              onPresentationSizeChange: self.onPresentationSizeChange,
              onTap: action,
