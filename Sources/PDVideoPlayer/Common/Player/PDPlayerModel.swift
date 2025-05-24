@@ -39,7 +39,6 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public var scrollView = UIScrollView()
     private var playerVC: AVPlayerViewController?
     public var isLongpress: Bool = false
-    var panGestureHandler: PlayerPanGestureHandler!
 #elseif os(macOS)
     /// When true, dragging on the player view moves the window.
     public var windowDraggable: Bool = false
@@ -53,18 +52,10 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     // MARK: - Initializers
     public init(url: URL) {
         self.player = AVPlayer(url: url)
-        super.init()
-        self.panGestureHandler = PlayerPanGestureHandler { [weak self] duration in
-            self?.onClose?(duration)
-        }
     }
 
     public init(player: AVPlayer) {
         self.player = player
-        super.init()
-        self.panGestureHandler = PlayerPanGestureHandler { [weak self] duration in
-            self?.onClose?(duration)
-        }
     }
 
 #if os(iOS)
