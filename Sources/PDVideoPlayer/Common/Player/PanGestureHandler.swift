@@ -1,14 +1,14 @@
 #if os(iOS)
 import UIKit
 
-final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
+public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
     var onClose: ((CGFloat) -> Void)?
 
     private var initialCenter = CGPoint()
     private var isRotatingGestureActive = false
     private var initialGesturePoint = CGPoint.zero
 
-    init(onClose: ((CGFloat) -> Void)? = nil) {
+    public init(onClose: ((CGFloat) -> Void)? = nil) {
         self.onClose = onClose
     }
 
@@ -126,7 +126,7 @@ final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
         }
     }
 
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         guard let scrollView = gestureRecognizer.view as? UIScrollView else { return false }
 
         if scrollView.zoomScale <= scrollView.minimumZoomScale {
