@@ -5,9 +5,9 @@ private final class PassThroughView: NSView {
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }
 
-struct TrackpadSwipeOverlay: NSViewRepresentable {
+public struct TrackpadSwipeOverlay: NSViewRepresentable {
     @Environment(PDPlayerModel.self) private var model
-
+    public init() {}
     @MainActor
     final class Coordinator {
         var model: PDPlayerModel
