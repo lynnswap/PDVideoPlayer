@@ -3,7 +3,7 @@ import UIKit
 
 public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
     /// Called when the close animation should start. The value represents the duration.
-    var onClose: ((CGFloat) -> Void)?
+    var onClose: (CGFloat) -> Void
 
     /// The tag of the view to manipulate. Defaults to `1` to preserve existing behaviour.
     let containerViewTag: Int
@@ -16,7 +16,7 @@ public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegat
     /// - Parameters:
     ///   - containerViewTag: The tag used to locate the target view.
     ///   - onClose: Closure called when the player should be dismissed.
-    public init(containerViewTag: Int = 1, onClose: ((CGFloat) -> Void)? = nil) {
+    public init(containerViewTag: Int = 1, onClose: @escaping (CGFloat) -> Void) {
         self.containerViewTag = containerViewTag
         self.onClose = onClose
     }
@@ -63,7 +63,7 @@ public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegat
                 } else if stoptime < 0.2 {
                     stoptime = 0.2
                 }
-                onClose?(stoptime * 0.5)
+                onClose(stoptime * 0.5)
 
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
@@ -116,7 +116,7 @@ public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegat
                 } else if stoptime < 0.18 {
                     stoptime = 0.15
                 }
-                onClose?(stoptime * 0.5)
+                onClose(stoptime * 0.5)
 
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
