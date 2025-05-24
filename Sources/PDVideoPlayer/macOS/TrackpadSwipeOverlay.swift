@@ -21,12 +21,13 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
                 guard
                     let self,
                     let view = self.overlay,
-                    view.window != nil
+                    let window = view.window,
+                    event.window == window
                 else { return event }
 
                 let local = view.convert(event.locationInWindow, from: nil)
 
-                if view.bounds.contains(local){
+                if view.bounds.contains(local) {
                     self.model.slider.scrollWheel(with: event)
                     return nil
                 }
