@@ -35,7 +35,6 @@ struct ContentView: View {
                         })
                     
 #if os(iOS)
-                        .closeGesture(.rotation)
                         .contextMenuProvider{ location in
                             let contextMenus :[UIMenuElement] = [
                                 UIAction(
@@ -49,8 +48,16 @@ struct ContentView: View {
                                 title: "",
                                 children: contextMenus
                             )
-                        }
+                        } 
                         .skipRippleEffect()
+                        .scrollViewConfigurator { scrollView in
+                            let pan = UIPanGestureRecognizer(
+                                target: proxy.player.model.panGestureHandler,
+                                action: #selector(PlayerPanGestureHandler.handlePanGesture(_:))
+                            )
+                            pan.delegate = proxy.player.model.panGestureHandler
+                            scrollView.addGestureRecognizer(pan)
+                        }
 #endif
                         .ignoresSafeArea()
                     VStack(alignment:.center) {

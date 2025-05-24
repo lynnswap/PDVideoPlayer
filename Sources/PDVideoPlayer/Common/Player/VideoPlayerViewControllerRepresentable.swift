@@ -237,7 +237,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
 
     var model: PDPlayerModel
-    let closeGesture: PDVideoPlayerCloseGesture
     let scrollViewConfigurator: ScrollViewConfigurator?
     let contextMenuProvider: ContextMenuProvider?
     let onPresentationSizeChange: PresentationSizeAction?
@@ -245,7 +244,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
  
     public init(
         model: PDPlayerModel,
-        closeGesture: PDVideoPlayerCloseGesture = .rotation,
         scrollViewConfigurator: ScrollViewConfigurator? = nil,
         contextMenuProvider: ContextMenuProvider? = nil,
         onPresentationSizeChange: PresentationSizeAction? = nil,
@@ -253,7 +251,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
     ) {
         self.model = model
-        self.closeGesture = closeGesture
         self.scrollViewConfigurator = scrollViewConfigurator
         self.contextMenuProvider = contextMenuProvider
         self.onPresentationSizeChange = onPresentationSizeChange
@@ -352,23 +349,9 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         longPressGestureRecognizer.minimumPressDuration = 0.5
         scrollView.addGestureRecognizer(longPressGestureRecognizer)
         
-        if contextMenuProvider != nil{
+        if contextMenuProvider != nil {
             let contextMenuInteraction = UIContextMenuInteraction(delegate: context.coordinator)
             playerView.view.addInteraction(contextMenuInteraction)
-        }
-        switch closeGesture {
-        case .rotation:
-            let panGestureRecognizer = UIPanGestureRecognizer(target: model.panGestureHandler, action: #selector(PlayerPanGestureHandler.handlePanGesture(_:)))
-            panGestureRecognizer.delegate = model.panGestureHandler
-            scrollView.isUserInteractionEnabled = true
-            scrollView.addGestureRecognizer(panGestureRecognizer)
-        case .vertical:
-            let panGestureRecognizer = UIPanGestureRecognizer(target: model.panGestureHandler, action: #selector(PlayerPanGestureHandler.handlePanGestureUpDown(_:)))
-            panGestureRecognizer.delegate = model.panGestureHandler
-            scrollView.isUserInteractionEnabled = true
-            scrollView.addGestureRecognizer(panGestureRecognizer)
-        case .none:
-            break
         }
         scrollViewConfigurator?(scrollView)
 
