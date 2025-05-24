@@ -49,7 +49,6 @@ struct ContentView: View {
                                 children: contextMenus
                             )
                         } 
-                        .skipRippleEffect()
                         .scrollViewConfigurator { scrollView in
                             let pan = UIPanGestureRecognizer(
                                 target: proxy.player.model.panGestureHandler,
@@ -58,6 +57,7 @@ struct ContentView: View {
                             pan.delegate = proxy.player.model.panGestureHandler
                             scrollView.addGestureRecognizer(pan)
                         }
+                        .skipRippleEffect()
 #endif
                         .ignoresSafeArea()
                     VStack(alignment:.center) {
