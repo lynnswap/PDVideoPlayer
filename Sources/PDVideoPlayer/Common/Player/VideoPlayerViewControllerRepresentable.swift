@@ -21,27 +21,31 @@ public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_macOS
 public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> NSMenu?
     public typealias PlayerViewConfigurator = (PlayerNSView) -> Void
+    public typealias ScrollViewConfigurator = (NSScrollView) -> Void
     public typealias PresentationSizeAction = ((_ view: NSView, _ size: CGSize) -> Void)
-    
+
     var model: PDPlayerModel
     let menuContent: () -> MenuContent
     let onPresentationSizeChange: PresentationSizeAction?
+    let scrollViewConfigurator: ScrollViewConfigurator?
     let playerViewConfigurator: PlayerViewConfigurator?
     let onTap: VideoPlayerTapAction?
     
     public init(
         model: PDPlayerModel,
-        playerViewConfigurator:PlayerViewConfigurator? = nil,
+        scrollViewConfigurator: ScrollViewConfigurator? = nil,
+        playerViewConfigurator: PlayerViewConfigurator? = nil,
         onPresentationSizeChange: PresentationSizeAction? = nil,
         onTap: VideoPlayerTapAction? = nil,
         @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
         self.model = model
+        self.scrollViewConfigurator = scrollViewConfigurator
         self.playerViewConfigurator = playerViewConfigurator
         self.menuContent = menuContent
         self.onPresentationSizeChange = onPresentationSizeChange
         self.onTap = onTap
-        
+
     }
     
     @Environment(\.videoPlayerOnLongPress) private var onLongPress
@@ -121,6 +125,8 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         scrollView.hasVerticalScroller = false
         scrollView.hasHorizontalScroller = false
         scrollView.drawsBackground = false
+
+        scrollViewConfigurator?(scrollView)
 
 
         if #available(macOS 14.4, *) {
