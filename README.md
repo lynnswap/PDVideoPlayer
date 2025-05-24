@@ -8,7 +8,7 @@
 - Picture-in-Picture on iOS via `PiPManager`.
 - AirPlay route picker for streaming to external displays.
 - Custom context menus on iOS via `contextMenuProvider`.
-- Gesture handling including double-tap skip with ripple effects, long press speed changes, and optional close gestures for rotation or vertical seeking.
+- Gesture handling including double-tap skip with ripple effects, long press speed changes.
 - Optional overlay to enlarge the trackpad swipe seeking area on macOS.
 - Customizable keyboard shortcuts for quick navigation.
 - Environment driven configuration such as mute state, close actions, long‑press callbacks and foreground color.
