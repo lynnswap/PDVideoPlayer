@@ -2,14 +2,14 @@
 import UIKit
 
 final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
-    unowned var model: PDPlayerModel
+    var onClose: ((CGFloat) -> Void)?
 
     private var initialCenter = CGPoint()
     private var isRotatingGestureActive = false
     private var initialGesturePoint = CGPoint.zero
 
-    init(model: PDPlayerModel) {
-        self.model = model
+    init(onClose: ((CGFloat) -> Void)? = nil) {
+        self.onClose = onClose
     }
 
     @objc func handlePanGesture(_ recognizer: UIPanGestureRecognizer) {
@@ -54,7 +54,7 @@ final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
                 } else if stoptime < 0.2 {
                     stoptime = 0.2
                 }
-                model.onClose?(stoptime * 0.5)
+                onClose?(stoptime * 0.5)
 
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
@@ -107,7 +107,7 @@ final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
                 } else if stoptime < 0.18 {
                     stoptime = 0.15
                 }
-                model.onClose?(stoptime * 0.5)
+                onClose?(stoptime * 0.5)
 
                 UIView.animate(withDuration: stoptime, delay: 0, options: .curveLinear, animations: {
                     containerView.center = CGPoint(
