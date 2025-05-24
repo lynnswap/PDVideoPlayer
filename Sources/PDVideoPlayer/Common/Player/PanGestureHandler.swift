@@ -127,8 +127,7 @@ final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegate {
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        guard let scrollView = gestureRecognizer.view as? UIScrollView,
-              !model.isLongpress else { return false }
+        guard let scrollView = gestureRecognizer.view as? UIScrollView else { return false }
 
         if scrollView.zoomScale <= scrollView.minimumZoomScale {
             if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
