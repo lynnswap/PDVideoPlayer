@@ -54,13 +54,17 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public init(url: URL) {
         self.player = AVPlayer(url: url)
         super.init()
-        self.panGestureHandler = PlayerPanGestureHandler(model: self)
+        self.panGestureHandler = PlayerPanGestureHandler { [weak self] duration in
+            self?.onClose?(duration)
+        }
     }
 
     public init(player: AVPlayer) {
         self.player = player
         super.init()
-        self.panGestureHandler = PlayerPanGestureHandler(model: self)
+        self.panGestureHandler = PlayerPanGestureHandler { [weak self] duration in
+            self?.onClose?(duration)
+        }
     }
 
 #if os(iOS)
