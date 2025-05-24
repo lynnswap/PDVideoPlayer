@@ -27,10 +27,10 @@ import SwiftUI
 @MainActor
 public extension PDVideoPlayerProxy {
     func player(
-        scrollViewConfigurator: PDVideoPlayerRepresentable.ScrollViewConfigurator? = nil,
-        playerViewConfigurator: PDVideoPlayerRepresentable.PlayerViewConfigurator? = nil,
+        scrollViewConfigurator: PDVideoPlayerRepresentable<PlayerMenu>.ScrollViewConfigurator? = nil,
+        playerViewConfigurator: PDVideoPlayerRepresentable<PlayerMenu>.PlayerViewConfigurator? = nil,
         onTap: VideoPlayerTapAction? = nil
-    ) -> PDVideoPlayerRepresentable {
+    ) -> PDVideoPlayerRepresentable<PlayerMenu> {
         var view = self.player
         if let scrollViewConfigurator {
             view = view.scrollViewConfigurator(scrollViewConfigurator)
