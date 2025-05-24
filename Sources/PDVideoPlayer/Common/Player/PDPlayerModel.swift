@@ -78,6 +78,9 @@ public class PDPlayerModel: NSObject, DynamicProperty {
                 case .playing:
                     self.addPeriodicTimeObserver()
                     if !self.isPlaying { self.isPlaying = true }
+                    if self.isLongpress {
+                        self.player.rate = min(self.originalRate * 2.0, 2.0)
+                    }
                     if self.isBuffering { self.isBuffering = false }
                 case .paused:
                     self.removePeriodicTimeObserver()
