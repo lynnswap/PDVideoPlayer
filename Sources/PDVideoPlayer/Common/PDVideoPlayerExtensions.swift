@@ -48,13 +48,4 @@ public extension PDVideoPlayer {
 #endif
 }
 
-#if os(iOS)
-public extension PDVideoPlayer {
-    func closeGesture(_ gesture: PDVideoPlayerCloseGesture) -> Self {
-        var copy = self
-        copy.closeGesture = gesture
-        return copy
-    }
-}
-#endif
 #endif

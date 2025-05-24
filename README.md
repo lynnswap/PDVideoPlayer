@@ -47,7 +47,6 @@ struct ContentView: View {
                         print("tap", inside)
                     }
 #if os(iOS)
-                    .closeGesture(.rotation)
                     .skipRippleEffect()
                         // adds a ripple animation when double‑tap skipping
 #endif
@@ -86,9 +85,9 @@ struct ContentView: View {
 - `onLongPress(_:)` – Respond to long‑press gestures.
 - `onPresentationSizeChange(_:)` – Observe the presentation size.
 - `playerForegroundColor(_:)` – Set tint color for controls.
-- `closeGesture(_:)` – Choose the close gesture type on iOS.
 - `windowDraggable(_:)` – Allow dragging the macOS window by the player view.
 - `contextMenuProvider(_:)` – Provide a custom context menu for a tap location on iOS.
+- `scrollViewConfigurator(_:)` – Customize the underlying `UIScrollView` on iOS.
 - `skipRippleEffect()` – Show a ripple animation when double‑tap skipping on iOS.
 - `trackpadSwipeOverlay()` – Expand the area for trackpad swipe seeking on macOS.
 
