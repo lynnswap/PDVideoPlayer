@@ -9,7 +9,7 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
     @Environment(PDPlayerModel.self) private var model
     public init() {}
     @MainActor
-    final class Coordinator {
+    public final class Coordinator {
         var model: PDPlayerModel
         weak var overlay: NSView?
         var monitor: Any?
@@ -40,18 +40,18 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
         }
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator(model: model) }
+    public func makeCoordinator() -> Coordinator { Coordinator(model: model) }
 
-    func makeNSView(context: Context) -> NSView {
+    public func makeNSView(context: Context) -> NSView {
         let v = PassThroughView()
         context.coordinator.overlay = v
         context.coordinator.startMonitoring()
         return v
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    public func updateNSView(_ nsView: NSView, context: Context) {}
 
-    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
+    public static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
         coordinator.stopMonitoring()
     }
 }
