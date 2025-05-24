@@ -12,7 +12,7 @@ public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegat
         self.onClose = onClose
     }
 
-    @objc func handlePanGesture(_ recognizer: UIPanGestureRecognizer) {
+    @objc public func handlePanGesture(_ recognizer: UIPanGestureRecognizer) {
         guard let scrollView = recognizer.view as? UIScrollView,
               let containerView = scrollView.viewWithTag(1) else { return }
 
@@ -77,7 +77,7 @@ public final class PlayerPanGestureHandler: NSObject, UIGestureRecognizerDelegat
         }
     }
 
-    @objc func handlePanGestureUpDown(_ recognizer: UIPanGestureRecognizer) {
+    @objc public func handlePanGestureUpDown(_ recognizer: UIPanGestureRecognizer) {
         guard let scrollView = recognizer.view as? UIScrollView,
               let containerView = scrollView.viewWithTag(1) else { return }
 
