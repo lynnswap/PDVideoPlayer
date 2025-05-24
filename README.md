@@ -87,7 +87,7 @@ struct ContentView: View {
 - `playerForegroundColor(_:)` – Set tint color for controls.
 - `windowDraggable(_:)` – Allow dragging the macOS window by the player view.
 - `contextMenuProvider(_:)` – Provide a custom context menu for a tap location on iOS.
-- `scrollViewConfigurator(_:)` – Customize the underlying `UIScrollView` on iOS.
+- `scrollViewConfigurator(_:)` – Customize the underlying scroll view.
 - `skipRippleEffect()` – Show a ripple animation when double‑tap skipping on iOS.
 - `trackpadSwipeOverlay()` – Expand the area for trackpad swipe seeking on macOS.
 
