@@ -266,9 +266,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
     public func makeUIView(context: Context) -> UIScrollView {
         let scrollView = model.scrollView
-        if context.coordinator.dismantled{
-            return scrollView
-        }
         
         let playerView = model.setupPlayer()
         context.coordinator.playerView = playerView
@@ -369,7 +366,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         _ uiView: Self.UIViewType,
         coordinator: Self.Coordinator
     ){
-        coordinator.dismantled = true
         coordinator.presentationSizeObservation?.invalidate()
         coordinator.presentationSizeObservation = nil
     }
@@ -378,7 +374,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     }
     public class Coordinator: NSObject, UIScrollViewDelegate {
         var parent: PDVideoPlayerRepresentable
-        var dismantled:Bool = false
         weak var playerView:AVPlayerViewController?
         var presentationSizeObservation: NSKeyValueObservation?
         init(_ parent: PDVideoPlayerRepresentable) {
