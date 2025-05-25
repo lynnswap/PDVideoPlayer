@@ -98,12 +98,18 @@ public struct PDVideoPlayer<PlayerMenu: View,
         url:URL?,
         player:AVPlayer?
     ){
-        if let url{
+        if let model {
+            if let url {
+                model.replacePlayer(url: url)
+            } else if let player {
+                model.replacePlayer(with: player)
+            }
+        } else if let url {
             let m = PDPlayerModel(url: url)
             m.onClose = onClose
             m.windowDraggable = windowDraggable
             model = m
-        }else if let player{
+        } else if let player {
             let m = PDPlayerModel(player: player)
             m.onClose = onClose
             m.windowDraggable = windowDraggable
