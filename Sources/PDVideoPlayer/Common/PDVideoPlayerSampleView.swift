@@ -7,13 +7,12 @@ import AVKit
 #if DEBUG
 private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
 struct ContentView: View {
-    @State private var player = AVPlayer(url:sampleURL)
     @State private var isMuted: Bool = true
     @State private var controlsVisible: Bool = true
     
     var body: some View {
         PDVideoPlayer(
-            player: player,
+            url: sampleURL,
             menu: {
                 Button("Sample 1") {
                     print("Button Tapped 1")
