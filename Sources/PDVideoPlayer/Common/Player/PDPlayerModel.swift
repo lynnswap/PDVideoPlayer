@@ -58,6 +58,74 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         self.player = player
     }
 
+    // Replace the current player with a new instance while keeping the model.
+    public func replacePlayer(with newPlayer: AVPlayer) {
+        removePeriodicTimeObserver()
+        cancellables.removeAll()
+        player.pause()
+        player = newPlayer
+#if os(iOS)
+        playerVC?.player = newPlayer
+#elseif os(macOS)
+        playerView?.setPlayer(newPlayer, videoGravity: .resizeAspect)
+#endif
+        newPlayer.appliesMediaSelectionCriteriaAutomatically = false
+        observePlayerStatus()
+        if let item = newPlayer.currentItem {
+            duration = CMTimeGetSeconds(item.duration)
+        } else {
+            duration = 0
+        }
+    }
+
+    public func replacePlayer(url: URL) {
+        replacePlayer(with: AVPlayer(url: url))
+    }
+
+    private func observePlayerStatus() {
+        player.publisher(for: \.timeControlStatus)
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] status in
+            guard let self else { return }
+#if os(iOS)
+            switch status {
+            case .playing:
+                self.addPeriodicTimeObserver()
+                if !self.isPlaying { self.isPlaying = true }
+                if self.isLongpress {
+                    self.player.rate = min(self.originalRate * 2.0, 2.0)
+                }
+                if self.isBuffering { self.isBuffering = false }
+            case .paused:
+                self.removePeriodicTimeObserver()
+                if self.isPlaying, !self.isTracking { self.isPlaying = false }
+                if self.isBuffering { self.isBuffering = false }
+            case .waitingToPlayAtSpecifiedRate:
+                switch self.player.reasonForWaitingToPlay {
+                case .evaluatingBufferingRate, .toMinimizeStalls:
+                    if !self.isBuffering { self.isBuffering = true }
+                default:
+                    if self.isBuffering { self.isBuffering = false }
+                }
+            @unknown default:
+                break
+            }
+#elseif os(macOS)
+            switch status {
+            case .playing:
+                self.addPeriodicTimeObserver()
+                self.isPlaying = true
+            case .paused:
+                self.removePeriodicTimeObserver()
+                self.isPlaying = false
+            default:
+                break
+            }
+#endif
+        }
+        .store(in: &cancellables)
+    }
+
 #if os(iOS)
     // MARK: - iOS Setup
     func setupPlayer() -> AVPlayerViewController {
@@ -66,35 +134,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         let player = self.player
         vc.player = player
         player.appliesMediaSelectionCriteriaAutomatically = false
-
-        player.publisher(for: \.timeControlStatus)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] status in
-                guard let self else { return }
-                switch status {
-                case .playing:
-                    self.addPeriodicTimeObserver()
-                    if !self.isPlaying { self.isPlaying = true }
-                    if self.isLongpress {
-                        self.player.rate = min(self.originalRate * 2.0, 2.0)
-                    }
-                    if self.isBuffering { self.isBuffering = false }
-                case .paused:
-                    self.removePeriodicTimeObserver()
-                    if self.isPlaying, !self.isTracking { self.isPlaying = false }
-                    if self.isBuffering { self.isBuffering = false }
-                case .waitingToPlayAtSpecifiedRate:
-                    switch self.player.reasonForWaitingToPlay {
-                    case .evaluatingBufferingRate, .toMinimizeStalls:
-                        if !self.isBuffering { self.isBuffering = true }
-                    default:
-                        if self.isBuffering { self.isBuffering = false }
-                    }
-                @unknown default:
-                    break
-                }
-            }
-            .store(in: &cancellables)
+        observePlayerStatus()
         return vc
     }
 #elseif os(macOS)
@@ -106,22 +146,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         self.playerView = view
 
         view.setPlayer(player, videoGravity: .resizeAspect)
-        player.publisher(for: \.timeControlStatus)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] status in
-                guard let self else { return }
-                switch status {
-                case .playing:
-                    self.addPeriodicTimeObserver()
-                    self.isPlaying = true
-                case .paused:
-                    self.removePeriodicTimeObserver()
-                    self.isPlaying = false
-                default:
-                    break
-                }
-            }
-            .store(in: &cancellables)
+        observePlayerStatus()
 
         if let item = player.currentItem {
             duration = CMTimeGetSeconds(item.duration)
