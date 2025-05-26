@@ -19,7 +19,6 @@ public struct SubtitleMenuView: View {
             Label(String(localized: "Subtitles"), systemImage: "captions.bubble")
                 .symbolVariant(model.selectedSubtitle == nil ? .none : .fill)
         }
-        .task{ await model.loadSubtitleOptions() }
     }
 }
 #endif

@@ -48,6 +48,8 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     private var timeObserverToken: Any?
+    private var currentItemObservation: NSKeyValueObservation?
+    private var itemStatusObservation: NSKeyValueObservation?
 
     // MARK: - Initializers
     public init(url: URL) {
@@ -71,6 +73,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #endif
         newPlayer.appliesMediaSelectionCriteriaAutomatically = false
         observePlayerStatus()
+        observeSubtitleUpdates()
         if let item = newPlayer.currentItem {
             duration = CMTimeGetSeconds(item.duration)
         } else {
@@ -126,6 +129,22 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         .store(in: &cancellables)
     }
 
+    private func observeSubtitleUpdates() {
+        currentItemObservation?.invalidate()
+        currentItemObservation = player.observe(\.currentItem, options: [.new, .initial]) { [weak self] player, _ in
+                guard let self else { return }
+                self.itemStatusObservation?.invalidate()
+                if let item = player.currentItem {
+                    self.itemStatusObservation = item.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
+                            guard let self else { return }
+                            if item.status == .readyToPlay {
+                                Task { await self.loadSubtitleOptions() }
+                            }
+                        }
+                }
+            }
+    }
+
 #if os(iOS)
     // MARK: - iOS Setup
     func setupPlayer() -> AVPlayerViewController {
@@ -135,6 +154,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         vc.player = player
         player.appliesMediaSelectionCriteriaAutomatically = false
         observePlayerStatus()
+        observeSubtitleUpdates()
         return vc
     }
 #elseif os(macOS)
@@ -147,6 +167,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
         view.setPlayer(player, videoGravity: .resizeAspect)
         observePlayerStatus()
+        observeSubtitleUpdates()
 
         if let item = player.currentItem {
             duration = CMTimeGetSeconds(item.duration)
