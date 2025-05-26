@@ -132,17 +132,21 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     private func observeSubtitleUpdates() {
         currentItemObservation?.invalidate()
         currentItemObservation = player.observe(\.currentItem, options: [.new, .initial]) { [weak self] player, _ in
+            guard let self else { return }
+            let currentItem = player.currentItem
+            Task { @MainActor [weak self] in
                 guard let self else { return }
                 self.itemStatusObservation?.invalidate()
-                if let item = player.currentItem {
+                if let item = currentItem {
                     self.itemStatusObservation = item.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
-                            guard let self else { return }
-                            if item.status == .readyToPlay {
-                                Task { await self.loadSubtitleOptions() }
-                            }
+                        guard let self else { return }
+                        if item.status == .readyToPlay {
+                            Task { await self.loadSubtitleOptions() }
                         }
+                    }
                 }
             }
+        }
     }
 
 #if os(iOS)
