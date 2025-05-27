@@ -87,55 +87,35 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
     private func observePlayerStatus() {
         player.publisher(for: \.timeControlStatus)
-        .receive(on: DispatchQueue.main)
-        .sink { [weak self] status in
-            guard let self else { return }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                guard let self else { return }
+                switch status {
+                case .playing:
+                    self.addPeriodicTimeObserver()
+                    if !self.isPlaying { self.isPlaying = true }
 #if os(iOS)
-            switch status {
-            case .playing:
-                self.addPeriodicTimeObserver()
-                if !self.isPlaying { self.isPlaying = true }
-                if self.isLongpress {
-                    self.player.rate = min(self.originalRate * 2.0, 2.0)
-                }
-                if self.isBuffering { self.isBuffering = false }
-            case .paused:
-                self.removePeriodicTimeObserver()
-                if self.isPlaying, !self.isTracking { self.isPlaying = false }
-                if self.isBuffering { self.isBuffering = false }
-            case .waitingToPlayAtSpecifiedRate:
-                switch self.player.reasonForWaitingToPlay {
-                case .evaluatingBufferingRate, .toMinimizeStalls:
-                    if !self.isBuffering { self.isBuffering = true }
-                default:
-                    if self.isBuffering { self.isBuffering = false }
-                }
-            @unknown default:
-                break
-            }
-#elseif os(macOS)
-            switch status {
-            case .playing:
-                self.addPeriodicTimeObserver()
-                if !self.isPlaying { self.isPlaying = true }
-                if self.isBuffering { self.isBuffering = false }
-            case .paused:
-                self.removePeriodicTimeObserver()
-                if self.isPlaying, !self.isTracking { self.isPlaying = false }
-                if self.isBuffering { self.isBuffering = false }
-            case .waitingToPlayAtSpecifiedRate:
-                switch self.player.reasonForWaitingToPlay {
-                case .evaluatingBufferingRate, .toMinimizeStalls:
-                    if !self.isBuffering { self.isBuffering = true }
-                default:
-                    if self.isBuffering { self.isBuffering = false }
-                }
-            default:
-                break
-            }
+                    if self.isLongpress {
+                        self.player.rate = min(self.originalRate * 2.0, 2.0)
+                    }
 #endif
-        }
-        .store(in: &cancellables)
+                    if self.isBuffering { self.isBuffering = false }
+                case .paused:
+                    self.removePeriodicTimeObserver()
+                    if self.isPlaying, !self.isTracking { self.isPlaying = false }
+                    if self.isBuffering { self.isBuffering = false }
+                case .waitingToPlayAtSpecifiedRate:
+                    switch self.player.reasonForWaitingToPlay {
+                    case .evaluatingBufferingRate, .toMinimizeStalls:
+                        if !self.isBuffering { self.isBuffering = true }
+                    default:
+                        if self.isBuffering { self.isBuffering = false }
+                    }
+                @unknown default:
+                    break
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func observeSubtitleUpdates() {
