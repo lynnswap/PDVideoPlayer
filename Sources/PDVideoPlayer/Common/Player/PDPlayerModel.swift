@@ -117,10 +117,19 @@ public class PDPlayerModel: NSObject, DynamicProperty {
             switch status {
             case .playing:
                 self.addPeriodicTimeObserver()
-                self.isPlaying = true
+                if !self.isPlaying { self.isPlaying = true }
+                if self.isBuffering { self.isBuffering = false }
             case .paused:
                 self.removePeriodicTimeObserver()
-                self.isPlaying = false
+                if self.isPlaying, !self.isTracking { self.isPlaying = false }
+                if self.isBuffering { self.isBuffering = false }
+            case .waitingToPlayAtSpecifiedRate:
+                switch self.player.reasonForWaitingToPlay {
+                case .evaluatingBufferingRate, .toMinimizeStalls:
+                    if !self.isBuffering { self.isBuffering = true }
+                default:
+                    if self.isBuffering { self.isBuffering = false }
+                }
             default:
                 break
             }
