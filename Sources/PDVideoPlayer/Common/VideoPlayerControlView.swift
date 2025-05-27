@@ -25,7 +25,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
         VStack(spacing:0){
             HStack(alignment: .bottom) {
                 PlayPauseButton(model:model)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 60, height: 40)
                 Spacer()
                 VideoPlayerDurationView(model:model)
                 Menu{
@@ -150,6 +150,9 @@ public struct PlayPauseButton: View{
                     if model.isBuffering{
                         ProgressView()
                             .tint(foregroundColor.opacity(0.8))
+#if os(macOS)
+                            .controlSize(.small)
+#endif
                     }
                     Spacer(minLength: 0)
                 }
