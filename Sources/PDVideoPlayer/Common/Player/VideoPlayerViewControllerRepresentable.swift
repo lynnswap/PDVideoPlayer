@@ -385,6 +385,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         var parent: PDVideoPlayerRepresentable
         weak var playerView:AVPlayerViewController?
         var presentationSizeObservation: NSKeyValueObservation?
+        private var fillScale: CGFloat = 4.0
         init(_ parent: PDVideoPlayerRepresentable) {
             self.parent = parent
         }
@@ -392,7 +393,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
             return scrollView.subviews.first
         }
-        private func updateZoomLimits(_ scrollView: UIScrollView) {
+        func updateZoomLimits(_ scrollView: UIScrollView) {
             guard let window = scrollView.window else { return }
             let orientation = window.windowScene?.interfaceOrientation
             if orientation?.isLandscape == true {
