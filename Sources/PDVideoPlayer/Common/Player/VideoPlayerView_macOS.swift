@@ -5,18 +5,9 @@
 //  Created by Kazuki Nakashima on 2025/02/13.
 //
 
-
+#if os(macOS)
 import SwiftUI
 import AVKit
-#if os(macOS)
-import AppKit
-#endif
-
-
-
-
-
-#if os(macOS)
 
 public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_macOS
 
