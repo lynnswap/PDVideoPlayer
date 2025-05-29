@@ -260,10 +260,18 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #if os(iOS)
     // MARK: - Gesture Support (iOS)
     @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
-        let location = recognizer.location(in: recognizer.view)
         guard let view = recognizer.view else { return }
+        // The gesture recognizer is attached to the scroll view. When the
+        // content is zoomed the actual player view is its first subview.
+        // Convert the tap location to that coordinate space so the ripple
+        // effect appears at the correct position even when zoomed.
+        let containerView = view.subviews.first ?? view
+        // Location within the zoomed content for ripple positioning
+        let location = recognizer.location(in: containerView)
+        // Use the tap location in scroll view coordinates to determine direction
+        let tapInScrollView = recognizer.location(in: view)
         let viewWidth = view.bounds.width
-        let tapX = location.x
+        let tapX = tapInScrollView.x
         let current = currentTime
         let newDirection: SkipDirection = (tapX < viewWidth / 2) ? .backward : .forward
 
