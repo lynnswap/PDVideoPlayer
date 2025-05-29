@@ -81,10 +81,6 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         let playerView = model.setupPlayerView()
         context.coordinator.playerView = playerView
 
-        let singleClickGestureRecognizer = NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:)))
-        singleClickGestureRecognizer.numberOfClicksRequired = 1
-        playerView.addGestureRecognizer(singleClickGestureRecognizer)
-
         let scrollView = model.scrollView
 
         let containerView = NSView()
@@ -118,6 +114,10 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         scrollView.hasVerticalScroller = false
         scrollView.hasHorizontalScroller = false
         scrollView.drawsBackground = false
+        
+        let singleClickGestureRecognizer = NSClickGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleClick(_:)))
+        singleClickGestureRecognizer.numberOfClicksRequired = 1
+        containerView.addGestureRecognizer(singleClickGestureRecognizer)
 
         scrollViewConfigurator?(scrollView)
 
