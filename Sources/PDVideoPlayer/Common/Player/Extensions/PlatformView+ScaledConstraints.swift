@@ -1,3 +1,5 @@
+import SwiftUI
+
 #if canImport(UIKit)
 typealias PlatformView = UIView
 #elseif canImport(AppKit)
