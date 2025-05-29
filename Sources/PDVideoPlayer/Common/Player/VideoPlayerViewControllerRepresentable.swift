@@ -12,42 +12,7 @@ import AVKit
 import AppKit
 #endif
 
-#if canImport(UIKit)
-typealias PlatformView = UIView
-#elseif canImport(AppKit)
-typealias PlatformView = NSView
-#endif
-extension PlatformView{
-    func setConstraintScalledToFit(
-        container containerView: PlatformView,
-        size contentSize: CGSize
-    ) {
-        containerView.constraints.forEach { $0.isActive = false }
-        // Center the image view within the container
-        NSLayoutConstraint.activate([
-            self.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
-            self.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
-        ])
 
-        // Limit the size so the image never exceeds the container
-        let widthLimit  = self.widthAnchor.constraint(lessThanOrEqualTo: containerView.widthAnchor)
-        let heightLimit = self.heightAnchor.constraint(lessThanOrEqualTo: containerView.heightAnchor)
-        NSLayoutConstraint.activate([widthLimit, heightLimit])
-
-        // Maintain the aspect ratio
-        let aspectRatio = contentSize.width / contentSize.height
-        let aspect = self.widthAnchor.constraint(equalTo: self.heightAnchor, multiplier: aspectRatio)
-        NSLayoutConstraint.activate([aspect])
-
-        // Provide low priority equality constraints so Auto Layout can
-        // choose the dimension that best fits the current orientation.
-        let widthEqual = self.widthAnchor.constraint(equalTo: containerView.widthAnchor)
-        widthEqual.priority = .defaultLow
-        let heightEqual = self.heightAnchor.constraint(equalTo: containerView.heightAnchor)
-        heightEqual.priority = .defaultLow
-        NSLayoutConstraint.activate([widthEqual, heightEqual])
-    }
-}
 
 
 
