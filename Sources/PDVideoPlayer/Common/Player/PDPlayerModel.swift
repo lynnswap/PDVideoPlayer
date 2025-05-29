@@ -39,6 +39,8 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public var scrollView = UIScrollView()
     private var playerVC: AVPlayerViewController?
     public var isLongpress: Bool = false
+    /// When true the player should ignore safe area insets to fill the screen.
+    public var isZoomedToFill: Bool = false
 #elseif os(macOS)
     /// When true, dragging on the player view moves the window.
     public var windowDraggable: Bool = false

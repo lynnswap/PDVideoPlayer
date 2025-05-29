@@ -362,6 +362,10 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         }
         scrollViewConfigurator?(scrollView)
 
+        DispatchQueue.main.async {
+            context.coordinator.updateZoomState(scrollView)
+        }
+
         return scrollView
     }
     public func updateUIView(_ uiView: UIScrollView, context: Context) {}
@@ -387,6 +391,43 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
             return scrollView.subviews.first
         }
+        private func updateZoomState(_ scrollView: UIScrollView) {
+            guard let window = scrollView.window else { return }
+            let orientation = window.windowScene?.interfaceOrientation
+            if orientation?.isLandscape == true {
+                let screenWidth = window.bounds.width
+                let safeWidth = screenWidth - window.safeAreaInsets.left - window.safeAreaInsets.right
+                let fillScale = screenWidth / safeWidth
+                scrollView.maximumZoomScale = fillScale
+                parent.model.isZoomedToFill = abs(scrollView.zoomScale - fillScale) < 0.001
+            } else {
+                scrollView.maximumZoomScale = 4.0
+                if scrollView.zoomScale <= 1.0 { parent.model.isZoomedToFill = false }
+            }
+        }
+
+        private func snapZoomIfNeeded(_ scrollView: UIScrollView) {
+            guard let window = scrollView.window else { return }
+            let orientation = window.windowScene?.interfaceOrientation
+            if orientation?.isLandscape == true {
+                let screenWidth = window.bounds.width
+                let safeWidth = screenWidth - window.safeAreaInsets.left - window.safeAreaInsets.right
+                let fillScale = screenWidth / safeWidth
+                let threshold = fillScale * 0.95
+                if scrollView.zoomScale >= threshold {
+                    scrollView.setZoomScale(fillScale, animated: true)
+                    parent.model.isZoomedToFill = true
+                } else if scrollView.zoomScale <= 1.0 {
+                    parent.model.isZoomedToFill = false
+                }
+            } else if scrollView.zoomScale <= 1.0 {
+                parent.model.isZoomedToFill = false
+            }
+        }
+
+        public func scrollViewDidZoom(_ scrollView: UIScrollView) {
+            updateZoomState(scrollView)
+        }
         public func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
             if scale == 1.0 {
                 // Enable the pan gesture recognizer
@@ -396,6 +437,8 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     }
                 }
             }
+            snapZoomIfNeeded(scrollView)
+            updateZoomState(scrollView)
         }
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {

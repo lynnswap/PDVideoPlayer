@@ -3,7 +3,11 @@ import SwiftUI
 import AVKit
 
 public struct PDVideoPlayerProxy<MenuContent: View> {
-    public let player:  PDVideoPlayerRepresentable
+    var model: PDPlayerModel
+    public var player: some View {
+        PDVideoPlayerRepresentable(model: model)
+            .ignoresSafeArea(model.isZoomedToFill ? .all : [])
+    }
     public let control: VideoPlayerControlView<MenuContent>
     public let navigation: VideoPlayerNavigationView
 }
@@ -50,9 +54,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     public var body: some View {
         if let model {
             let proxy = PDVideoPlayerProxy(
-                player: PDVideoPlayerRepresentable(
-                    model: model
-                ),
+                model: model,
                 control: VideoPlayerControlView(model: model, menuContent: menuContent),
                 navigation: VideoPlayerNavigationView()
             )
