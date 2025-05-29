@@ -12,6 +12,43 @@ import AVKit
 import AppKit
 #endif
 
+#if canImport(UIKit)
+typealias PlatformView = UIView
+#elseif canImport(AppKit)
+typealias PlatformView = NSView
+#endif
+extension PlatformView{
+    func setConstraintScalledToFit(
+        container containerView: PlatformView,
+        size contentSize: CGSize
+    ) {
+        containerView.constraints.forEach { $0.isActive = false }
+        // Center the image view within the container
+        NSLayoutConstraint.activate([
+            self.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            self.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
+        ])
+
+        // Limit the size so the image never exceeds the container
+        let widthLimit  = self.widthAnchor.constraint(lessThanOrEqualTo: containerView.widthAnchor)
+        let heightLimit = self.heightAnchor.constraint(lessThanOrEqualTo: containerView.heightAnchor)
+        NSLayoutConstraint.activate([widthLimit, heightLimit])
+
+        // Maintain the aspect ratio
+        let aspectRatio = contentSize.width / contentSize.height
+        let aspect = self.widthAnchor.constraint(equalTo: self.heightAnchor, multiplier: aspectRatio)
+        NSLayoutConstraint.activate([aspect])
+
+        // Provide low priority equality constraints so Auto Layout can
+        // choose the dimension that best fits the current orientation.
+        let widthEqual = self.widthAnchor.constraint(equalTo: containerView.widthAnchor)
+        widthEqual.priority = .defaultLow
+        let heightEqual = self.heightAnchor.constraint(equalTo: containerView.heightAnchor)
+        heightEqual.priority = .defaultLow
+        NSLayoutConstraint.activate([widthEqual, heightEqual])
+    }
+}
+
 
 
 #if os(macOS)
@@ -138,7 +175,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
         model.player.appliesMediaSelectionCriteriaAutomatically = false
 
-        if onPresentationSizeChange != nil, let playerItem = model.player.currentItem {
+        if let playerItem = model.player.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
             context.coordinator.presentationSizeObservation = nil
             context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, change in
@@ -147,6 +184,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
                     Task{ @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
+                        playerView.setConstraintScalledToFit(container:containerView,size:size)
                         onPresentationSizeChange?(playerView,size)
                     }
                 }
@@ -270,20 +308,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         let playerView = model.setupPlayer()
         context.coordinator.playerView = playerView
 
-        if onPresentationSizeChange != nil, let playerItem = model.player.currentItem {
-            context.coordinator.presentationSizeObservation?.invalidate()
-            context.coordinator.presentationSizeObservation = nil
-            context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, _ in
-                let size = item.presentationSize
-                if size.width > 0, size.height > 0 {
-                    Task { @MainActor in
-                        context.coordinator.presentationSizeObservation?.invalidate()
-                        context.coordinator.presentationSizeObservation = nil
-                        onPresentationSizeChange?(playerView.view, size)
-                    }
-                }
-            }
-        }
         
         scrollView.minimumZoomScale = 1.0
         scrollView.maximumZoomScale = 4.0
@@ -352,6 +376,21 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         longPressGestureRecognizer.minimumPressDuration = 0.5
         scrollView.addGestureRecognizer(longPressGestureRecognizer)
         
+        if let playerItem = model.player.currentItem {
+            context.coordinator.presentationSizeObservation?.invalidate()
+            context.coordinator.presentationSizeObservation = nil
+            context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, _ in
+                let size = item.presentationSize
+                if size.width > 0, size.height > 0 {
+                    Task { @MainActor in
+                        context.coordinator.presentationSizeObservation?.invalidate()
+                        context.coordinator.presentationSizeObservation = nil
+                        playerView.view.setConstraintScalledToFit(container:containerView,size:size)
+                        onPresentationSizeChange?(playerView.view, size)
+                    }
+                }
+            }
+        }
         if contextMenuProvider != nil {
             let contextMenuInteraction = UIContextMenuInteraction(delegate: context.coordinator)
             playerView.view.addInteraction(contextMenuInteraction)
