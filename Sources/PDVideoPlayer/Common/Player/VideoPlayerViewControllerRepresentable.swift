@@ -270,7 +270,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         let playerView = model.setupPlayer()
         context.coordinator.playerView = playerView
 
-        if onPresentationSizeChange != nil, let playerItem = model.player.currentItem {
+        if let playerItem = model.player.currentItem {
             context.coordinator.presentationSizeObservation?.invalidate()
             context.coordinator.presentationSizeObservation = nil
             context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, _ in
@@ -279,6 +279,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     Task { @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
+                        context.coordinator.updateAspectRatio(size)
                         onPresentationSizeChange?(playerView.view, size)
                     }
                 }
@@ -308,22 +309,29 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         playerView.view.translatesAutoresizingMaskIntoConstraints = false
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(playerView.view)
+        context.coordinator.containerView = containerView
+
+        let widthConstraint = playerView.view.widthAnchor.constraint(equalTo: containerView.widthAnchor)
+        widthConstraint.priority = .defaultHigh
+        let heightConstraint = playerView.view.heightAnchor.constraint(equalTo: containerView.heightAnchor)
+        heightConstraint.priority = .defaultHigh
+        context.coordinator.widthConstraint = widthConstraint
+        context.coordinator.heightConstraint = heightConstraint
+
+        let guide = scrollView.safeAreaLayoutGuide
 
         NSLayoutConstraint.activate([
-            containerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            containerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            containerView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            containerView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            containerView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            containerView.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
-            
-            
-            playerView.view.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            playerView.view.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            playerView.view.topAnchor.constraint(equalTo: containerView.topAnchor),
-            playerView.view.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-            playerView.view.widthAnchor.constraint(equalTo: containerView.widthAnchor),
-            playerView.view.heightAnchor.constraint(equalTo: containerView.heightAnchor)
+            containerView.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
+            containerView.topAnchor.constraint(equalTo: guide.topAnchor),
+            containerView.bottomAnchor.constraint(equalTo: guide.bottomAnchor),
+            containerView.widthAnchor.constraint(equalTo: guide.widthAnchor),
+            containerView.heightAnchor.constraint(equalTo: guide.heightAnchor),
+
+            playerView.view.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
+            playerView.view.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
+            widthConstraint,
+            heightConstraint
         ])
 
         if ProcessInfo.processInfo.isiOSAppOnMac {
@@ -374,10 +382,26 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     }
     public class Coordinator: NSObject, UIScrollViewDelegate {
         var parent: PDVideoPlayerRepresentable
-        weak var playerView:AVPlayerViewController?
+        weak var playerView: AVPlayerViewController?
+        weak var containerView: UIView?
+        var widthConstraint: NSLayoutConstraint?
+        var heightConstraint: NSLayoutConstraint?
+        var aspectConstraint: NSLayoutConstraint?
         var presentationSizeObservation: NSKeyValueObservation?
         init(_ parent: PDVideoPlayerRepresentable) {
             self.parent = parent
+        }
+
+        func updateAspectRatio(_ size: CGSize) {
+            guard let playerView = playerView,
+                  let containerView = containerView else { return }
+            aspectConstraint?.isActive = false
+            let ratio = size.height / size.width
+            let constraint = playerView.view.heightAnchor.constraint(equalTo: playerView.view.widthAnchor, multiplier: ratio)
+            constraint.priority = .required
+            constraint.isActive = true
+            aspectConstraint = constraint
+            containerView.setNeedsLayout()
         }
         
         public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
