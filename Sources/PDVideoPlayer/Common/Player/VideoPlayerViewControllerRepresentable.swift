@@ -396,6 +396,19 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     }
                 }
             }
+
+            guard UIDevice.current.userInterfaceIdiom == .phone,
+                  scrollView.bounds.width > scrollView.bounds.height else { return }
+
+            let windowBounds = scrollView.window?.bounds ?? UIScreen.main.bounds
+            let widthScale = windowBounds.width / scrollView.bounds.width
+            let heightScale = windowBounds.height / scrollView.bounds.height
+            let targetScale = max(widthScale, heightScale)
+
+            let clampedScale = min(scrollView.maximumZoomScale, targetScale)
+            if abs(scale - clampedScale) < 0.05 {
+                scrollView.setZoomScale(clampedScale, animated: true)
+            }
         }
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
