@@ -260,10 +260,15 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #if os(iOS)
     // MARK: - Gesture Support (iOS)
     @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
-        let location = recognizer.location(in: recognizer.view)
-        guard let view = recognizer.view else { return }
-        let viewWidth = view.bounds.width
-        let tapX = location.x
+        guard let scrollView = recognizer.view as? UIScrollView else { return }
+        let rawLocation = recognizer.location(in: scrollView)
+        // Adjust tap location when the video is zoomed or panned
+        let adjustedLocation = CGPoint(
+            x: (rawLocation.x + scrollView.contentOffset.x) / scrollView.zoomScale,
+            y: (rawLocation.y + scrollView.contentOffset.y) / scrollView.zoomScale
+        )
+        let viewWidth = scrollView.bounds.width
+        let tapX = rawLocation.x
         let current = currentTime
         let newDirection: SkipDirection = (tapX < viewWidth / 2) ? .backward : .forward
 
@@ -291,7 +296,11 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         }
 
         let labelSeconds = targetTime > .zero ? Int(skipSeconds) : .zero
-        rippleStore.addRipple(at: location, duration: labelSeconds)
+        rippleStore.viewSize = CGSize(
+            width: scrollView.bounds.width * scrollView.zoomScale,
+            height: scrollView.bounds.height * scrollView.zoomScale
+        )
+        rippleStore.addRipple(at: adjustedLocation, duration: labelSeconds)
         seek(to: targetTime)
 
         doubleTapResetTask?.cancel()
