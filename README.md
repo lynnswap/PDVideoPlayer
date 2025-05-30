@@ -84,6 +84,12 @@ An example implementation is provided in
 `Sources/PDVideoPlayer/Example/PDVideoPlayerSampleView.swift`.
 This view showcases a basic player setup with custom controls.
 
+## Apps Using
+
+<p float="left">
+    <a href="https://apps.apple.com/jp/app/tweetpd/id1671411031"><img src="https://i.imgur.com/AC6eGdx.png" height="65"></a>
+</p>
+
 ## Modifiers
 
 `PDVideoPlayer` provides several modifiers to customize behavior:
