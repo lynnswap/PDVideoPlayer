@@ -36,6 +36,7 @@ import PDVideoPlayer
 struct ContentView: View {
     let videoURL: URL
     @State private var isMuted: Bool = false
+    @State private var speed: PlaybackSpeed = .x1_0
     var body: some View {
         PDVideoPlayer(url: videoURL, menu: {
             Button("Sample 1") { print("Button 1") }
@@ -65,6 +66,7 @@ struct ContentView: View {
             }
         }
         .isMuted($isMuted)
+        .playbackSpeed($speed)
         .onLongPress { value in
             print("onLongPress", value)
         }
@@ -87,6 +89,7 @@ This view showcases a basic player setup with custom controls.
 `PDVideoPlayer` provides several modifiers to customize behavior:
 
 - `isMuted(_:)` – Bind the mute state.
+- `playbackSpeed(_:)` – Bind the playback speed.
 - `onClose(_:)` – Handle closing the player.
 - `onLongPress(_:)` – Respond to long‑press gestures.
 - `onPresentationSizeChange(_:)` – Observe the presentation size.
