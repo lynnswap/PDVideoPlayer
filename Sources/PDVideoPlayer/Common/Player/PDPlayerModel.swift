@@ -80,6 +80,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #elseif os(macOS)
         playerView?.setPlayer(newPlayer, videoGravity: .resizeAspect)
 #endif
+        newPlayer.defaultRate = playbackSpeed.value
         newPlayer.rate = playbackSpeed.value
         newPlayer.appliesMediaSelectionCriteriaAutomatically = false
         observePlayerStatus()

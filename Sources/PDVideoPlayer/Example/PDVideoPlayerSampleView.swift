@@ -82,6 +82,7 @@ struct ContentView: View {
         }
         .playerForegroundColor(.white)
         .animation(.smooth(duration:0.12), value: controlsVisible)
+        .background(.black)
     }
 }
 
