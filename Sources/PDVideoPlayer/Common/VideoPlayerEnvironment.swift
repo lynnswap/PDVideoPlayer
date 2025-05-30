@@ -17,8 +17,8 @@ private struct VideoPlayerOnCloseKey: @preconcurrency EnvironmentKey {
 private struct VideoPlayerIsMutedKey: EnvironmentKey {
     static let defaultValue: Binding<Bool>? = nil
 }
-private struct VideoPlayerPlaybackSpeedKey: EnvironmentKey {
-    static let defaultValue: Binding<PlaybackSpeed>? = nil
+private struct VideoPlayerPlaybackSpeedKey: @preconcurrency EnvironmentKey {
+    @MainActor static let defaultValue: Binding<PlaybackSpeed>? = nil
 }
 private struct VideoPlayerControlsVisibleKey: EnvironmentKey {
     static let defaultValue: Binding<Bool>? = nil
