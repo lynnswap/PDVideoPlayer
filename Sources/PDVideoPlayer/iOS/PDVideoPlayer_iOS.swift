@@ -16,6 +16,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var player: AVPlayer?
 
     var isMuted: Binding<Bool>?
+    var playbackSpeed: Binding<PlaybackSpeed>?
     var foregroundColor: Color = .white
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
@@ -61,12 +62,18 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 .videoPlayerKeyboardShortcuts(model)
                 .environment(model)
                 .environment(\.videoPlayerIsMuted, isMuted)
+                .environment(\.videoPlayerPlaybackSpeed, playbackSpeed)
                 .environment(\.videoPlayerOnClose, onClose)
                 .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
                 .onChange(of: isMuted?.wrappedValue){
                     if let isMuted{
                         model.player.isMuted = isMuted.wrappedValue
+                    }
+                }
+                .onChange(of: playbackSpeed?.wrappedValue){
+                    if let speed = playbackSpeed?.wrappedValue {
+                        model.playbackSpeed = speed
                     }
                 }
                 .onChange(of:foregroundColor){
@@ -103,10 +110,16 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                     if let url {
                         let newModel = PDPlayerModel(url: url)
                         newModel.onClose = onClose
+                        if let speed = playbackSpeed?.wrappedValue {
+                            newModel.playbackSpeed = speed
+                        }
                         model = newModel
                     } else if let player {
                         let newModel = PDPlayerModel(player: player)
                         newModel.onClose = onClose
+                        if let speed = playbackSpeed?.wrappedValue {
+                            newModel.playbackSpeed = speed
+                        }
                         model = newModel
                     }
                 }

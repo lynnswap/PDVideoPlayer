@@ -7,6 +7,12 @@ public extension PDVideoPlayer {
         copy.isMuted = binding
         return copy
     }
+
+    func playbackSpeed(_ binding: Binding<PlaybackSpeed>) -> Self {
+        var copy = self
+        copy.playbackSpeed = binding
+        return copy
+    }
     
     func onClose(_ action: VideoPlayerCloseAction) -> Self {
         var copy = self

@@ -17,6 +17,7 @@ public struct PDVideoPlayer<PlayerMenu: View,
     private var player: AVPlayer?
     
     var isMuted: Binding<Bool>?
+    var playbackSpeed: Binding<PlaybackSpeed>?
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
     var foregroundColor: Color = .white
@@ -70,12 +71,18 @@ public struct PDVideoPlayer<PlayerMenu: View,
                 .videoPlayerKeyboardShortcuts(model)
                 .environment(model)
                 .environment(\.videoPlayerIsMuted, isMuted)
+                .environment(\.videoPlayerPlaybackSpeed, playbackSpeed)
                 .environment(\.videoPlayerOnClose, onClose)
                 .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
                 .onChange(of: isMuted?.wrappedValue){
                     if let isMuted{
                         model.player.isMuted = isMuted.wrappedValue
+                    }
+                }
+                .onChange(of: playbackSpeed?.wrappedValue){
+                    if let speed = playbackSpeed?.wrappedValue {
+                        model.playbackSpeed = speed
                     }
                 }
                 .onChange(of:foregroundColor){
@@ -98,11 +105,17 @@ public struct PDVideoPlayer<PlayerMenu: View,
                         let m = PDPlayerModel(url: url)
                         m.onClose = onClose
                         m.windowDraggable = windowDraggable
+                        if let speed = playbackSpeed?.wrappedValue {
+                            m.playbackSpeed = speed
+                        }
                         model = m
                     } else if let player {
                         let m = PDPlayerModel(player: player)
                         m.onClose = onClose
                         m.windowDraggable = windowDraggable
+                        if let speed = playbackSpeed?.wrappedValue {
+                            m.playbackSpeed = speed
+                        }
                         model = m
                     }
                 }

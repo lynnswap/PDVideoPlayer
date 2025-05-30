@@ -28,6 +28,14 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public var player: AVPlayer
     public var onClose: VideoPlayerCloseAction?
     public var originalRate: Float = 1.0
+    public var playbackSpeed: PlaybackSpeed = .x1_0 {
+        didSet {
+            originalRate = playbackSpeed.value
+            if isPlaying {
+                player.rate = playbackSpeed.value
+            }
+        }
+    }
 
 #if os(iOS)
     public var isLooping: Bool = true
@@ -71,6 +79,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #elseif os(macOS)
         playerView?.setPlayer(newPlayer, videoGravity: .resizeAspect)
 #endif
+        newPlayer.rate = playbackSpeed.value
         newPlayer.appliesMediaSelectionCriteriaAutomatically = false
         observePlayerStatus()
         observeSubtitleUpdates()
@@ -206,6 +215,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
             seek(to: 0)
         }
         player.play()
+        player.rate = playbackSpeed.value
     }
 
     func pause() { player.pause() }
