@@ -13,7 +13,7 @@ public struct PlaybackSpeedMenuView: View {
                 Text(speed.displayName).tag(speed)
             }
         } label: {
-            Label("Speed", systemImage: "speedometer")
+            Label(String("Playback Speed"), systemImage: "speedometer")
         }
     }
 }
