@@ -140,7 +140,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
                     Task{ @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
-                        playerView.setConstraintScalledToFit(container:containerView,size:size)
+                        playerView.setConstraintScalledToFit(in:containerView,size:size)
                         onPresentationSizeChange?(playerView,size)
                     }
                 }

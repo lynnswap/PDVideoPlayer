@@ -9,30 +9,44 @@ typealias PlatformView = NSView
 extension PlatformView {
     /// Constrain the view to fit inside its container while preserving aspect ratio.
     /// - Parameters:
-    ///   - container: The container view to fit within.
+    ///   - containerView: The container view to fit within.
     ///   - contentSize: The natural size of the content for calculating aspect ratio.
     func setConstraintScalledToFit(
-        container containerView: PlatformView,
+        in containerView: PlatformView,
         size contentSize: CGSize
     ) {
-        containerView.constraints.forEach { $0.isActive = false }
+        guard contentSize.width > 0, contentSize.height > 0 else { return }
+        
+        (containerView.constraints + self.constraints)
+            .filter { $0.firstItem === self || $0.secondItem === self }
+            .forEach { $0.isActive = false }
+        
+        self.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             self.centerXAnchor.constraint(equalTo: containerView.centerXAnchor),
             self.centerYAnchor.constraint(equalTo: containerView.centerYAnchor)
         ])
-
-        let widthLimit  = self.widthAnchor.constraint(lessThanOrEqualTo: containerView.widthAnchor)
-        let heightLimit = self.heightAnchor.constraint(lessThanOrEqualTo: containerView.heightAnchor)
-        NSLayoutConstraint.activate([widthLimit, heightLimit])
-
+        
         let aspectRatio = contentSize.width / contentSize.height
-        let aspect = self.widthAnchor.constraint(equalTo: self.heightAnchor, multiplier: aspectRatio)
-        NSLayoutConstraint.activate([aspect])
-
-        let widthEqual = self.widthAnchor.constraint(equalTo: containerView.widthAnchor)
-        widthEqual.priority = .defaultLow
-        let heightEqual = self.heightAnchor.constraint(equalTo: containerView.heightAnchor)
-        heightEqual.priority = .defaultLow
-        NSLayoutConstraint.activate([widthEqual, heightEqual])
+        NSLayoutConstraint.activate([
+            self.widthAnchor.constraint(equalTo: self.heightAnchor,
+                                        multiplier: aspectRatio)
+        ])
+        
+        let wLimit = self.widthAnchor .constraint(lessThanOrEqualTo: containerView.widthAnchor)
+        let hLimit = self.heightAnchor.constraint(lessThanOrEqualTo: containerView.heightAnchor)
+        NSLayoutConstraint.activate([wLimit, hLimit])
+        
+        let containerAspect = containerView.bounds.width / max(containerView.bounds.height, 1)
+        if aspectRatio > containerAspect {
+            let wFit = self.widthAnchor .constraint(equalTo: containerView.widthAnchor)
+            wFit.priority = .defaultHigh
+            NSLayoutConstraint.activate([wFit])
+        } else {
+            let hFit = self.heightAnchor.constraint(equalTo: containerView.heightAnchor)
+            hFit.priority = .defaultHigh
+            NSLayoutConstraint.activate([hFit])
+        }
     }
 }

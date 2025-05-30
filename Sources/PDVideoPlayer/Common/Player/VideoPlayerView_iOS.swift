@@ -115,7 +115,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     Task { @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
-                        playerView.view.setConstraintScalledToFit(container:containerView,size:size)
+                        playerView.view.setConstraintScalledToFit(in:containerView,size:size)
                         onPresentationSizeChange?(playerView.view, size)
                     }
                 }
