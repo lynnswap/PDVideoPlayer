@@ -1,10 +1,10 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
+#if DEBUG
 import SwiftUI
 import AVKit
 
-#if DEBUG
 private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
 struct ContentView: View {
     @State private var isMuted: Bool = true

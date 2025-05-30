@@ -76,6 +76,12 @@ struct ContentView: View {
 }
 ```
 
+## Example
+
+An example implementation is provided in
+`Sources/PDVideoPlayer/Example/PDVideoPlayerSampleView.swift`.
+This view showcases a basic player setup with custom controls.
+
 ## Modifiers
 
 `PDVideoPlayer` provides several modifiers to customize behavior:
