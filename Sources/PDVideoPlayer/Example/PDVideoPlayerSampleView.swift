@@ -31,22 +31,10 @@ struct ContentView: View {
                         .onPresentationSizeChange({ view, size in
                             
                         })
-                    
 #if os(iOS)
-                        .contextMenuProvider{ location in
-                            let contextMenus :[UIMenuElement] = [
-                                UIAction(
-                                    title: String(localized:"save"),
-                                    image: UIImage(systemName: "square.and.arrow.down")
-                                ) { _ in
-                                    print("save")
-                                }
-                            ]
-                            return UIMenu(
-                                title: "",
-                                children: contextMenus
-                            )
-                        } 
+                        .contextMenuProvider{ _ in
+                            return uimenu
+                        }
                         .scrollViewConfigurator { scrollView in
                             
                         }
@@ -84,6 +72,22 @@ struct ContentView: View {
         .animation(.smooth(duration:0.12), value: controlsVisible)
         .background(.black)
     }
+#if os(iOS)
+    private var uimenu:UIMenu{
+        let contextMenus :[UIMenuElement] = [
+            UIAction(
+                title: String(localized:"save"),
+                image: UIImage(systemName: "square.and.arrow.down")
+            ) { _ in
+                print("save")
+            }
+        ]
+        return UIMenu(
+            title: "",
+            children: contextMenus
+        )
+    }
+#endif
 }
 
 #Preview{
