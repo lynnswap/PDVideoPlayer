@@ -9,6 +9,7 @@ private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecordin
 struct ContentView: View {
     @State private var isMuted: Bool = true
     @State private var controlsVisible: Bool = true
+    @State private var speed: PlaybackSpeed = .x1_0
     
     var body: some View {
         PDVideoPlayer(
@@ -72,6 +73,7 @@ struct ContentView: View {
             }
         )
         .isMuted($isMuted)
+        .playbackSpeed($speed)
         .onLongPress { value in
             print("onLongPress", value)
         }

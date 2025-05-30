@@ -30,6 +30,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                 VideoPlayerDurationView(model:model)
                 Menu{
                     SubtitleMenuView()
+                    PlaybackSpeedMenuView()
                     Divider()
                     menuContent()
                 }label: {
@@ -74,6 +75,9 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                     
                     Menu {
                         SubtitleMenuView()
+                            .pickerStyle(.menu)
+                            .menuActionDismissBehavior(.disabled)
+                        PlaybackSpeedMenuView()
                             .pickerStyle(.menu)
                             .menuActionDismissBehavior(.disabled)
                         Divider()
