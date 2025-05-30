@@ -79,6 +79,7 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                             .menuActionDismissBehavior(.disabled)
                         PlaybackSpeedMenuView()
                             .pickerStyle(.menu)
+                            .menuActionDismissBehavior(.disabled)
                         Divider()
                         menuContent()
                     } label: {
