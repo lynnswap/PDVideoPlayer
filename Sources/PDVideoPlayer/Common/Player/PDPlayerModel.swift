@@ -31,6 +31,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public var playbackSpeed: PlaybackSpeed = .x1_0 {
         didSet {
             originalRate = playbackSpeed.value
+            player.defaultRate = playbackSpeed.value
             if isPlaying {
                 player.rate = playbackSpeed.value
             }
