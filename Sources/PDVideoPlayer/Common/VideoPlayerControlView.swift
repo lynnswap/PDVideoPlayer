@@ -152,10 +152,18 @@ public struct PlayPauseButton: View{
                 HStack(spacing:12){
                     PlayPauseIcon(model: model)
                     if model.isBuffering{
-                        ProgressView()
-                            .tint(foregroundColor.opacity(0.8))
 #if os(macOS)
-                            .controlSize(.small)
+                    ProgressView()
+                        .opacity(0)
+                        .overlay {
+                            foregroundColor.opacity(0.8).mask {
+                                ProgressView()
+                            }
+                        }
+                        .controlSize(.small)
+#else
+                    ProgressView()
+                        .tint(foregroundColor.opacity(0.8))
 #endif
                     }
                     Spacer(minLength: 0)
