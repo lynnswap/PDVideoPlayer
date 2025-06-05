@@ -183,7 +183,6 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     // MARK: - Time Observation
     private func addPeriodicTimeObserver() {
         guard timeObserverToken == nil else { return }
-        let player = self.player
         timeObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: .main) { [weak self] time in
             guard let self else { return }
             MainActor.assumeIsolated {
