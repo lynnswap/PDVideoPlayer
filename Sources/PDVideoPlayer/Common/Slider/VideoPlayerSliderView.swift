@@ -35,37 +35,41 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
 
     public func updateNSView(_ nsView: NSSlider, context: Context) {
     }
-
+    public static func dismantleNSView(_ nsView: NSSlider, coordinator: Coordinator) {
+        if let slider = nsView as? VideoPlayerSlider {
+            slider.onScroll = nil
+        }
+    }
     public func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(viewModel)
     }
     @MainActor
     public class Coordinator: NSObject {
-        var parent: VideoPlayerSliderView
+        var viewModel: PDPlayerModel
         private var wasPlayingBeforeTracking = false
         private var wasPlayingBeforeScroll = false
-        init(_ parent: VideoPlayerSliderView) {
-            self.parent = parent
+        init(_ viewModel: PDPlayerModel) {
+            self.viewModel = viewModel
         }
         
         @objc func onValueChanged(_ sender: NSSlider) {
-            guard parent.viewModel.duration > 0,
+            guard viewModel.duration > 0,
                   let event = NSApp.currentEvent else { return }
             
             switch event.type {
             case .leftMouseDown:
-                parent.viewModel.isTracking = true
-                wasPlayingBeforeTracking = parent.viewModel.isPlaying
-                parent.viewModel.pause()
+                viewModel.isTracking = true
+                wasPlayingBeforeTracking = viewModel.isPlaying
+                viewModel.pause()
                 
             case .leftMouseDragged:
                 seek(to: sender.doubleValue)
             case .leftMouseUp:
-                parent.viewModel.isTracking = false
+                viewModel.isTracking = false
                 snapAndSeek(to: sender.doubleValue)
                 
                 if wasPlayingBeforeTracking {
-                    parent.viewModel.play()
+                    viewModel.play()
                 }
                 
             default:
@@ -73,28 +77,28 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
             }
         }
         private func snapAndSeek(to ratio: Double) {
-            let total   = parent.viewModel.duration
+            let total   = viewModel.duration
             let step    = 0.03
             let seconds = (ratio * total / step).rounded() * step
-            parent.viewModel.seekPrecisely(to: seconds)
-            parent.viewModel.slider.doubleValue = seconds / total
+            viewModel.seekPrecisely(to: seconds)
+            viewModel.slider.doubleValue = seconds / total
         }
         private func seek(to ratio: Double) {
-            let total = parent.viewModel.duration
-            parent.viewModel.seekPrecisely(to: ratio * total)
+            let total = viewModel.duration
+            viewModel.seekPrecisely(to: ratio * total)
         }
         
         func handleScroll(phase: NSEvent.Phase, ratioValue: Double) {
-            guard parent.viewModel.duration > 0 else { return }
-            let total = parent.viewModel.duration
+            guard viewModel.duration > 0 else { return }
+            let total = viewModel.duration
 
             switch phase {
             case .began:
-                wasPlayingBeforeScroll = parent.viewModel.isPlaying
-                parent.viewModel.pause()
-                parent.viewModel.isTracking = true
+                wasPlayingBeforeScroll = viewModel.isPlaying
+                viewModel.pause()
+                viewModel.isTracking = true
             case .changed:
-                parent.viewModel.seekPrecisely(to: ratioValue * total)
+                viewModel.seekPrecisely(to: ratioValue * total)
             case .ended,.cancelled:
                 snap(to: ratioValue)
             default:
@@ -103,13 +107,13 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
         }
 
         private func snap(to ratioValue: Double) {
-            let total = parent.viewModel.duration
+            let total = viewModel.duration
             let step  = 0.03
             let snapped = (ratioValue * total / step).rounded() * step
-            parent.viewModel.seekPrecisely(to: snapped)
-            parent.viewModel.slider.doubleValue = snapped / total
-            parent.viewModel.isTracking = false
-            if wasPlayingBeforeScroll { parent.viewModel.play() }
+            viewModel.seekPrecisely(to: snapped)
+            viewModel.slider.doubleValue = snapped / total
+            viewModel.isTracking = false
+            if wasPlayingBeforeScroll { viewModel.play() }
         }
     }
 }
@@ -125,7 +129,7 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
     }
 
     public func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(viewModel)
     }
 
     public func makeUIView(context: Context) -> UISlider {
@@ -176,24 +180,24 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
 
     @MainActor
     public class Coordinator: NSObject {
-        var parent: VideoPlayerSliderView
+        var viewModel: PDPlayerModel
 
         /// ドラッグ開始前に「再生中」だったかどうか
         private var wasPlayingBeforeTracking = false
 
-        init(_ parent: VideoPlayerSliderView) {
-            self.parent = parent
+        init(_ viewModel: PDPlayerModel) {
+            self.viewModel = viewModel
         }
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
-            let slider = parent.viewModel.slider
+            let slider = viewModel.slider
 
             switch gesture.state {
             case .began:
-                parent.viewModel.isTracking = true
+                viewModel.isTracking = true
 
-                wasPlayingBeforeTracking = parent.viewModel.isPlaying
+                wasPlayingBeforeTracking = viewModel.isPlaying
                 if wasPlayingBeforeTracking {
-                    parent.viewModel.pause()
+                    viewModel.pause()
                 }
 
             case .changed:
@@ -211,17 +215,17 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
                 gesture.setTranslation(.zero, in: slider)
 
                 // 動画の「途中プレビュー」をしたい場合
-                if parent.viewModel.duration > 0 {
-                    let total = parent.viewModel.duration
+                if viewModel.duration > 0 {
+                    let total = viewModel.duration
                     let currentSeconds = Double(slider.value) * total
-                    parent.viewModel.seekPrecisely(to: currentSeconds)
+                    viewModel.seekPrecisely(to: currentSeconds)
                 }
 
             case .ended, .cancelled, .failed:
                 // 最終的な値を 30ms刻みなどでスナップ
-                parent.viewModel.isTracking = false
-                if parent.viewModel.duration > 0 {
-                    let total = parent.viewModel.duration
+                viewModel.isTracking = false
+                if viewModel.duration > 0 {
+                    let total = viewModel.duration
                     let rawSeconds = Double(slider.value) * total
 
                     let step = 0.03
@@ -229,12 +233,12 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
                     let snappedRatio = snappedSeconds / total
 
                     slider.value = Float(snappedRatio)
-                    parent.viewModel.seekPrecisely(to: snappedSeconds)
+                    viewModel.seekPrecisely(to: snappedSeconds)
                 }
 
                 // もともと再生中だったなら再開
                 if wasPlayingBeforeTracking {
-                    parent.viewModel.play()
+                    viewModel.play()
                 }
 
             default:
@@ -243,34 +247,34 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
         }
 
         @objc func onValueChanged(_ sender: UISlider) {
-            guard parent.viewModel.duration > 0 else { return }
+            guard viewModel.duration > 0 else { return }
 
             // 前回の状態を保持
-            let wasTracking = parent.viewModel.isTracking
+            let wasTracking = viewModel.isTracking
             // 現在の状態を更新
-            parent.viewModel.isTracking = sender.isTracking
+            viewModel.isTracking = sender.isTracking
 
             // ---- 状態遷移を検知 ----
 
             // (A) ドラッグ開始: false -> true
-            if wasTracking == false && parent.viewModel.isTracking == true {
+            if wasTracking == false && viewModel.isTracking == true {
                 // 「再生中だったか」を覚えておく
-                wasPlayingBeforeTracking = parent.viewModel.isPlaying
+                wasPlayingBeforeTracking = viewModel.isPlaying
                 // 一時停止
-                parent.viewModel.pause()
+                viewModel.pause()
             }
 
             // (B) ドラッグ終了: true -> false
-            if wasTracking == true && parent.viewModel.isTracking == false {
+            if wasTracking == true && viewModel.isTracking == false {
                 // もともと再生していたなら再開
                 if wasPlayingBeforeTracking {
-                    parent.viewModel.play()
+                    viewModel.play()
                 }
             }
 
             // ---- シーク処理 ----
 
-            let total = parent.viewModel.duration
+            let total = viewModel.duration
             let rawSeconds = Double(sender.value) * total
 
             // 30ms 刻み (0.03秒) で丸め
@@ -284,7 +288,7 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
             }
 
             // 精密シーク
-            parent.viewModel.seekPrecisely(to: snappedSeconds)
+            viewModel.seekPrecisely(to: snappedSeconds)
         }
     }
 }
