@@ -52,6 +52,16 @@ private struct VideoPlayerForegroundColorKey: EnvironmentKey {
     static let defaultValue: Color = .white
 }
 
+#if os(macOS)
+private struct VideoPlayerSliderKnobSizeKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 12
+}
+#else
+private struct VideoPlayerSliderKnobSizeKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 6
+}
+#endif
+
 public extension EnvironmentValues {
     var videoPlayerOnClose: VideoPlayerCloseAction? {
         get { self[VideoPlayerOnCloseKey.self] }
@@ -72,6 +82,10 @@ public extension EnvironmentValues {
     var videoPlayerForegroundColor: Color {
         get { self[VideoPlayerForegroundColorKey.self] }
         set { self[VideoPlayerForegroundColorKey.self] = newValue }
+    }
+    var videoPlayerSliderKnobSize: CGFloat {
+        get { self[VideoPlayerSliderKnobSizeKey.self] }
+        set { self[VideoPlayerSliderKnobSizeKey.self] = newValue }
     }
 }
 

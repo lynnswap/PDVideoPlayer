@@ -61,6 +61,7 @@ struct ContentView: View {
                     proxy.navigation
                     Spacer()
                     proxy.control
+                        .knobSize(16)
                         .frame(maxWidth: 500,alignment: .center)
                 }
             }
@@ -99,6 +100,7 @@ This view showcases a basic player setup with custom controls.
 - `scrollViewConfigurator(_:)` – Customize the underlying scroll view.
 - `skipRippleEffect()` – Show a ripple animation when double‑tap skipping on iOS.
 - `trackpadSwipeOverlay()` – Expand the area for trackpad swipe seeking on macOS.
+- `knobSize(_:)` – Adjust the size of the slider knob.
 
 ## Apps Using
 

@@ -13,6 +13,7 @@ import AppKit
 public struct VideoPlayerSliderView: NSViewRepresentable {
     var viewModel: PDPlayerModel
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
+    @Environment(\.videoPlayerSliderKnobSize) private var knobSize
 
     public init(viewModel: PDPlayerModel) {
         self.viewModel = viewModel
@@ -20,6 +21,7 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
 
     public func makeNSView(context: Context) -> NSSlider {
         let slider = viewModel.slider
+        slider.knobDiameter = knobSize
         slider.baseColor = NSColor(foregroundColor)
         slider.minValue = 0
         slider.maxValue = 1
@@ -121,6 +123,7 @@ public struct VideoPlayerSliderView: NSViewRepresentable {
 public struct VideoPlayerSliderView: UIViewRepresentable {
     var viewModel: PDPlayerModel
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
+    @Environment(\.videoPlayerSliderKnobSize) private var knobSize
 
     public init(
         viewModel:PDPlayerModel
@@ -136,7 +139,7 @@ public struct VideoPlayerSliderView: UIViewRepresentable {
         let slider = viewModel.slider
 
         let config = UIImage.SymbolConfiguration(
-            pointSize: 6,
+            pointSize: knobSize,
             weight: .regular,
             scale: .default
         )

@@ -73,15 +73,27 @@ class VideoPlayerSliderCell: NSSliderCell {
     }
 }
 class VideoPlayerSlider: NSSlider {
-    public var knobDiameter: CGFloat = 12
+    public var knobDiameter: CGFloat = 12 {
+        didSet {
+            if let cell = cell as? VideoPlayerSliderCell {
+                cell.knobDiameter = knobDiameter
+            }
+        }
+    }
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         cell = VideoPlayerSliderCell()
+        if let cell = cell as? VideoPlayerSliderCell {
+            cell.knobDiameter = knobDiameter
+        }
         allowsTickMarkValuesOnly = false
     }
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         cell = VideoPlayerSliderCell()
+        if let cell = cell as? VideoPlayerSliderCell {
+            cell.knobDiameter = knobDiameter
+        }
     }
     var baseColor: NSColor {
         get { (cell as? VideoPlayerSliderCell)?.baseColor ?? .white }

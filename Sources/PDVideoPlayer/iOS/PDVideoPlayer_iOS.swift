@@ -18,6 +18,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     var isMuted: Binding<Bool>?
     var playbackSpeed: Binding<PlaybackSpeed>?
     var foregroundColor: Color = .white
+    @Environment(\.videoPlayerSliderKnobSize) private var knobSize
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
 
@@ -78,9 +79,9 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 }
                 .onChange(of:foregroundColor){
                     let slider = model.slider
-                    
+
                     let config = UIImage.SymbolConfiguration(
-                        pointSize: 6,
+                        pointSize: knobSize,
                         weight: .regular,
                         scale: .default
                     )
@@ -93,6 +94,18 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
                     slider.minimumTrackTintColor = leftColor
                     slider.maximumTrackTintColor = rightColor
+                }
+                .onChange(of: knobSize) { newSize in
+                    let slider = model.slider
+                    let config = UIImage.SymbolConfiguration(
+                        pointSize: newSize,
+                        weight: .regular,
+                        scale: .default
+                    )
+                    let leftColor:UIColor = UIColor(foregroundColor.opacity(0.8))
+                    let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
+                        .withTintColor(leftColor, renderingMode: .alwaysOriginal)
+                    slider.setThumbImage(thumbImage, for: .normal)
                 }
                 .onChange(of: url) {
                     if let url {

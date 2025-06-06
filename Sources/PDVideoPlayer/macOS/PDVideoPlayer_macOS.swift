@@ -21,6 +21,7 @@ public struct PDVideoPlayer<PlayerMenu: View,
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
     var foregroundColor: Color = .white
+    @Environment(\.videoPlayerSliderKnobSize) private var knobSize
     /// Enables moving the window when dragging on the player view.
     var windowDraggable: Bool = false
     
@@ -87,6 +88,9 @@ public struct PDVideoPlayer<PlayerMenu: View,
                 }
                 .onChange(of:foregroundColor){
                     model.slider.baseColor = NSColor(foregroundColor)
+                }
+                .onChange(of: knobSize) { newSize in
+                    model.slider.knobDiameter = newSize
                 }
                 .onChange(of: url) {
                     if let url {
