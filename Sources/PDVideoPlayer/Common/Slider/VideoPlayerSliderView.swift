@@ -22,18 +22,18 @@ public struct VideoPlayerSliderView: View {
             foregroundColor: foregroundColor
         )
 #if os(iOS)
-        .onChange(of: knobSize) { size in
-            updateThumb(size: size, color: foregroundColor)
+        .onChange(of: knobSize) {
+            updateThumb(size: knobSize, color: foregroundColor)
         }
-        .onChange(of: foregroundColor) { color in
-            updateThumb(size: knobSize, color: color)
+        .onChange(of: foregroundColor) {
+            updateThumb(size: knobSize, color: foregroundColor)
         }
 #else
-        .onChange(of: knobSize) { size in
-            viewModel.slider.knobDiameter = size
+        .onChange(of: knobSize) {
+            viewModel.slider.knobDiameter = knobSize
         }
-        .onChange(of: foregroundColor) { color in
-            viewModel.slider.baseColor = NSColor(color)
+        .onChange(of: foregroundColor) {
+            viewModel.slider.baseColor = NSColor(foregroundColor)
         }
 #endif
     }

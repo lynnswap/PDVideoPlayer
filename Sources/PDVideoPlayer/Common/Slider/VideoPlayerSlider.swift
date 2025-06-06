@@ -10,7 +10,12 @@ import AVFoundation
 #if os(macOS)
 import AppKit
 class VideoPlayerSliderCell: NSSliderCell {
-    public var knobDiameter: CGFloat = 12
+    public var knobDiameter: CGFloat = 12 {
+        didSet {
+            controlView?.needsLayout = true
+            controlView?.needsDisplay = true
+        }
+    }
     private let barHeight:    CGFloat = 2
     var baseColor: NSColor = .white { didSet { controlView?.needsDisplay = true } }
     private var minColor: NSColor { baseColor.withAlphaComponent(0.8) }
