@@ -87,20 +87,34 @@ This view showcases a basic player setup with custom controls.
 
 ## Modifiers
 
-`PDVideoPlayer` provides several modifiers to customize behavior:
+`PDVideoPlayer` provides modifiers for each view in the player hierarchy:
+
+### `PDVideoPlayer`
 
 - `isMuted(_:)` – Bind the mute state.
 - `playbackSpeed(_:)` – Bind the playback speed.
 - `onClose(_:)` – Handle closing the player.
 - `onLongPress(_:)` – Respond to long‑press gestures.
-- `onPresentationSizeChange(_:)` – Observe the presentation size.
 - `playerForegroundColor(_:)` – Set tint color for controls.
-- `windowDraggable(_:)` – Allow dragging the macOS window by the player view.
-- `contextMenuProvider(_:)` – Provide a custom context menu for a tap location on iOS.
+- `windowDraggable(_:)` – Allow dragging the window. *(macOS)*
+
+### Player View (`proxy.player`)
+
+- `onTap(_:)` – Handle taps on the player.
+- `onPresentationSizeChange(_:)` – Observe the presentation size.
 - `scrollViewConfigurator(_:)` – Customize the underlying scroll view.
-- `skipRippleEffect()` – Show a ripple animation when double‑tap skipping on iOS.
-- `trackpadSwipeOverlay()` – Expand the area for trackpad swipe seeking on macOS.
-- `knobSize(_:)` – Adjust the size of the control's slider knob.
+- `contextMenuProvider(_:)` – Provide a custom context menu. *(iOS)*
+- `skipRippleEffect()` – Show a ripple animation when double‑tap skipping. *(iOS)*
+- `playerViewConfigurator(_:)` – Configure the underlying `NSView`. *(macOS)*
+
+### Control View (`proxy.control`)
+
+- `knobSize(_:)` – Adjust the slider knob size.
+- `trackpadSwipeOverlay()` – Expand the area for trackpad swipe seeking. *(macOS)*
+
+### Content Container
+
+- `videoPlayerKeyboardShortcuts(_:)` – Add keyboard shortcuts for playback.
 
 ## Apps Using
 
