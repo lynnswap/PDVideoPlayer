@@ -85,9 +85,6 @@ public struct PDVideoPlayer<PlayerMenu: View,
                         model.playbackSpeed = speed
                     }
                 }
-                .onChange(of:foregroundColor){
-                    model.slider.baseColor = NSColor(foregroundColor)
-                }
                 .onChange(of: url) {
                     if let url {
                         model.replacePlayer(url: url)
