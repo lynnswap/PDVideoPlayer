@@ -9,10 +9,12 @@ public struct VideoPlayerKnobSizeModifier: ViewModifier {
     }
 }
 
-public extension VideoPlayerControlView {
+public extension PDVideoPlayer {
     /// Adjusts the knob size of the player's slider.
-    func knobSize(_ size: CGFloat) -> some View {
-        modifier(VideoPlayerKnobSizeModifier(size: size))
+    func knobSize(_ size: CGFloat) -> Self {
+        var copy = self
+        copy.sliderKnobSize = size
+        return copy
     }
 }
 #endif

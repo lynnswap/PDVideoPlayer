@@ -18,6 +18,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     var isMuted: Binding<Bool>?
     var playbackSpeed: Binding<PlaybackSpeed>?
     var foregroundColor: Color = .white
+    var sliderKnobSize: CGFloat?
     @Environment(\.videoPlayerSliderKnobSize) private var knobSize
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
@@ -67,6 +68,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 .environment(\.videoPlayerOnClose, onClose)
                 .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
+                .environment(\.videoPlayerSliderKnobSize, sliderKnobSize ?? knobSize)
                 .onChange(of: isMuted?.wrappedValue){
                     if let isMuted{
                         model.player.isMuted = isMuted.wrappedValue

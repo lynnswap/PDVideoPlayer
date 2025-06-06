@@ -61,7 +61,6 @@ struct ContentView: View {
                     proxy.navigation
                     Spacer()
                     proxy.control
-                        .knobSize(16)
                         .frame(maxWidth: 500,alignment: .center)
                 }
             }
@@ -75,6 +74,7 @@ struct ContentView: View {
             print("onClose", value)
         }
         .playerForegroundColor(.white)
+        .knobSize(16)
     }
 }
 ```
