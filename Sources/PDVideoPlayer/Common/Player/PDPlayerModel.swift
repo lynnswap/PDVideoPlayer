@@ -107,7 +107,10 @@ public class PDPlayerModel: NSObject, DynamicProperty {
                     if !self.isPlaying { self.isPlaying = true }
 #if os(iOS)
                     if self.isLongpress {
-                        self.player.rate = min(self.originalRate * 2.0, 2.0)
+                        let fastRate = min(self.originalRate * 2.0, 2.0)
+                        if self.player.rate != fastRate {
+                            self.player.rate = fastRate
+                        }
                     }
 #endif
                     if self.isBuffering { self.isBuffering = false }
