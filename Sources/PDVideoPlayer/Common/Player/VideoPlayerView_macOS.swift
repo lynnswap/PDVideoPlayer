@@ -48,6 +48,7 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
         var presentationSizeObservation: NSKeyValueObservation?
         var parent: PDVideoPlayerView_macOS
         weak var playerView: PlayerNSView?
+        weak var containerView: PlayerContainerView?
 
         init(_ parent: PDVideoPlayerView_macOS) {
             self.parent = parent
@@ -83,7 +84,8 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
 
         let scrollView = model.scrollView
 
-        let containerView = NSView()
+        let containerView = PlayerContainerView()
+        context.coordinator.containerView = containerView
         containerView.translatesAutoresizingMaskIntoConstraints = false
         containerView.wantsLayer = true
         containerView.layer?.backgroundColor = NSColor.clear.cgColor
@@ -140,7 +142,9 @@ public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
                     Task{ @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
-                        playerView.setConstraintScalledToFit(in:containerView,size:size)
+                        containerView.playerView = playerView
+                        containerView.contentSize = size
+                        containerView.updateAspectConstraint()
                         onPresentationSizeChange?(playerView,size)
                     }
                 }

@@ -46,7 +46,8 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.contentInsetAdjustmentBehavior = .never
        
-        let containerView = UIView()
+        let containerView = PlayerContainerView()
+        context.coordinator.containerView = containerView
         containerView.backgroundColor = .clear
         containerView.tag = 1
         scrollView.addSubview(containerView)
@@ -115,7 +116,9 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     Task { @MainActor in
                         context.coordinator.presentationSizeObservation?.invalidate()
                         context.coordinator.presentationSizeObservation = nil
-                        playerView.view.setConstraintScalledToFit(in:containerView,size:size)
+                        containerView.playerView = playerView.view
+                        containerView.contentSize = size
+                        containerView.updateAspectConstraint()
                         onPresentationSizeChange?(playerView.view, size)
                     }
                 }
@@ -144,6 +147,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     public class Coordinator: NSObject, UIScrollViewDelegate {
         var parent: PDVideoPlayerRepresentable
         weak var playerView:AVPlayerViewController?
+        weak var containerView: PlayerContainerView?
         var presentationSizeObservation: NSKeyValueObservation?
         init(_ parent: PDVideoPlayerRepresentable) {
             self.parent = parent
