@@ -28,7 +28,7 @@ Then import `PDVideoPlayer` where needed.
 
 ## Basic Usage
 
-Create a player from a `URL` or an existing `AVPlayer` and provide optional menus and content.
+Create a player from a `URL` or an existing `AVPlayer` and supply additional menu items with a modifier.
 
 ```swift
 import PDVideoPlayer
@@ -38,10 +38,7 @@ struct ContentView: View {
     @State private var isMuted: Bool = false
     @State private var speed: PlaybackSpeed = .x1_0
     var body: some View {
-        PDVideoPlayer(url: videoURL, menu: {
-            Button("Sample 1") { print("Button 1") }
-            Button("Sample 2") { print("Button 2") }
-        }) { proxy in
+        PDVideoPlayer(url: videoURL) { proxy in
             ZStack {
                 proxy.player
                     .onTap { inside in
@@ -75,6 +72,10 @@ struct ContentView: View {
             print("onClose", value)
         }
         .playerForegroundColor(.white)
+        .menu {
+            Button("Sample 1") { print("Button 1") }
+            Button("Sample 2") { print("Button 2") }
+        }
     }
 }
 ```
@@ -96,6 +97,7 @@ This view showcases a basic player setup with custom controls.
 - `onClose(_:)` – Handle closing the player.
 - `onLongPress(_:)` – Respond to long‑press gestures.
 - `playerForegroundColor(_:)` – Set tint color for controls.
+- `menu(_:)` – Supply additional menu buttons.
 - `windowDraggable(_:)` – Allow dragging the window. *(macOS)*
 
 ### Player View (`proxy.player`)

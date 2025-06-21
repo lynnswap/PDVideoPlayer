@@ -8,8 +8,8 @@ public struct PDVideoPlayerProxy<PlayerMenu: View, ControlMenu: View> {
     public let navigation: VideoPlayerNavigationView
 }
 
-public struct PDVideoPlayer<PlayerMenu: View,
-                            ControlMenu: View,
+public struct PDVideoPlayer<PlayerMenu: View = EmptyView,
+                            ControlMenu: View = EmptyView,
                             Content: View>: View {
     @State private var model: PDPlayerModel? = nil
     
@@ -24,29 +24,99 @@ public struct PDVideoPlayer<PlayerMenu: View,
     /// Enables moving the window when dragging on the player view.
     var windowDraggable: Bool = false
     
-    private let playerMenu: () -> PlayerMenu
-    private let controlMenu: () -> ControlMenu
+    private var playerMenu: () -> PlayerMenu
+    private var controlMenu: () -> ControlMenu
     private let content: (PDVideoPlayerProxy<PlayerMenu, ControlMenu>) -> Content
     
     public init(
         url: URL,
-        @ViewBuilder playerMenu: @escaping () -> PlayerMenu,
-        @ViewBuilder controlMenu: @escaping () -> ControlMenu,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<PlayerMenu, ControlMenu>) -> Content
     ) {
         self.url = url
-        self.playerMenu = playerMenu
-        self.controlMenu = controlMenu
+        self.playerMenu = { EmptyView() }
+        self.controlMenu = { EmptyView() }
         self.content = content
     }
     
     public init(
         player: AVPlayer,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<PlayerMenu, ControlMenu>) -> Content
+    ) {
+        self.player = player
+        self.playerMenu = { EmptyView() }
+        self.controlMenu = { EmptyView() }
+        self.content = content
+    }
+
+    public func menu<NewMenu: View>(@ViewBuilder _ menu: @escaping () -> NewMenu) -> PDVideoPlayer<NewMenu, NewMenu, Content> {
+        PDVideoPlayer<NewMenu, NewMenu, Content>(
+            url: self.url,
+            player: self.player,
+            isMuted: self.isMuted,
+            playbackSpeed: self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose: self.onClose,
+            onLongPress: self.onLongPress,
+            windowDraggable: self.windowDraggable,
+            playerMenu: menu,
+            controlMenu: menu,
+            content: self.content
+        )
+    }
+
+    public func playerMenu<NewMenu: View>(@ViewBuilder _ menu: @escaping () -> NewMenu) -> PDVideoPlayer<NewMenu, ControlMenu, Content> {
+        PDVideoPlayer<NewMenu, ControlMenu, Content>(
+            url: self.url,
+            player: self.player,
+            isMuted: self.isMuted,
+            playbackSpeed: self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose: self.onClose,
+            onLongPress: self.onLongPress,
+            windowDraggable: self.windowDraggable,
+            playerMenu: menu,
+            controlMenu: self.controlMenu,
+            content: self.content
+        )
+    }
+
+    public func controlMenu<NewMenu: View>(@ViewBuilder _ menu: @escaping () -> NewMenu) -> PDVideoPlayer<PlayerMenu, NewMenu, Content> {
+        PDVideoPlayer<PlayerMenu, NewMenu, Content>(
+            url: self.url,
+            player: self.player,
+            isMuted: self.isMuted,
+            playbackSpeed: self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose: self.onClose,
+            onLongPress: self.onLongPress,
+            windowDraggable: self.windowDraggable,
+            playerMenu: self.playerMenu,
+            controlMenu: menu,
+            content: self.content
+        )
+    }
+
+    init(
+        url: URL?,
+        player: AVPlayer?,
+        isMuted: Binding<Bool>?,
+        playbackSpeed: Binding<PlaybackSpeed>?,
+        foregroundColor: Color,
+        onClose: VideoPlayerCloseAction?,
+        onLongPress: VideoPlayerLongpressAction?,
+        windowDraggable: Bool,
         @ViewBuilder playerMenu: @escaping () -> PlayerMenu,
         @ViewBuilder controlMenu: @escaping () -> ControlMenu,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<PlayerMenu, ControlMenu>) -> Content
     ) {
+        self.url = url
         self.player = player
+        self.isMuted = isMuted
+        self.playbackSpeed = playbackSpeed
+        self.foregroundColor = foregroundColor
+        self.onClose = onClose
+        self.onLongPress = onLongPress
+        self.windowDraggable = windowDraggable
         self.playerMenu = playerMenu
         self.controlMenu = controlMenu
         self.content = content
@@ -120,32 +190,6 @@ public struct PDVideoPlayer<PlayerMenu: View,
     }
 }
 
-extension PDVideoPlayer where PlayerMenu == ControlMenu {
-    public init(
-        url: URL,
-        @ViewBuilder menu: @escaping () -> PlayerMenu,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<PlayerMenu, PlayerMenu>) -> Content
-    ) {
-        self.init(
-            url: url,
-            playerMenu: menu,
-            controlMenu: menu,
-            content: content
-        )
-    }
-    
-    public init(
-        player: AVPlayer,
-        @ViewBuilder menu: @escaping () -> PlayerMenu,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<PlayerMenu, PlayerMenu>) -> Content
-    ) {
-        self.init(
-            player: player,
-            playerMenu: menu,
-            controlMenu: menu,
-            content: content
-        )
-    }
-}
+
 
 #endif

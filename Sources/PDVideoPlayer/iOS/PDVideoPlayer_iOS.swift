@@ -8,7 +8,7 @@ public struct PDVideoPlayerProxy<MenuContent: View> {
     public let navigation: VideoPlayerNavigationView
 }
 /// A container view that provides video player components.
-public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
+public struct PDVideoPlayer<MenuContent: View = EmptyView, Content: View>: View {
 
     @State private var model: PDPlayerModel? = nil
 
@@ -22,28 +22,62 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     var onLongPress: VideoPlayerLongpressAction?
 
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
-    private let menuContent: () -> MenuContent
+    private var menuContent: () -> MenuContent
     
     /// Creates a player from a URL.
     public init(
         url: URL,
-        @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ){
         self.url = url
         self.player = nil
-        self.menuContent = menu
+        self.menuContent = { EmptyView() }
         self.content = content
     }
     
     /// Creates a player from an existing AVPlayer instance.
     public init(
         player: AVPlayer,
-        @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ){
         self.player = player
         self.url = nil
+        self.menuContent = { EmptyView() }
+        self.content = content
+    }
+
+    public func menu<NewMenu: View>(@ViewBuilder _ menu: @escaping () -> NewMenu) -> PDVideoPlayer<NewMenu, Content> {
+        PDVideoPlayer<NewMenu, Content>(
+            url: self.url,
+            player: self.player,
+            isMuted: self.isMuted,
+            playbackSpeed: self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose: self.onClose,
+            onLongPress: self.onLongPress,
+            menu: menu,
+            content: self.content
+        )
+    }
+
+    init(
+        url: URL?,
+        player: AVPlayer?,
+        isMuted: Binding<Bool>?,
+        playbackSpeed: Binding<PlaybackSpeed>?,
+        foregroundColor: Color,
+        onClose: VideoPlayerCloseAction?,
+        onLongPress: VideoPlayerLongpressAction?,
+        @ViewBuilder menu: @escaping () -> MenuContent,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
+    ){
+        self.url = url
+        self.player = player
+        self.isMuted = isMuted
+        self.playbackSpeed = playbackSpeed
+        self.foregroundColor = foregroundColor
+        self.onClose = onClose
+        self.onLongPress = onLongPress
         self.menuContent = menu
         self.content = content
     }
@@ -115,7 +149,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         url: URL,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(url: url, menu: { EmptyView() }, content: content)
+        self.init(url: url, content: content)
     }
 
     /// Convenience initializer when no menu content is provided.
@@ -123,7 +157,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         player: AVPlayer,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(player: player, menu: { EmptyView() }, content: content)
+        self.init(player: player, content: content)
     }
 }
 

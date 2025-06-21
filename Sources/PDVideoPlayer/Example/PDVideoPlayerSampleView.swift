@@ -14,14 +14,6 @@ struct ContentView: View {
     var body: some View {
         PDVideoPlayer(
             url: sampleURL,
-            menu: {
-                Button("Sample 1") {
-                    print("Button Tapped 1")
-                }
-                Button("Sample 2") {
-                    print("Button Tapped 2")
-                }
-            },
             content: { proxy in
                 ZStack {
                     proxy.player
@@ -69,6 +61,14 @@ struct ContentView: View {
             print("onClose", value)
         }
         .playerForegroundColor(.white)
+        .menu {
+            Button("Sample 1") {
+                print("Button Tapped 1")
+            }
+            Button("Sample 2") {
+                print("Button Tapped 2")
+            }
+        }
         .animation(.smooth(duration:0.12), value: controlsVisible)
         .background(.black)
     }
