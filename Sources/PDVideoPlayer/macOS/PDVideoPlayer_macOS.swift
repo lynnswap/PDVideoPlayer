@@ -26,41 +26,6 @@ public struct PDVideoPlayer<MenuContent: View,
     let menuContent: () -> MenuContent
     let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     
-    /// URL から生成
-    public init(
-        url: URL,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ) where MenuContent == EmptyView {
-        self.url             = url
-        self.player          = nil
-        self.isMuted         = nil
-        self.playbackSpeed   = nil
-        self.onClose         = nil
-        self.onLongPress     = nil
-        self.foregroundColor = .white
-        self.windowDraggable = false
-
-        self.menuContent = { EmptyView() }
-        self.content     = content
-    }
-
-    /// 既存 AVPlayer から生成
-    public init(
-        player: AVPlayer,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ) where MenuContent == EmptyView {
-        self.url             = nil
-        self.player          = player
-        self.isMuted         = nil
-        self.playbackSpeed   = nil
-        self.onClose         = nil
-        self.onLongPress     = nil
-        self.foregroundColor = .white
-        self.windowDraggable = false
-
-        self.menuContent = { EmptyView() }
-        self.content     = content
-    }
 
     // videoPlayerMenu 用のコピー用 internal イニシャライザ
     init(
@@ -162,7 +127,18 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         url: URL,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(url: url, content: content)
+        self.init(
+            url:             url,
+            player:          nil,
+            isMuted:         nil,
+            playbackSpeed:   nil,
+            foregroundColor: .white,
+            onClose:         nil,
+            onLongPress:     nil,
+            windowDraggable: false,
+            menu:            { EmptyView() },
+            content:         content
+        )
     }
 
     /// メニューなしの場合のコンビニエンス初期化
@@ -170,7 +146,18 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         player: AVPlayer,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(player: player, content: content)
+        self.init(
+            url:             nil,
+            player:          player,
+            isMuted:         nil,
+            playbackSpeed:   nil,
+            foregroundColor: .white,
+            onClose:         nil,
+            onLongPress:     nil,
+            windowDraggable: false,
+            menu:            { EmptyView() },
+            content:         content
+        )
     }
 
     /// ``PDVideoPlayer(url:)`` 等に後付けでメニューを設定するモディファイア
