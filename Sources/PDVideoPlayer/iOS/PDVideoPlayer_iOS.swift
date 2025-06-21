@@ -12,8 +12,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
     @State private var model: PDPlayerModel? = nil
 
-    private var url: URL?
-    private var player: AVPlayer?
+    var url: URL?
+    var player: AVPlayer?
 
     var isMuted: Binding<Bool>?
     var playbackSpeed: Binding<PlaybackSpeed>?
@@ -21,29 +21,27 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
 
-    private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
-    private let menuContent: () -> MenuContent
-    
-    /// Creates a player from a URL.
-    public init(
-        url: URL,
+    var content: (PDVideoPlayerProxy<MenuContent>) -> Content
+    var menuContent: () -> MenuContent
+
+    init(
+        url: URL?,
+        player: AVPlayer?,
+        isMuted: Binding<Bool>? = nil,
+        playbackSpeed: Binding<PlaybackSpeed>? = nil,
+        foregroundColor: Color = .white,
+        onClose: VideoPlayerCloseAction? = nil,
+        onLongPress: VideoPlayerLongpressAction? = nil,
         @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ){
+    ) {
         self.url = url
-        self.player = nil
-        self.menuContent = menu
-        self.content = content
-    }
-    
-    /// Creates a player from an existing AVPlayer instance.
-    public init(
-        player: AVPlayer,
-        @ViewBuilder menu: @escaping () -> MenuContent,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ){
         self.player = player
-        self.url = nil
+        self.isMuted = isMuted
+        self.playbackSpeed = playbackSpeed
+        self.foregroundColor = foregroundColor
+        self.onClose = onClose
+        self.onLongPress = onLongPress
         self.menuContent = menu
         self.content = content
     }
@@ -115,7 +113,12 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         url: URL,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(url: url, menu: { EmptyView() }, content: content)
+        self.init(
+            url: url,
+            player: nil,
+            menu: { EmptyView() },
+            content: content
+        )
     }
 
     /// Convenience initializer when no menu content is provided.
@@ -123,7 +126,12 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         player: AVPlayer,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(player: player, menu: { EmptyView() }, content: content)
+        self.init(
+            url: nil,
+            player: player,
+            menu: { EmptyView() },
+            content: content
+        )
     }
 }
 

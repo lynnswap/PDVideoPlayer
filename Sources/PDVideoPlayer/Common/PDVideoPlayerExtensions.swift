@@ -54,4 +54,23 @@ public extension PDVideoPlayer {
 #endif
 }
 
+public extension PDVideoPlayer where MenuContent == EmptyView {
+    /// Attach menu content after initialization.
+    func videoPlayerMenu<NewMenu: View>(
+        @ViewBuilder _ builder: @escaping () -> NewMenu
+    ) -> PDVideoPlayer<NewMenu, Content> {
+        PDVideoPlayer<NewMenu, Content>(
+            url: self.url,
+            player: self.player,
+            isMuted: self.isMuted,
+            playbackSpeed: self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose: self.onClose,
+            onLongPress: self.onLongPress,
+            menu: builder,
+            content: self.content
+        )
+    }
+}
+
 #endif
