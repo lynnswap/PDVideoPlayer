@@ -38,10 +38,7 @@ struct ContentView: View {
     @State private var isMuted: Bool = false
     @State private var speed: PlaybackSpeed = .x1_0
     var body: some View {
-        PDVideoPlayer(url: videoURL, menu: {
-            Button("Sample 1") { print("Button 1") }
-            Button("Sample 2") { print("Button 2") }
-        }) { proxy in
+        PDVideoPlayer(url: videoURL) { proxy in
             ZStack {
                 proxy.player
                     .onTap { inside in
@@ -66,6 +63,10 @@ struct ContentView: View {
                 }
             }
         }
+        .videoPlayerMenu {
+            Button("Sample 1") { print("Button 1") }
+            Button("Sample 2") { print("Button 2") }
+        }
         .isMuted($isMuted)
         .playbackSpeed($speed)
         .onLongPress { value in
@@ -74,7 +75,7 @@ struct ContentView: View {
         .onClose { value in
             print("onClose", value)
         }
-        .playerForegroundColor(.white)
+        .playerForegroundColor(Color.white)
     }
 }
 ```

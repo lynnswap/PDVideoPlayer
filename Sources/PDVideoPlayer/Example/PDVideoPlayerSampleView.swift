@@ -12,54 +12,51 @@ struct ContentView: View {
     @State private var speed: PlaybackSpeed = .x1_0
     
     var body: some View {
-        PDVideoPlayer(
-            url: sampleURL,
-            menu: {
-                Button("Sample 1") {
-                    print("Button Tapped 1")
-                }
-                Button("Sample 2") {
-                    print("Button Tapped 2")
-                }
-            },
-            content: { proxy in
-                ZStack {
-                    proxy.player
-                        .onTap { inside in
-                            print("onTap", inside)
-                        }
-                        .onPresentationSizeChange({ view, size in
-                            
-                        })
-#if os(iOS)
-                        .contextMenuProvider{ _ in
-                            return uimenu
-                        }
-                        .scrollViewConfigurator { scrollView in
-                            
-                        }
-                        .skipRippleEffect()
-#endif
-                        .ignoresSafeArea()
-                    VStack(alignment:.center) {
-                        if controlsVisible{
-                            proxy.navigation
-                            Spacer()
-                            proxy.control
-#if os(macOS)
-                                .trackpadSwipeOverlay()
-                                .buttonStyle(.plain)
-                                .padding(.horizontal)
-#endif
-                                .frame(maxWidth: 500,alignment: .center)
-                        }
+        PDVideoPlayer(url: sampleURL) { proxy in
+            ZStack {
+                proxy.player
+                    .onTap { inside in
+                        print("onTap", inside)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom)
-                    
+                    .onPresentationSizeChange({ view, size in
+                        
+                    })
+#if os(iOS)
+                    .contextMenuProvider{ _ in
+                        return uimenu
+                    }
+                    .scrollViewConfigurator { scrollView in
+                        
+                    }
+                    .skipRippleEffect()
+#endif
+                    .ignoresSafeArea()
+                VStack(alignment:.center) {
+                    if controlsVisible{
+                        proxy.navigation
+                        Spacer()
+                        proxy.control
+#if os(macOS)
+                            .trackpadSwipeOverlay()
+                            .buttonStyle(.plain)
+                            .padding(.horizontal)
+#endif
+                            .frame(maxWidth: 500,alignment: .center)
+                    }
                 }
+        .playerForegroundColor(Color.white)
+        .animation(.smooth(duration: 0.12), value: controlsVisible)
+        .background(Color.black)
             }
-        )
+        }
+        .videoPlayerMenu {
+            Button("Sample 1") {
+                print("Button Tapped 1")
+            }
+            Button("Sample 2") {
+                print("Button Tapped 2")
+            }
+        }
         .isMuted($isMuted)
         .playbackSpeed($speed)
         .onLongPress { value in

@@ -44,6 +44,43 @@ public extension PDVideoPlayer {
         return copy
     }
 
+    /// ````
+    /// PDVideoPlayer(url: …) { proxy in … }
+    ///     .videoPlayerMenu { Button("…") { … } }
+    /// ````
+    func videoPlayerMenu<NewMenu: View>(
+        @ViewBuilder _ builder: @escaping () -> NewMenu
+    ) -> PDVideoPlayer<NewMenu, Content> {
+
+        // 既存 content クロージャを新しいメニュー型にラップ
+        let forwardedContent: (PDVideoPlayerProxy<NewMenu>) -> Content = { proxy in
+            let oldProxy = PDVideoPlayerProxy<MenuContent>(
+                player: proxy.player,
+                control: VideoPlayerControlView<MenuContent>(
+                    model: proxy.control.model,
+                    menuContent: self.menuContent
+                ),
+                navigation: proxy.navigation
+            )
+            return self.content(oldProxy)
+        }
+
+        return PDVideoPlayer<NewMenu, Content>(
+            url:             self.url,
+            player:          self.player,
+            isMuted:         self.isMuted,
+            playbackSpeed:   self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose:         self.onClose,
+            onLongPress:     self.onLongPress,
+#if os(macOS)
+            windowDraggable: self.windowDraggable,
+#endif
+            menu:            builder,
+            content:         forwardedContent
+        )
+    }
+
 #if os(macOS)
     /// Allows the window to move when dragging on the player view.
     func windowDraggable(_ value: Bool = true) -> Self {
