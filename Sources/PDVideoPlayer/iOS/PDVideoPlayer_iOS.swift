@@ -122,7 +122,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 }
 
 public extension PDVideoPlayer where MenuContent == EmptyView {
-    public init(
+    init(
         url: URL,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
@@ -139,7 +139,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         )
     }
 
-    public init(
+    init(
         player: AVPlayer,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
@@ -160,7 +160,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
     /// PDVideoPlayer(url: …) { proxy in … }
     ///     .videoPlayerMenu { Button("…") { … } }
     /// ```
-    public func videoPlayerMenu<NewMenu: View>(
+    func videoPlayerMenu<NewMenu: View>(
         @ViewBuilder _ builder: @escaping () -> NewMenu
     ) -> PDVideoPlayer<NewMenu, Content> {
 
