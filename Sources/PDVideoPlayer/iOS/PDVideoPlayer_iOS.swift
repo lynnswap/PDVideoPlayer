@@ -15,14 +15,14 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
     // ② 設定パラメータ (コピーして保持)
     //    ⇒ `internal` にして videoPlayerMenu から読めるように
-    let url: URL?
-    let player: AVPlayer?
+    var url: URL?
+    var player: AVPlayer?
 
-    let isMuted: Binding<Bool>?
-    let playbackSpeed: Binding<PlaybackSpeed>?
-    let foregroundColor: Color
-    let onClose: VideoPlayerCloseAction?
-    let onLongPress: VideoPlayerLongpressAction?
+    var isMuted: Binding<Bool>?
+    var playbackSpeed: Binding<PlaybackSpeed>?
+    var foregroundColor: Color
+    var onClose: VideoPlayerCloseAction?
+    var onLongPress: VideoPlayerLongpressAction?
 
     // ③ 描画クロージャ
     let content: (PDVideoPlayerProxy<MenuContent>) -> Content
