@@ -24,28 +24,48 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
     
-    /// Creates a player from a URL.
-    public init(
-        url: URL,
+    init(
+        url: URL?,
+        player: AVPlayer?,
+        isMuted: Binding<Bool>? = nil,
+        playbackSpeed: Binding<PlaybackSpeed>? = nil,
+        foregroundColor: Color = .white,
+        onClose: VideoPlayerCloseAction? = nil,
+        onLongPress: VideoPlayerLongpressAction? = nil,
         @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ){
+    ) {
         self.url = url
-        self.player = nil
+        self.player = player
+        self.isMuted = isMuted
+        self.playbackSpeed = playbackSpeed
+        self.foregroundColor = foregroundColor
+        self.onClose = onClose
+        self.onLongPress = onLongPress
         self.menuContent = menu
         self.content = content
     }
-    
+
+    /// Creates a player from a URL.
+    public init(
+        url: URL,
+        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
+    ) where MenuContent == EmptyView {
+        self.init(url: url,
+                  player: nil,
+                  menu: { EmptyView() },
+                  content: content)
+    }
+
     /// Creates a player from an existing AVPlayer instance.
     public init(
         player: AVPlayer,
-        @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ){
-        self.player = player
-        self.url = nil
-        self.menuContent = menu
-        self.content = content
+    ) where MenuContent == EmptyView {
+        self.init(url: nil,
+                  player: player,
+                  menu: { EmptyView() },
+                  content: content)
     }
     
     public var body: some View {
@@ -115,7 +135,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         url: URL,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(url: url, menu: { EmptyView() }, content: content)
+        self.init(url: url, player: nil, menu: { EmptyView() }, content: content)
     }
 
     /// Convenience initializer when no menu content is provided.
@@ -123,7 +143,22 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         player: AVPlayer,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(player: player, menu: { EmptyView() }, content: content)
+        self.init(url: nil, player: player, menu: { EmptyView() }, content: content)
+    }
+
+    /// Sets the menu content for this player.
+    func menu<Menu: View>(@ViewBuilder _ menu: @escaping () -> Menu) -> PDVideoPlayer<Menu, Content> {
+        PDVideoPlayer<Menu, Content>(
+            url: self.url,
+            player: self.player,
+            isMuted: self.isMuted,
+            playbackSpeed: self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose: self.onClose,
+            onLongPress: self.onLongPress,
+            menu: menu,
+            content: unsafeBitCast(self.content, to: ((PDVideoPlayerProxy<Menu>) -> Content).self)
+        )
     }
 }
 
