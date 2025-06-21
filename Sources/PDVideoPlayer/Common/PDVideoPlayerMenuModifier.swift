@@ -20,9 +20,10 @@ extension PDVideoPlayer {
         self.windowDraggable = base.windowDraggable
 #endif
         self.menuContent = menu
+        let baseContent: (PDVideoPlayerProxy<MenuContent>) -> Content =
+            unsafeBitCast(base.content, to: ((PDVideoPlayerProxy<MenuContent>) -> Content).self)
         self.content = { proxy in
-            // call original content by dropping menu information
-            base.content(proxy.withoutMenu())
+            baseContent(proxy)
         }
     }
 }
