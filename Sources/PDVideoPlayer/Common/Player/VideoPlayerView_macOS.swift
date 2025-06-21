@@ -9,7 +9,7 @@
 import SwiftUI
 import AVKit
 
-public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_macOS
+public typealias PDVideoPlayerRepresentable<MenuContent: View> = PDVideoPlayerView_macOS<MenuContent>
 
 public struct PDVideoPlayerView_macOS<MenuContent: View>: NSViewRepresentable {
     public typealias ContextMenuProvider = (CGPoint) -> NSMenu?
