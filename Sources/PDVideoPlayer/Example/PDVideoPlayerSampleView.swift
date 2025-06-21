@@ -14,14 +14,6 @@ struct ContentView: View {
     var body: some View {
         PDVideoPlayer(
             url: sampleURL,
-            menu: {
-                Button("Sample 1") {
-                    print("Button Tapped 1")
-                }
-                Button("Sample 2") {
-                    print("Button Tapped 2")
-                }
-            },
             content: { proxy in
                 ZStack {
                     proxy.player
@@ -60,6 +52,14 @@ struct ContentView: View {
                 }
             }
         )
+        .menu {
+            Button("Sample 1") {
+                print("Button Tapped 1")
+            }
+            Button("Sample 2") {
+                print("Button Tapped 2")
+            }
+        }
         .isMuted($isMuted)
         .playbackSpeed($speed)
         .onLongPress { value in
