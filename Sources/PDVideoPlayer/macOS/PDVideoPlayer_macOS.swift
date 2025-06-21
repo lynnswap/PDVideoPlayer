@@ -52,11 +52,25 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
     public func videoPlayerMenu<NewMenu: View>(
         @ViewBuilder _ builder: @escaping () -> NewMenu
     ) -> PDVideoPlayer<NewMenu, Content> {
-
-        let forwardedContent = unsafeBitCast(
-            self.content,
-            to: ((PDVideoPlayerProxy<NewMenu>) -> Content).self
-        )
+        let forwardedContent: (PDVideoPlayerProxy<NewMenu>) -> Content = { proxy in
+            let oldPlayer = PDVideoPlayerRepresentable<MenuContent>(
+                model: proxy.player.model,
+                scrollViewConfigurator: proxy.player.scrollViewConfigurator,
+                playerViewConfigurator: proxy.player.playerViewConfigurator,
+                onPresentationSizeChange: proxy.player.onPresentationSizeChange,
+                onTap: proxy.player.onTap,
+                menuContent: self.menuContent
+            )
+            let oldProxy = PDVideoPlayerProxy<MenuContent>(
+                player: oldPlayer,
+                control: VideoPlayerControlView<MenuContent>(
+                    model: proxy.control.model,
+                    menuContent: self.menuContent
+                ),
+                navigation: proxy.navigation
+            )
+            return self.content(oldProxy)
+        }
 
         return PDVideoPlayer<NewMenu, Content>(
             url:             self.url,

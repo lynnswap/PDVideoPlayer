@@ -139,12 +139,18 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         )
     }
 
-    init(
-        player: AVPlayer,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ) {
-        self.init(
-            url:             nil,
+        // 既存 content クロージャを新しいメニュー型にラップ
+        let forwardedContent: (PDVideoPlayerProxy<NewMenu>) -> Content = { proxy in
+            let oldProxy = PDVideoPlayerProxy<MenuContent>(
+                player: proxy.player,
+                control: VideoPlayerControlView<MenuContent>(
+                    model: proxy.control.model,
+                    menuContent: self.menuContent
+                ),
+                navigation: proxy.navigation
+            )
+            return self.content(oldProxy)
+        }
             player:          player,
             isMuted:         nil,
             playbackSpeed:   nil,
