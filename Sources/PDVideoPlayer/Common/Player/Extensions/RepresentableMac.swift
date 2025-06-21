@@ -28,5 +28,15 @@ public extension PDVideoPlayerRepresentable {
              onTap: self.onTap,
              menuContent: self.menuContent)
     }
+    func withoutMenu() -> PDVideoPlayerRepresentable<EmptyView> {
+        PDVideoPlayerRepresentable<EmptyView>(
+            model: self.model,
+            scrollViewConfigurator: self.scrollViewConfigurator,
+            playerViewConfigurator: self.playerViewConfigurator,
+            onPresentationSizeChange: self.onPresentationSizeChange,
+            onTap: self.onTap,
+            menuContent: { EmptyView() }
+        )
+    }
 }
 #endif

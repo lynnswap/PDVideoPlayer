@@ -25,6 +25,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private let menuContent: () -> MenuContent
     
     /// Creates a player from a URL.
+    @available(*, deprecated, message: "Use menu() modifier")
     public init(
         url: URL,
         @ViewBuilder menu: @escaping () -> MenuContent,
@@ -37,6 +38,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     }
     
     /// Creates a player from an existing AVPlayer instance.
+    @available(*, deprecated, message: "Use menu() modifier")
     public init(
         player: AVPlayer,
         @ViewBuilder menu: @escaping () -> MenuContent,
