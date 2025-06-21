@@ -12,44 +12,41 @@ struct ContentView: View {
     @State private var speed: PlaybackSpeed = .x1_0
     
     var body: some View {
-        PDVideoPlayer(
-            url: sampleURL
-        ) { proxy in
+        PDVideoPlayer(url: sampleURL) { proxy in
             ZStack {
                 proxy.player
                     .onTap { inside in
                         print("onTap", inside)
                     }
-                        .onPresentationSizeChange({ view, size in
-                            
-                        })
+                    .onPresentationSizeChange({ view, size in
+                        
+                    })
 #if os(iOS)
-                        .contextMenuProvider{ _ in
-                            return uimenu
-                        }
-                        .scrollViewConfigurator { scrollView in
-                            
-                        }
-                        .skipRippleEffect()
-#endif
-                        .ignoresSafeArea()
-                    VStack(alignment:.center) {
-                        if controlsVisible{
-                            proxy.navigation
-                            Spacer()
-                            proxy.control
-#if os(macOS)
-                                .trackpadSwipeOverlay()
-                                .buttonStyle(.plain)
-                                .padding(.horizontal)
-#endif
-                                .frame(maxWidth: 500,alignment: .center)
-                        }
+                    .contextMenuProvider{ _ in
+                        return uimenu
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom)
-                    
+                    .scrollViewConfigurator { scrollView in
+                        
+                    }
+                    .skipRippleEffect()
+#endif
+                    .ignoresSafeArea()
+                VStack(alignment:.center) {
+                    if controlsVisible{
+                        proxy.navigation
+                        Spacer()
+                        proxy.control
+#if os(macOS)
+                            .trackpadSwipeOverlay()
+                            .buttonStyle(.plain)
+                            .padding(.horizontal)
+#endif
+                            .frame(maxWidth: 500,alignment: .center)
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom)
+                
             }
         }
         .videoPlayerMenu {
