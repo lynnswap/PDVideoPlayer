@@ -2,11 +2,13 @@
 import SwiftUI
 
 extension PDVideoPlayer {
-    // Internal initializer used by the menu modifier
-    init<OldMenu: View>(
-        base: PDVideoPlayer<OldMenu, Content>,
+    // Internal initializer used by the menu modifier. Only available when the
+    // original player had no menu content.
+    @MainActor
+    init(
+        base: PDVideoPlayer<EmptyView, Content>,
         menu: @escaping () -> MenuContent
-    ) where OldMenu == EmptyView {
+    ) {
         self.url = base.url
         self.player = base.player
         self.isMuted = base.isMuted
