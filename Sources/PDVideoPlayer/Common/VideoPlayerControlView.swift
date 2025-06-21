@@ -206,3 +206,10 @@ extension EnvironmentValues {
         set { self[IsPressedKey.self] = newValue }
     }
 }
+
+@MainActor
+public extension VideoPlayerControlView {
+    func withoutMenu() -> VideoPlayerControlView<EmptyView> {
+        VideoPlayerControlView<EmptyView>(model: self.model, menuContent: { EmptyView() })
+    }
+}
