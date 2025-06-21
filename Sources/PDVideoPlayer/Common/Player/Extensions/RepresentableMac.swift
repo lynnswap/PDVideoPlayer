@@ -1,6 +1,7 @@
 #if os(macOS)
 import SwiftUI
 
+@MainActor
 public extension PDVideoPlayerRepresentable {
     func scrollViewConfigurator(_ configurator: @escaping ScrollViewConfigurator) -> Self {
         Self(model: self.model,

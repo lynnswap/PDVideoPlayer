@@ -46,6 +46,7 @@ public extension PDVideoPlayerProxy {
 }
 #endif
 
+@MainActor
 public extension PDVideoPlayerProxy {
     func withoutMenu() -> PDVideoPlayerProxy<EmptyView> {
 #if os(iOS)

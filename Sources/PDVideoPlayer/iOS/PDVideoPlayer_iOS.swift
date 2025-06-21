@@ -12,8 +12,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
     @State private var model: PDPlayerModel? = nil
 
-    private var url: URL?
-    private var player: AVPlayer?
+    var url: URL?
+    var player: AVPlayer?
 
     var isMuted: Binding<Bool>?
     var playbackSpeed: Binding<PlaybackSpeed>?
@@ -21,8 +21,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
 
-    private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
-    private let menuContent: () -> MenuContent
+    let content: (PDVideoPlayerProxy<MenuContent>) -> Content
+    var menuContent: () -> MenuContent
     
     /// Creates a player from a URL.
     @available(*, deprecated, message: "Use menu() modifier")
