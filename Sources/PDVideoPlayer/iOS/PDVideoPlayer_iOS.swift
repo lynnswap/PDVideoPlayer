@@ -3,49 +3,61 @@ import SwiftUI
 import AVKit
 
 public struct PDVideoPlayerProxy<MenuContent: View> {
-    public let player:  PDVideoPlayerRepresentable
-    public let control: VideoPlayerControlView<MenuContent>
+    public let player:     PDVideoPlayerRepresentable
+    public let control:    VideoPlayerControlView<MenuContent>
     public let navigation: VideoPlayerNavigationView
 }
 /// A container view that provides video player components.
 public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
+    // ① モデル (Runtime‑only)
     @State private var model: PDPlayerModel? = nil
 
-    private var url: URL?
-    private var player: AVPlayer?
+    // ② 設定パラメータ (コピーして保持)
+    //    ⇒ `internal` にして videoPlayerMenu から読めるように
+    let url: URL?
+    let player: AVPlayer?
 
-    var isMuted: Binding<Bool>?
-    var playbackSpeed: Binding<PlaybackSpeed>?
-    var foregroundColor: Color = .white
-    var onClose: VideoPlayerCloseAction?
-    var onLongPress: VideoPlayerLongpressAction?
+    let isMuted: Binding<Bool>?
+    let playbackSpeed: Binding<PlaybackSpeed>?
+    let foregroundColor: Color
+    let onClose: VideoPlayerCloseAction?
+    let onLongPress: VideoPlayerLongpressAction?
 
-    private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
-    private let menuContent: () -> MenuContent
-    
-    /// Creates a player from a URL.
-    public init(
-        url: URL,
+    // ③ 描画クロージャ
+    let content: (PDVideoPlayerProxy<MenuContent>) -> Content
+    let menuContent: () -> MenuContent
+
+
+    // ================================================================== //
+    // MARK: パブリック designated 初期化
+    // ================================================================== //
+
+
+    // ------------------------------------------------------------------ //
+    // ④ videoPlayerMenu 用のコピー用 internal イニシャライザ
+    // ------------------------------------------------------------------ //
+    internal init(
+        url: URL?,
+        player: AVPlayer?,
+        isMuted: Binding<Bool>?,
+        playbackSpeed: Binding<PlaybackSpeed>?,
+        foregroundColor: Color,
+        onClose: VideoPlayerCloseAction?,
+        onLongPress: VideoPlayerLongpressAction?,
         @ViewBuilder menu: @escaping () -> MenuContent,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ){
-        self.url = url
-        self.player = nil
+    ) {
+        self.url             = url
+        self.player          = player
+        self.isMuted         = isMuted
+        self.playbackSpeed   = playbackSpeed
+        self.foregroundColor = foregroundColor
+        self.onClose         = onClose
+        self.onLongPress     = onLongPress
+
         self.menuContent = menu
-        self.content = content
-    }
-    
-    /// Creates a player from an existing AVPlayer instance.
-    public init(
-        player: AVPlayer,
-        @ViewBuilder menu: @escaping () -> MenuContent,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ){
-        self.player = player
-        self.url = nil
-        self.menuContent = menu
-        self.content = content
+        self.content     = content
     }
     
     public var body: some View {
@@ -110,20 +122,66 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 }
 
 public extension PDVideoPlayer where MenuContent == EmptyView {
-    /// Convenience initializer when no menu content is provided.
-    init(
+    public init(
         url: URL,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(url: url, menu: { EmptyView() }, content: content)
+        self.init(
+            url:             url,
+            player:          nil,
+            isMuted:         nil,
+            playbackSpeed:   nil,
+            foregroundColor: .white,
+            onClose:         nil,
+            onLongPress:     nil,
+            menu:            { EmptyView() },
+            content:         content
+        )
     }
 
-    /// Convenience initializer when no menu content is provided.
-    init(
+    public init(
         player: AVPlayer,
         @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
     ) {
-        self.init(player: player, menu: { EmptyView() }, content: content)
+        self.init(
+            url:             nil,
+            player:          player,
+            isMuted:         nil,
+            playbackSpeed:   nil,
+            foregroundColor: .white,
+            onClose:         nil,
+            onLongPress:     nil,
+            menu:            { EmptyView() },
+            content:         content
+        )
+    }
+
+    /// ```
+    /// PDVideoPlayer(url: …) { proxy in … }
+    ///     .videoPlayerMenu { Button("…") { … } }
+    /// ```
+    public func videoPlayerMenu<NewMenu: View>(
+        @ViewBuilder _ builder: @escaping () -> NewMenu
+    ) -> PDVideoPlayer<NewMenu, Content> {
+
+        // ◆ content クロージャはメニュー型が違っても実質同一動作。
+        //   unsafeBitCast を使い “型だけ” 書き換えて再利用します。
+        let forwardedContent = unsafeBitCast(
+            self.content,
+            to: ((PDVideoPlayerProxy<NewMenu>) -> Content).self
+        )
+
+        return PDVideoPlayer<NewMenu, Content>(
+            url:             self.url,
+            player:          self.player,
+            isMuted:         self.isMuted,
+            playbackSpeed:   self.playbackSpeed,
+            foregroundColor: self.foregroundColor,
+            onClose:         self.onClose,
+            onLongPress:     self.onLongPress,
+            menu:            builder,
+            content:         forwardedContent
+        )
     }
 }
 
