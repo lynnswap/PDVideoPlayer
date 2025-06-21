@@ -75,7 +75,7 @@ struct ContentView: View {
         .onClose { value in
             print("onClose", value)
         }
-        .playerForegroundColor(.white)
+        .playerForegroundColor(Color.white)
     }
 }
 ```

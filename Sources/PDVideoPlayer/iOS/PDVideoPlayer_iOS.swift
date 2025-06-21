@@ -139,39 +139,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         )
     }
 
-        // 既存 content クロージャを新しいメニュー型にラップ
-        let forwardedContent: (PDVideoPlayerProxy<NewMenu>) -> Content = { proxy in
-            let oldProxy = PDVideoPlayerProxy<MenuContent>(
-                player: proxy.player,
-                control: VideoPlayerControlView<MenuContent>(
-                    model: proxy.control.model,
-                    menuContent: self.menuContent
-                ),
-                navigation: proxy.navigation
-            )
-            return self.content(oldProxy)
-        }
-            player:          player,
-            isMuted:         nil,
-            playbackSpeed:   nil,
-            foregroundColor: .white,
-            onClose:         nil,
-            onLongPress:     nil,
-            menu:            { EmptyView() },
-            content:         content
-        )
-    }
-
-    /// ```
-    /// PDVideoPlayer(url: …) { proxy in … }
-    ///     .videoPlayerMenu { Button("…") { … } }
-    /// ```
-    func videoPlayerMenu<NewMenu: View>(
-        @ViewBuilder _ builder: @escaping () -> NewMenu
-    ) -> PDVideoPlayer<NewMenu, Content> {
-
-        // ◆ content クロージャはメニュー型が違っても実質同一動作。
-        //   unsafeBitCast を使い “型だけ” 書き換えて再利用します。
+    // .videoPlayerMenu は共通拡張へ移動
         let forwardedContent = unsafeBitCast(
             self.content,
             to: ((PDVideoPlayerProxy<NewMenu>) -> Content).self

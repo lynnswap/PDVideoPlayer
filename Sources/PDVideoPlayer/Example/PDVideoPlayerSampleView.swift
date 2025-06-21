@@ -44,9 +44,9 @@ struct ContentView: View {
                             .frame(maxWidth: 500,alignment: .center)
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.bottom)
-                
+        .playerForegroundColor(Color.white)
+        .animation(.smooth(duration: 0.12), value: controlsVisible)
+        .background(Color.black)
             }
         }
         .videoPlayerMenu {

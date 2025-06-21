@@ -45,46 +45,7 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         )
     }
 
-    /// ````
-    /// PDVideoPlayer(url: …) { proxy in … }
-    ///     .videoPlayerMenu { Button("…") { … } }
-    /// ````
-    public func videoPlayerMenu<NewMenu: View>(
-        @ViewBuilder _ builder: @escaping () -> NewMenu
-    ) -> PDVideoPlayer<NewMenu, Content> {
-        let forwardedContent: (PDVideoPlayerProxy<NewMenu>) -> Content = { proxy in
-            let oldPlayer = PDVideoPlayerRepresentable<MenuContent>(
-                model: proxy.player.model,
-                scrollViewConfigurator: proxy.player.scrollViewConfigurator,
-                playerViewConfigurator: proxy.player.playerViewConfigurator,
-                onPresentationSizeChange: proxy.player.onPresentationSizeChange,
-                onTap: proxy.player.onTap,
-                menuContent: self.menuContent
-            )
-            let oldProxy = PDVideoPlayerProxy<MenuContent>(
-                player: oldPlayer,
-                control: VideoPlayerControlView<MenuContent>(
-                    model: proxy.control.model,
-                    menuContent: self.menuContent
-                ),
-                navigation: proxy.navigation
-            )
-            return self.content(oldProxy)
-        }
-
-        return PDVideoPlayer<NewMenu, Content>(
-            url:             self.url,
-            player:          self.player,
-            isMuted:         self.isMuted,
-            playbackSpeed:   self.playbackSpeed,
-            foregroundColor: self.foregroundColor,
-            onClose:         self.onClose,
-            onLongPress:     self.onLongPress,
-            windowDraggable: self.windowDraggable,
-            menu:            builder,
-            content:         forwardedContent
-        )
-    }
+    // .videoPlayerMenu は共通拡張へ移動
 }
 
 public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
