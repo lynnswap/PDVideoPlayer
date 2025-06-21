@@ -8,7 +8,7 @@ public struct PDVideoPlayerProxy<MenuContent: View> {
     public let navigation: VideoPlayerNavigationView
 }
 /// A container view that provides video player components.
-public struct PDVideoPlayer<MenuContent: View = EmptyView, Content: View>: View {
+public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
 
     @State private var model: PDPlayerModel? = nil
 
