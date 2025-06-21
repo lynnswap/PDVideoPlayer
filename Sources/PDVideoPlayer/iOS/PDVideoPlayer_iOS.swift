@@ -46,27 +46,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
         self.content = content
     }
 
-    /// Creates a player from a URL.
-    public init(
-        url: URL,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ) where MenuContent == EmptyView {
-        self.init(url: url,
-                  player: nil,
-                  menu: { EmptyView() },
-                  content: content)
-    }
-
-    /// Creates a player from an existing AVPlayer instance.
-    public init(
-        player: AVPlayer,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ) where MenuContent == EmptyView {
-        self.init(url: nil,
-                  player: player,
-                  menu: { EmptyView() },
-                  content: content)
-    }
     
     public var body: some View {
         if let model {

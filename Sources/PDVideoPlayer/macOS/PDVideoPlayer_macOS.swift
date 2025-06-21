@@ -50,27 +50,6 @@ public struct PDVideoPlayer<MenuContent: View,
         self.content = content
     }
 
-    public init(
-        url: URL,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ) where MenuContent == EmptyView {
-        self.init(url: url,
-                  player: nil,
-                  windowDraggable: false,
-                  menu: { EmptyView() },
-                  content: content)
-    }
-
-    public init(
-        player: AVPlayer,
-        @ViewBuilder content: @escaping (PDVideoPlayerProxy<MenuContent>) -> Content
-    ) where MenuContent == EmptyView {
-        self.init(url: nil,
-                  player: player,
-                  windowDraggable: false,
-                  menu: { EmptyView() },
-                  content: content)
-    }
     
     public var body: some View {
         if let model {
