@@ -153,11 +153,23 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
     func videoPlayerMenu<NewMenu: View>(
         @ViewBuilder _ builder: @escaping () -> NewMenu
     ) -> PDVideoPlayer<NewMenu, Content> {
-        // content クロージャはメニューの型が変わっても同一動作のため、unsafeBitCast で型変換
-        let forwardedContent = unsafeBitCast(
-            self.content,
-            to: ((PDVideoPlayerProxy<NewMenu>) -> Content).self
-        )
+        let forwardedContent: (PDVideoPlayerProxy<NewMenu>) -> Content = { proxy in
+            let originalProxy = PDVideoPlayerProxy<MenuContent>(
+                player: PDVideoPlayerRepresentable(
+                    model: proxy.player.model,
+                    scrollViewConfigurator: proxy.player.scrollViewConfigurator,
+                    contextMenuProvider: proxy.player.contextMenuProvider,
+                    onPresentationSizeChange: proxy.player.onPresentationSizeChange,
+                    onTap: proxy.player.onTap
+                ),
+                control: VideoPlayerControlView(
+                    model: proxy.control.model,
+                    menuContent: self.menuContent
+                ),
+                navigation: proxy.navigation
+            )
+            return self.content(originalProxy)
+        }
 
         return PDVideoPlayer<NewMenu, Content>(
             url:             self.url,
