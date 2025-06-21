@@ -97,6 +97,7 @@ This view showcases a basic player setup with custom controls.
 - `onClose(_:)` – Handle closing the player.
 - `onLongPress(_:)` – Respond to long‑press gestures.
 - `playerForegroundColor(_:)` – Set tint color for controls.
+- `menuContent(_:)` – Provide menu items for both the player and controls.
 - `windowDraggable(_:)` – Allow dragging the window. *(macOS)*
 
 ### Player View (`proxy.player`)
