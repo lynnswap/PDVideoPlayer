@@ -93,7 +93,7 @@ struct ContentView: View {
 #Preview{
     ContentView()
 #if os(macOS)
-        .frame(width:400,height:600)
+        .frame(width:400,height:400)
 #endif
 }
 #endif
