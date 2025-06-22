@@ -1,6 +1,6 @@
-#if os(iOS)
 import SwiftUI
 import AVKit
+#if os(iOS)
 
 public struct PDVideoPlayerProxy<MenuContent: View> {
     public let player:  PDVideoPlayerRepresentable
@@ -109,6 +109,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     }
 }
 
+
+#endif
 public extension PDVideoPlayer where MenuContent == EmptyView {
     /// Convenience initializer when no menu content is provided.
     init(
@@ -126,5 +128,3 @@ public extension PDVideoPlayer where MenuContent == EmptyView {
         self.init(player: player, menu: { EmptyView() }, content: content)
     }
 }
-
-#endif
