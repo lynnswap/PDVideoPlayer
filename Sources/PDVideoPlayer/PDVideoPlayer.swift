@@ -13,10 +13,10 @@ public struct PDVideoPlayerProxy<MenuContent: View> {
 
 public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     @State private var model: PDPlayerModel? = nil
-
+    
     private var url: URL?
     private var player: AVPlayer?
-
+    
     var isMuted: Binding<Bool>?
     var playbackSpeed: Binding<PlaybackSpeed>?
     var onClose: VideoPlayerCloseAction?
@@ -26,10 +26,10 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     /// Enables moving the window when dragging on the player view.
     var windowDraggable: Bool = false
 #endif
-
+    
     private let content: (PDVideoPlayerProxy<MenuContent>) -> Content
     private let menuContent: () -> MenuContent
-
+    
     public init(
         url: URL,
         @ViewBuilder menu: @escaping () -> MenuContent,
@@ -39,7 +39,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
         self.menuContent = menu
         self.content = content
     }
-
+    
     public init(
         player: AVPlayer,
         @ViewBuilder menu: @escaping () -> MenuContent,
@@ -49,16 +49,15 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
         self.menuContent = menu
         self.content = content
     }
-
+    
     public var body: some View {
         if let model {
+#if os(macOS)
             let proxy = PDVideoPlayerProxy(
                 player: PDVideoPlayerRepresentable(
-                    model: model
-#if os(macOS)
-                    , playerViewConfigurator: { _ in },
+                    model: model,
+                    playerViewConfigurator: { _ in },
                     menuContent: menuContent
-#endif
                 ),
                 control: VideoPlayerControlView(
                     model: model,
@@ -66,7 +65,19 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 ),
                 navigation: VideoPlayerNavigationView()
             )
-
+#else
+            let proxy = PDVideoPlayerProxy(
+                player: PDVideoPlayerRepresentable(
+                    model: model,
+                    scrollViewConfigurator: { _ in }
+                ),
+                control: VideoPlayerControlView(
+                    model: model,
+                    menuContent: menuContent
+                ),
+                navigation: VideoPlayerNavigationView()
+            )
+#endif
             content(proxy)
                 .videoPlayerKeyboardShortcuts(model)
                 .environment(model)
@@ -75,20 +86,20 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 .environment(\.videoPlayerOnClose, onClose)
                 .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
-                .onChange(of: isMuted?.wrappedValue) { newValue in
+                .onChange(of: isMuted?.wrappedValue) {
                     if let isMuted {
                         model.player.isMuted = isMuted.wrappedValue
                     }
                 }
-                .onChange(of: playbackSpeed?.wrappedValue) { _ in
+                .onChange(of: playbackSpeed?.wrappedValue) {
                     if let speed = playbackSpeed?.wrappedValue {
                         model.playbackSpeed = speed
                     }
                 }
-                .onChange(of: url) { url in
+                .onChange(of: url) {
                     if let url { model.replacePlayer(url: url) }
                 }
-                .onChange(of: player) { player in
+                .onChange(of: player) {
                     if let player { model.replacePlayer(with: player) }
                 }
         } else {
