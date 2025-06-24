@@ -67,13 +67,8 @@ public struct VideoPlayerNavigationView:View{
             }
             .frame(height:44)
             .padding(.horizontal,12)
-           
-            if model.isLongpress {
-                FastForwardIndicatorView()
-                    .transition(.opacity)
-            }
+            FastForwardIndicatorView()
         }
-        .animation(.smooth(duration:0.12),value:model.isLongpress)
         
     }
 }

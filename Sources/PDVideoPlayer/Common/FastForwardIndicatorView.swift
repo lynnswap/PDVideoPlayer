@@ -9,6 +9,16 @@ public struct FastForwardIndicatorView: View {
     public init() {}
 
     public var body: some View {
+        ZStack {
+            if model.isLongpress {
+                overlay
+                    .transition(.opacity)
+            }
+        }
+        .animation(.smooth(duration: 0.12), value: model.isLongpress)
+    }
+
+    private var overlay: some View {
         HStack(spacing: 4) {
             Text("\(min(2.0, model.originalRate * 2.0), specifier: \"%.1f\")x")
             Image(systemName: "forward.fill")
