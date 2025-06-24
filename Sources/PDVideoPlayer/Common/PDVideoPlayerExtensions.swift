@@ -1,12 +1,8 @@
 #if os(iOS) || os(macOS)
 import SwiftUI
 
+
 public extension PDVideoPlayer {
-    func isMuted(_ binding: Binding<Bool>) -> Self {
-        var copy = self
-        copy.isMuted = binding
-        return copy
-    }
 
     func playbackSpeed(_ binding: Binding<PlaybackSpeed>) -> Self {
         var copy = self

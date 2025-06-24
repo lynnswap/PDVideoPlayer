@@ -16,7 +16,6 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     private var url: URL?
     private var player: AVPlayer?
     
-    var isMuted: Binding<Bool>?
     var playbackSpeed: Binding<PlaybackSpeed>?
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
@@ -78,16 +77,10 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
             content(proxy)
                 .videoPlayerKeyboardShortcuts(model)
                 .environment(model)
-                .environment(\.videoPlayerIsMuted, isMuted)
                 .environment(\.videoPlayerPlaybackSpeed, playbackSpeed)
                 .environment(\.videoPlayerOnClose, onClose)
                 .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
-                .onChange(of: isMuted?.wrappedValue) {
-                    if let isMuted {
-                        model.player.isMuted = isMuted.wrappedValue
-                    }
-                }
                 .onChange(of: playbackSpeed?.wrappedValue) {
                     if let speed = playbackSpeed?.wrappedValue {
                         model.playbackSpeed = speed

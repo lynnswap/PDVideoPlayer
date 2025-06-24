@@ -14,9 +14,6 @@ public struct VideoPlayerCloseAction {
 private struct VideoPlayerOnCloseKey: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: VideoPlayerCloseAction? = nil
 }
-private struct VideoPlayerIsMutedKey: EnvironmentKey {
-    static let defaultValue: Binding<Bool>? = nil
-}
 private struct VideoPlayerPlaybackSpeedKey: @preconcurrency EnvironmentKey {
     @MainActor static let defaultValue: Binding<PlaybackSpeed>? = nil
 }
@@ -66,10 +63,6 @@ public extension EnvironmentValues {
     var videoPlayerOnClose: VideoPlayerCloseAction? {
         get { self[VideoPlayerOnCloseKey.self] }
         set { self[VideoPlayerOnCloseKey.self] = newValue }
-    }
-    var videoPlayerIsMuted: Binding<Bool>? {
-        get { self[VideoPlayerIsMutedKey.self] }
-        set { self[VideoPlayerIsMutedKey.self] = newValue }
     }
     var videoPlayerPlaybackSpeed: Binding<PlaybackSpeed>? {
         get { self[VideoPlayerPlaybackSpeedKey.self] }

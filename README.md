@@ -34,7 +34,6 @@ import PDVideoPlayer
 
 struct ContentView: View {
     let videoURL: URL
-    @State private var isMuted: Bool = false
     @State private var speed: PlaybackSpeed = .x1_0
     var body: some View {
         PDVideoPlayer(url: videoURL, menu: {
@@ -64,7 +63,6 @@ struct ContentView: View {
                 }
             }
         }
-        .isMuted($isMuted)
         .playbackSpeed($speed)
         .onLongPress { value in
             print("onLongPress", value)
@@ -89,7 +87,6 @@ This view showcases a basic player setup with custom controls.
 
 ### `PDVideoPlayer`
 
-- `isMuted(_:)` – Bind the mute state.
 - `playbackSpeed(_:)` – Bind the playback speed.
 - `onClose(_:)` – Handle closing the player.
 - `onLongPress(_:)` – Respond to long‑press gestures.
@@ -118,7 +115,6 @@ This view showcases a basic player setup with custom controls.
 
 These helper views can be combined with `PDVideoPlayer`:
 
-- `MuteButton` – A button that toggles the mute state.
 - `FastForwardIndicatorView` – Shows the current speed during long‑press fast-forwarding *(iOS only)*.
 
 ## Apps Using

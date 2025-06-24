@@ -7,7 +7,6 @@ import AVKit
 
 private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
 struct ContentView: View {
-    @State private var isMuted: Bool = true
     @State private var controlsVisible: Bool = true
     @State private var speed: PlaybackSpeed = .x1_0
     
@@ -60,17 +59,8 @@ struct ContentView: View {
                     .padding(.bottom)
                     
                 }
-                .toolbar{
-                    if controlsVisible{
-                        ToolbarItem(placement:.primaryAction){
-                            MuteButton()
-                                .imageScale(.medium)
-                        }
-                    }
-                }
             }
         )
-        .isMuted($isMuted)
         .playbackSpeed($speed)
         .onLongPress { value in
             print("onLongPress", value)
