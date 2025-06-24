@@ -25,4 +25,13 @@ public struct MuteButton: View {
         .opacity(0.8)
     }
 }
+extension View {
+    func adaptiveSymbolReplaceTransition() -> some View {
+        if #available(iOS 18.0, *, visionOS 2.0, *, macOS 15.0, *) {
+            return self.contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.byLayer), options: .nonRepeating))
+        }else{
+            return self.contentTransition(.symbolEffect(.replace))
+        }
+    }
+}
 #endif
