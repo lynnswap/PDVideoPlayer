@@ -20,7 +20,7 @@ public struct FastForwardIndicatorView: View {
 
     private var overlay: some View {
         HStack(spacing: 4) {
-            Text("\(min(2.0, model.originalRate * 2.0), specifier: \"%.1f\")x")
+            Text("\(min(2.0, model.originalRate * 2.0), specifier: "%.1f")x")
             Image(systemName: "forward.fill")
                 .imageScale(.small)
         }
