@@ -8,7 +8,6 @@ public struct PDVideoPlayerProxy<MenuContent: View> {
     public let player: PDVideoPlayerRepresentable
 #endif
     public let control: VideoPlayerControlView<MenuContent>
-    public let navigation: VideoPlayerNavigationView
 }
 
 public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
@@ -62,8 +61,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 control: VideoPlayerControlView(
                     model: model,
                     menuContent: menuContent
-                ),
-                navigation: VideoPlayerNavigationView()
+                )
             )
 #else
             let proxy = PDVideoPlayerProxy(
@@ -74,8 +72,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 control: VideoPlayerControlView(
                     model: model,
                     menuContent: menuContent
-                ),
-                navigation: VideoPlayerNavigationView()
+                )
             )
 #endif
             content(proxy)

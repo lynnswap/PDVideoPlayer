@@ -58,7 +58,6 @@ struct ContentView: View {
 #endif
                     .ignoresSafeArea()
                 VStack {
-                    proxy.navigation
                     Spacer()
                     proxy.control
                         .knobSize(16)
