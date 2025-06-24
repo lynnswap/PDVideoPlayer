@@ -39,11 +39,13 @@ struct ContentView: View {
                             
                         }
                         .skipRippleEffect()
-#endif
                         .ignoresSafeArea()
+#endif
                     VStack(alignment:.center) {
                         if controlsVisible{
-                            proxy.navigation
+#if os(iOS)
+                            FastForwardIndicatorView()
+#endif
                             Spacer()
                             proxy.control
 #if os(macOS)
@@ -57,6 +59,14 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.bottom)
                     
+                }
+                .toolbar{
+                    if controlsVisible{
+                        ToolbarItem(placement:.primaryAction){
+                            MuteButton()
+                                .imageScale(.medium)
+                        }
+                    }
                 }
             }
         )
@@ -91,9 +101,11 @@ struct ContentView: View {
 }
 
 #Preview{
-    ContentView()
+    NavigationStack{
+        ContentView()
+    }
 #if os(macOS)
-        .frame(width:400,height:600)
+    .frame(width:400,height:600)
 #endif
 }
 #endif
