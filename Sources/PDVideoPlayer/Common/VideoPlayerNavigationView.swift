@@ -74,9 +74,6 @@ public struct VideoPlayerNavigationView:View{
             }
         }
         .animation(.smooth(duration:0.12),value:model.isLongpress)
-        .onChange(of: model.isLongpress) {
-            onLongPress?(model.isLongpress)
-        }
         
     }
     private var fastView: some View {
