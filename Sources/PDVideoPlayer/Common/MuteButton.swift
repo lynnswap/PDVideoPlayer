@@ -23,7 +23,6 @@ public struct MuteButton: View {
         .foregroundStyle(foregroundColor)
         .fontDesign(.rounded)
         .opacity(0.8)
-        .buttonStyle(.plain)
     }
 }
 #endif
