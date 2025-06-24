@@ -84,13 +84,6 @@ An example implementation is provided in
 `Sources/PDVideoPlayer/Example/PDVideoPlayerSampleView.swift`.
 This view showcases a basic player setup with custom controls.
 
-## Components
-
-The package includes helper views that you can use alongside the player:
-
-- `MuteButton` – ミュート状態を切り替えるボタン。
-- `FastForwardIndicatorView` – 長押しによる早送り中に速度を表示するオーバーレイ *(iOS)*。
-
 ## Modifiers
 
 `PDVideoPlayer` provides modifiers for each view in the player hierarchy:
@@ -121,6 +114,13 @@ The package includes helper views that you can use alongside the player:
 ### Content Container
 
 - `videoPlayerKeyboardShortcuts(_:)` – Add keyboard shortcuts for playback.
+
+## Components
+
+These helper views can be combined with `PDVideoPlayer`:
+
+- `MuteButton` – A button that toggles the mute state.
+- `FastForwardIndicatorView` – Shows the current speed during long‑press fast-forwarding *(iOS only)*.
 
 ## Apps Using
 
