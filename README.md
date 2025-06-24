@@ -6,7 +6,6 @@
 
 - Universal support for **iOS** and **macOS** using the same code base.
 - Picture-in-Picture on iOS via `PiPManager`.
-- AirPlay route picker for streaming to external displays.
 - Custom context menus on iOS via `contextMenuProvider`.
 - Gesture handling including double-tap skip with ripple effects, long press speed changes.
 - Optional overlay to enlarge the trackpad swipe seeking area on macOS.
