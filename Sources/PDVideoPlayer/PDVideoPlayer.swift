@@ -102,8 +102,8 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 .onChange(of: player) {
                     if let player { model.replacePlayer(with: player) }
                 }
-                .onChange(of: model.isLongpress) { value in
-                    onLongPress?(value)
+                .onChange(of: model.isLongpress) {
+                    onLongPress?(model.isLongpress)
                 }
         } else {
             Color.clear
