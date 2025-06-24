@@ -102,9 +102,11 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 .onChange(of: player) {
                     if let player { model.replacePlayer(with: player) }
                 }
+#if os(iOS)
                 .onChange(of: model.isLongpress) {
                     onLongPress?(model.isLongpress)
                 }
+#endif
         } else {
             Color.clear
                 .task {

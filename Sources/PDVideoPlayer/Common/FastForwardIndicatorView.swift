@@ -1,4 +1,4 @@
-#if os(iOS) || os(macOS)
+#if os(iOS)
 import SwiftUI
 
 /// Overlay indicating the temporary fast-forward playback speed.
