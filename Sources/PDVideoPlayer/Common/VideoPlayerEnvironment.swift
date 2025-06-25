@@ -11,15 +11,8 @@ public struct VideoPlayerCloseAction {
     }
 }
 
-private struct VideoPlayerOnCloseKey: @preconcurrency EnvironmentKey {
-    @MainActor static let defaultValue: VideoPlayerCloseAction? = nil
-}
-private struct VideoPlayerPlaybackSpeedKey: @preconcurrency EnvironmentKey {
-    @MainActor static let defaultValue: Binding<PlaybackSpeed>? = nil
-}
-private struct VideoPlayerControlsVisibleKey: EnvironmentKey {
-    static let defaultValue: Binding<Bool>? = nil
-}
+/// Environment entries defined with the new `@Entry` macro available in Xcode 16.
+/// This replaces the old `EnvironmentKey` structs.
 
 public struct VideoPlayerLongpressAction {
     let action: (Bool) -> Void
@@ -41,44 +34,17 @@ public struct VideoPlayerTapAction {
     }
 }
 
-private struct VideoPlayerOnLongPressKey: @preconcurrency EnvironmentKey {
-    @MainActor static let defaultValue: VideoPlayerLongpressAction? = nil
-}
-
-private struct VideoPlayerForegroundColorKey: EnvironmentKey {
-    static let defaultValue: Color = .white
-}
-
+extension EnvironmentValues {
+    /// Xcode 16 の `@Entry` マクロを利用した環境値の定義
+    @Entry var videoPlayerOnClose: VideoPlayerCloseAction? = nil
+    @Entry var videoPlayerPlaybackSpeed: Binding<PlaybackSpeed>? = nil
+    @Entry var videoPlayerControlsVisible: Binding<Bool>? = nil
+    @Entry var videoPlayerOnLongPress: VideoPlayerLongpressAction? = nil
+    @Entry var videoPlayerForegroundColor: Color = .white
 #if os(macOS)
-private struct VideoPlayerSliderKnobSizeKey: EnvironmentKey {
-    static let defaultValue: CGFloat = 12
-}
+    @Entry var videoPlayerSliderKnobSize: CGFloat = 12
 #else
-private struct VideoPlayerSliderKnobSizeKey: EnvironmentKey {
-    static let defaultValue: CGFloat = 6
-}
+    @Entry var videoPlayerSliderKnobSize: CGFloat = 6
 #endif
-
-public extension EnvironmentValues {
-    var videoPlayerOnClose: VideoPlayerCloseAction? {
-        get { self[VideoPlayerOnCloseKey.self] }
-        set { self[VideoPlayerOnCloseKey.self] = newValue }
-    }
-    var videoPlayerPlaybackSpeed: Binding<PlaybackSpeed>? {
-        get { self[VideoPlayerPlaybackSpeedKey.self] }
-        set { self[VideoPlayerPlaybackSpeedKey.self] = newValue }
-    }
-    var videoPlayerOnLongPress: VideoPlayerLongpressAction? {
-        get { self[VideoPlayerOnLongPressKey.self] }
-        set { self[VideoPlayerOnLongPressKey.self] = newValue }
-    }
-    var videoPlayerForegroundColor: Color {
-        get { self[VideoPlayerForegroundColorKey.self] }
-        set { self[VideoPlayerForegroundColorKey.self] = newValue }
-    }
-    var videoPlayerSliderKnobSize: CGFloat {
-        get { self[VideoPlayerSliderKnobSizeKey.self] }
-        set { self[VideoPlayerSliderKnobSizeKey.self] = newValue }
-    }
 }
 

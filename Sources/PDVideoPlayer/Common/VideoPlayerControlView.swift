@@ -196,13 +196,8 @@ struct PlayButtonStyle: ButtonStyle {
             .environment(\.isPressed, configuration.isPressed)
     }
 }
-private struct IsPressedKey: EnvironmentKey {
-    static let defaultValue: Bool = false
-}
 
 extension EnvironmentValues {
-    var isPressed: Bool {
-        get { self[IsPressedKey.self] }
-        set { self[IsPressedKey.self] = newValue }
-    }
+    /// Define `isPressed` using the `@Entry` macro available in Xcode 16.
+    @Entry var isPressed: Bool = false
 }
