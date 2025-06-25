@@ -56,9 +56,9 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #endif
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
-    private var timeObserverToken: Any?
-    private var currentItemObservation: NSKeyValueObservation?
-    private var itemStatusObservation: NSKeyValueObservation?
+    @ObservationIgnored private var currentItemObservation: NSKeyValueObservation?
+    @ObservationIgnored private var itemStatusObservation: NSKeyValueObservation?
+    @ObservationIgnored private var timeTask: Task<Void, any Error>? = nil
 
     // MARK: - Initializers
     public init(url: URL) {
@@ -83,15 +83,20 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         newPlayer.defaultRate = playbackSpeed.value
         newPlayer.rate = playbackSpeed.value
         newPlayer.appliesMediaSelectionCriteriaAutomatically = false
-        observePlayerStatus()
-        observeSubtitleUpdates()
+        addObserver()
         if let item = newPlayer.currentItem {
             duration = CMTimeGetSeconds(item.duration)
         } else {
             duration = 0
         }
     }
-
+    
+    private func addObserver(){
+        observePlayerStatus()
+        observeSubtitleUpdates()
+        addPeriodicTimeObserver()
+    }
+    
     public func replacePlayer(url: URL) {
         replacePlayer(with: AVPlayer(url: url))
     }
@@ -103,7 +108,6 @@ public class PDPlayerModel: NSObject, DynamicProperty {
                 guard let self else { return }
                 switch status {
                 case .playing:
-                    self.addPeriodicTimeObserver()
                     if !self.isPlaying { self.isPlaying = true }
 #if os(iOS)
                     if self.isLongpress {
@@ -115,7 +119,6 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #endif
                     if self.isBuffering { self.isBuffering = false }
                 case .paused:
-                    self.removePeriodicTimeObserver()
                     if self.isPlaying, !self.isTracking { self.isPlaying = false }
                     if self.isBuffering { self.isBuffering = false }
                 case .waitingToPlayAtSpecifiedRate:
@@ -160,8 +163,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         let player = self.player
         vc.player = player
         player.appliesMediaSelectionCriteriaAutomatically = false
-        observePlayerStatus()
-        observeSubtitleUpdates()
+        addObserver()
         return vc
     }
 #elseif os(macOS)
@@ -173,8 +175,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         self.playerView = view
 
         view.setPlayer(player, videoGravity: .resizeAspect)
-        observePlayerStatus()
-        observeSubtitleUpdates()
+        addObserver()
 
         if let item = player.currentItem {
             duration = CMTimeGetSeconds(item.duration)
@@ -184,11 +185,11 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #endif
 
     // MARK: - Time Observation
-    private func addPeriodicTimeObserver() {
-        guard timeObserverToken == nil else { return }
-        timeObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: .main) { [weak self] time in
-            guard let self else { return }
-            MainActor.assumeIsolated {
+    private func addPeriodicTimeObserver(){
+        let stream = player.periodicTimeStream(forInterval: CMTime(value: 1, timescale: 30),queue: .main)
+        timeTask = Task{ [weak self] in
+            for await time in stream{
+                guard let self else { return }
                 currentTime = CMTimeGetSeconds(time)
                 if let item = player.currentItem {
                     let total = CMTimeGetSeconds(item.duration)
@@ -207,10 +208,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     }
 
     private func removePeriodicTimeObserver() {
-        if let token = timeObserverToken {
-            player.removeTimeObserver(token)
-            timeObserverToken = nil
-        }
+        timeTask?.cancel()
     }
 
     // MARK: - Playback Controls
@@ -370,5 +368,30 @@ extension PDPlayerModel {
         guard let item = player.currentItem,
               let group = subtitleGroup else { return }
         item.select(selectedSubtitle, in: group)
+    }
+}
+
+public extension AVPlayer {
+    func periodicTimeStream(
+        forInterval interval: CMTime,
+        queue: DispatchQueue
+    ) -> AsyncStream<CMTime> {
+        AsyncStream { continuation in
+            let rawToken = addPeriodicTimeObserver(
+                forInterval: interval,
+                queue: queue
+            ) { time in
+                continuation.yield(time)
+            }
+            
+            struct TokenBox: @unchecked Sendable {
+                let token: Any
+            }
+            let box = TokenBox(token: rawToken)
+            
+            continuation.onTermination = { _ in
+                self.removeTimeObserver(box.token)
+            }
+        }
     }
 }
