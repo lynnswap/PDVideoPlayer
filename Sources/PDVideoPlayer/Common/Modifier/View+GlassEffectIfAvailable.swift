@@ -1,7 +1,7 @@
 #if os(iOS) || os(macOS)
 import SwiftUI
 
-public extension View {
+extension View {
     /// Applies `glassEffect` when supported by the OS.
     @ViewBuilder
     func glassEffectIfAvailable() -> some View {
