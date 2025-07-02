@@ -110,6 +110,7 @@ This view showcases a basic player setup with custom controls.
 ### Content Container
 
 - `videoPlayerKeyboardShortcuts(_:)` – Add keyboard shortcuts for playback.
+- `glassEffectIfAvailable()` – Apply the system glass effect when supported.
 
 ## Components
 
