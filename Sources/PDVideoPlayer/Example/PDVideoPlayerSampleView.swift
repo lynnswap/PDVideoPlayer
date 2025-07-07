@@ -1,23 +1,39 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
-#if DEBUG
 import SwiftUI
 import AVKit
 
-private let sampleURL = URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov")
-struct ContentView: View {
+#if DEBUG
+#Preview{
+    NavigationStack{
+        PDVideoPlayerSampleView(sampleURL: URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov"))
+    }
+#if os(macOS)
+    .frame(width:400,height:600)
+#endif
+}
+#endif
+
+public struct PDVideoPlayerSampleView: View {
+    private var sampleURL:URL
     @State private var controlsVisible: Bool = true
     @State private var speed: PlaybackSpeed = .x1_0
     
-    var body: some View {
+    public init(
+        sampleURL:URL
+    ){
+        self.sampleURL = sampleURL
+    }
+    
+    public var body: some View {
         PDVideoPlayer(
             url: sampleURL,
             menu: {
-                Button("Sample 1") {
+                Button(String("Sample 1")) {
                     print("Button Tapped 1")
                 }
-                Button("Sample 2") {
+                Button(String("Sample 2")) {
                     print("Button Tapped 2")
                 }
             },
@@ -76,7 +92,7 @@ struct ContentView: View {
     private var uimenu:UIMenu{
         let contextMenus :[UIMenuElement] = [
             UIAction(
-                title: String(localized:"save"),
+                title: "save",
                 image: UIImage(systemName: "square.and.arrow.down")
             ) { _ in
                 print("save")
@@ -90,12 +106,3 @@ struct ContentView: View {
 #endif
 }
 
-#Preview{
-    NavigationStack{
-        ContentView()
-    }
-#if os(macOS)
-    .frame(width:400,height:600)
-#endif
-}
-#endif
