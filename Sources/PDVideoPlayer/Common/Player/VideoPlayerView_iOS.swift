@@ -45,6 +45,15 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.contentInsetAdjustmentBehavior = .never
+        
+#if swift(>=6.2)
+        if #available(iOS 26.0,macOS 26.0, *) {
+            scrollView.topEdgeEffect.isHidden = true
+            scrollView.bottomEdgeEffect.isHidden = true
+            scrollView.leftEdgeEffect.isHidden = true
+            scrollView.rightEdgeEffect.isHidden = true
+        }
+#endif
        
         let containerView = PlayerContainerView()
         context.coordinator.containerView = containerView
