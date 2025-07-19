@@ -38,4 +38,19 @@ public struct FastForwardIndicatorView: View {
         }
     }
 }
+
+#if DEBUG
+#Preview {
+    PDPlayerModelPreview { model in
+        Rectangle()
+            .fill(.indigo)
+            .ignoresSafeArea()
+            .overlay(alignment: .top) {
+                FastForwardIndicatorView()
+            }
+            .task { model.isLongpress = true }
+    }
+}
+#endif
+
 #endif
