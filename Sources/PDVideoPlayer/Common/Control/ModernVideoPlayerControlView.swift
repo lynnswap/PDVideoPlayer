@@ -57,7 +57,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
     }
 
     var body: some View {
-        VStack(spacing:0) {
+        VStack(spacing:8) {
             HStack(spacing:0) {
                 GlassEffectContainer{
                     HStack(spacing:0){
@@ -77,41 +77,52 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                         }
                     }
                     .glassEffect(.clear)
+                    .tint(foregroundColor.opacity(0.8))
                 }
                 .animation(.default,value:model.isBuffering)
                 Spacer()
                 
-                HStack{
-                    VideoPlayerDurationView(model:model)
-                        .frame(height: 36)
-                        .padding(.horizontal)
-                        .glassEffect(.clear)
-                    Menu {
-                        SubtitleMenuView()
-                            .pickerStyle(.menu)
-                            .menuActionDismissBehavior(.disabled)
-                        PlaybackSpeedMenuView()
-                            .pickerStyle(.menu)
-                            .menuActionDismissBehavior(.disabled)
-                        Divider()
-                        menuContent()
-                    } label: {
-                        ZStack{
-                            Color.clear
-                                .contentShape(Circle())
-                            Image(systemName: "ellipsis")
-                        }
+                Menu {
+                    SubtitleMenuView()
+                        .pickerStyle(.menu)
+                        .menuActionDismissBehavior(.disabled)
+                    PlaybackSpeedMenuView()
+                        .pickerStyle(.menu)
+                        .menuActionDismissBehavior(.disabled)
+                    Divider()
+                    menuContent()
+                } label: {
+                    ZStack{
+                        Color.clear
+                            .contentShape(Circle())
+                        Image(systemName: "ellipsis")
+                            .foregroundStyle(foregroundColor)
+                            .opacity(0.8)
                     }
-                    .frame(width: 36, height: 36)
-                    .menuStyle(.button)
-                    .glassEffect(.clear,in:.ellipse)
                 }
+                .frame(width: 36, height: 36)
+                .menuStyle(.button)
+                .glassEffect(.clear,in:.ellipse)
             }
-            .tint(foregroundColor.opacity(0.8))
-            VideoPlayerSliderView(viewModel: model)
-                .frame(height: 36)
-                .padding(.vertical,8)
-                .contentShape(Rectangle())
+      
+            HStack{
+                Text("0:03")
+                    .monospaced()
+                    .font(.caption)
+                    .fontDesign(.rounded)
+                    .foregroundStyle(foregroundColor)
+                    .opacity(0.8)
+                VideoPlayerSliderView(viewModel: model)
+                Text("-0:16")
+                    .monospaced()
+                    .font(.caption)
+                    .fontDesign(.rounded)
+                    .foregroundStyle(foregroundColor)
+                    .opacity(0.8)
+            }
+            .padding(.horizontal)
+            .frame(height: 36)
+            .glassEffect(.clear)
         }
         .padding(.horizontal)
     }

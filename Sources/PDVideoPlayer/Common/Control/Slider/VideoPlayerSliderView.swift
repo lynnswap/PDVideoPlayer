@@ -21,7 +21,6 @@ public struct VideoPlayerSliderView: View {
             knobSize: knobSize,
             foregroundColor: foregroundColor
         )
-        .backgroundStyle()
 #if os(iOS)
         .onChange(of: knobSize) {
             updateThumb(size: knobSize, color: foregroundColor)
@@ -57,21 +56,7 @@ public struct VideoPlayerSliderView: View {
     }
 #endif
 }
-private extension View{
-    func backgroundStyle() -> some View{
-#if swift(>=6.2)
-        if #available(iOS 26.0, macOS 26.0, *) {
-            return self
-                .padding(.horizontal)
-                .glassEffect(.clear)
-        } else {
-            return self
-        }
-#else
-        return self
-#endif
-    }
-}
+
 
 #if os(macOS)
 struct VideoPlayerSliderRepresentable: NSViewRepresentable {
