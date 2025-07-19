@@ -232,22 +232,23 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     }
 
     public func seek(to seconds: Double) {
-        let time = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        let shouldResume = isPlaying
-        player.seek(to: time) { [weak self] _ in
-            guard let self else { return }
-            if shouldResume {
-                self.player.rate = self.playbackSpeed.value
+        Task{
+            let time = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+            let shouldResume = isPlaying
+            if await player.seek(to: time){
+                if shouldResume {
+                    self.player.rate = self.playbackSpeed.value
+                }
             }
         }
     }
 
     public func seekPrecisely(to seconds: Double) {
-        let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        let shouldResume = isPlaying
-        player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
-            guard let self else { return }
-            if shouldResume {
+        Task{
+            let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+            let shouldResume = isPlaying
+            let result = await player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
+            if result, shouldResume{
                 self.player.rate = self.playbackSpeed.value
             }
             self.currentTime = seconds
