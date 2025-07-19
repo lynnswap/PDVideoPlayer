@@ -73,32 +73,8 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
                         .padding(.trailing,48)
                         .padding(.bottom,1.5)
                     
-                    Menu {
-                        SubtitleMenuView()
-                            .pickerStyle(.menu)
-                            .menuActionDismissBehavior(.disabled)
-                        PlaybackSpeedMenuView()
-                            .pickerStyle(.menu)
-                            .menuActionDismissBehavior(.disabled)
-                        Divider()
+                    VideoPlayerMenuView {
                         menuContent()
-                    } label: {
-                        ZStack(alignment: .bottomTrailing) {
-                            Rectangle()
-                                .foregroundStyle(.clear)
-                                .contentShape(Rectangle())
-                            Image(systemName: "ellipsis.circle")
-                                .font(.callout)
-                                .foregroundStyle(foregroundColor)
-                                .opacity(0.8)
-                                .padding(.top, 12)
-                            
-                        }
-                        
-                        .frame(width: 60, height: 60)
-                        .padding(.trailing)
-                        .padding(.leading,4)
-                        .contentShape(Rectangle())
                     }
                 }
                 .frame(height:60)
