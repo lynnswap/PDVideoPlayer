@@ -209,12 +209,22 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     // 現在のレートの2倍にする
                     self.parent.model.player.rate = min(self.parent.model.originalRate * 2.0, 2.0)
                     self.parent.model.isLongpress = true
+                    // Disable scrolling and zooming while fast forwarding
+                    let scrollView = self.parent.model.scrollView
+                    scrollView.isScrollEnabled = false
+                    scrollView.panGestureRecognizer.isEnabled = false
+                    scrollView.pinchGestureRecognizer?.isEnabled = false
                     self.parent.onLongPress?(true)
                 }
             case .ended, .cancelled, .failed:
                 // 長押し終了時に元のレートに戻す
                 self.parent.model.player.rate = self.parent.model.originalRate
                 self.parent.model.isLongpress = false
+                // Re-enable scroll and pinch gestures
+                let scrollView = self.parent.model.scrollView
+                scrollView.isScrollEnabled = true
+                scrollView.panGestureRecognizer.isEnabled = true
+                scrollView.pinchGestureRecognizer?.isEnabled = true
                 self.parent.onLongPress?(false)
             default:
                 break
