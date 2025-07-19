@@ -1,5 +1,15 @@
 import SwiftUI
 import AVFoundation
+#if swift(>=6.2)
+private let shouldCustomizeSlider: Bool = {
+    if #available(iOS 26.0, macOS 26.0, *) {
+        return false
+    }
+    return true
+}()
+#else
+private let shouldCustomizeSlider = true
+#endif
 #if os(macOS)
 import AppKit
 #endif
@@ -23,23 +33,32 @@ public struct VideoPlayerSliderView: View {
         )
 #if os(iOS)
         .onChange(of: knobSize) {
-            updateThumb(size: knobSize, color: foregroundColor)
+            if shouldCustomizeSlider {
+                updateThumb(size: knobSize, color: foregroundColor)
+            }
         }
         .onChange(of: foregroundColor) {
-            updateThumb(size: knobSize, color: foregroundColor)
+            if shouldCustomizeSlider {
+                updateThumb(size: knobSize, color: foregroundColor)
+            }
         }
 #else
         .onChange(of: knobSize) {
-            viewModel.slider.knobDiameter = knobSize
+            if shouldCustomizeSlider {
+                viewModel.slider.knobDiameter = knobSize
+            }
         }
         .onChange(of: foregroundColor) {
-            viewModel.slider.baseColor = NSColor(foregroundColor)
+            if shouldCustomizeSlider {
+                viewModel.slider.baseColor = NSColor(foregroundColor)
+            }
         }
 #endif
     }
 
 #if os(iOS)
     private func updateThumb(size: CGFloat, color: Color) {
+        guard shouldCustomizeSlider else { return }
         let slider = viewModel.slider
         let config = UIImage.SymbolConfiguration(
             pointSize: size,
@@ -65,8 +84,10 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSSlider {
         let slider = viewModel.slider
-        slider.knobDiameter = knobSize
-        slider.baseColor = NSColor(foregroundColor)
+        if shouldCustomizeSlider {
+            slider.knobDiameter = knobSize
+            slider.baseColor = NSColor(foregroundColor)
+        }
         slider.minValue = 0
         slider.maxValue = 1
         slider.doubleValue = 0
@@ -82,7 +103,7 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
     func updateNSView(_ nsView: NSSlider, context: Context) {}
 
     static func dismantleNSView(_ nsView: NSSlider, coordinator: Coordinator) {
-        if let slider = nsView as? VideoPlayerSlider {
+        if shouldCustomizeSlider, let slider = nsView as? VideoPlayerSlider {
             slider.onScroll = nil
         }
     }
@@ -103,6 +124,11 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
         @objc func onValueChanged(_ sender: NSSlider) {
             guard viewModel.duration > 0,
                   let event = NSApp.currentEvent else { return }
+            if !shouldCustomizeSlider {
+                let total = viewModel.duration
+                viewModel.seekPrecisely(to: sender.doubleValue * total)
+                return
+            }
 
             switch event.type {
             case .leftMouseDown:
@@ -137,6 +163,15 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
 
         func handleScroll(phase: NSEvent.Phase, ratioValue: Double) {
             guard viewModel.duration > 0 else { return }
+            if !shouldCustomizeSlider {
+                let total = viewModel.duration
+                if phase == .changed {
+                    viewModel.seekPrecisely(to: ratioValue * total)
+                } else if phase == .ended || phase == .cancelled {
+                    viewModel.seekPrecisely(to: ratioValue * total)
+                }
+                return
+            }
             let total = viewModel.duration
 
             switch phase {
@@ -177,18 +212,20 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
 
     func makeUIView(context: Context) -> UISlider {
         let slider = viewModel.slider
-        let config = UIImage.SymbolConfiguration(
-            pointSize: knobSize,
-            weight: .regular,
-            scale: .default
-        )
-        let leftColor = UIColor(foregroundColor.opacity(0.8))
-        let rightColor = UIColor(foregroundColor.opacity(0.3))
-        let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
-            .withTintColor(leftColor, renderingMode: .alwaysOriginal)
-        slider.setThumbImage(thumbImage, for: .normal)
-        slider.minimumTrackTintColor = leftColor
-        slider.maximumTrackTintColor = rightColor
+        if shouldCustomizeSlider {
+            let config = UIImage.SymbolConfiguration(
+                pointSize: knobSize,
+                weight: .regular,
+                scale: .default
+            )
+            let leftColor = UIColor(foregroundColor.opacity(0.8))
+            let rightColor = UIColor(foregroundColor.opacity(0.3))
+            let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
+                .withTintColor(leftColor, renderingMode: .alwaysOriginal)
+            slider.setThumbImage(thumbImage, for: .normal)
+            slider.minimumTrackTintColor = leftColor
+            slider.maximumTrackTintColor = rightColor
+        }
         slider.minimumValue = 0
         slider.maximumValue = 1
         slider.value = 0
@@ -198,14 +235,16 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
             action: #selector(Coordinator.onValueChanged(_:)),
             for: .valueChanged
         )
-        let gesture = UIPanGestureRecognizer(
-            target: context.coordinator,
-            action: #selector(Coordinator.handlePan(_:))
-        )
-        gesture.allowedScrollTypesMask = [.continuous, .discrete]
-        gesture.minimumNumberOfTouches = 2
-        gesture.maximumNumberOfTouches = 2
-        slider.addGestureRecognizer(gesture)
+        if shouldCustomizeSlider {
+            let gesture = UIPanGestureRecognizer(
+                target: context.coordinator,
+                action: #selector(Coordinator.handlePan(_:))
+            )
+            gesture.allowedScrollTypesMask = [.continuous, .discrete]
+            gesture.minimumNumberOfTouches = 2
+            gesture.maximumNumberOfTouches = 2
+            slider.addGestureRecognizer(gesture)
+        }
         return slider
     }
 
@@ -221,6 +260,7 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
         }
 
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
+            guard shouldCustomizeSlider else { return }
             let slider = viewModel.slider
             switch gesture.state {
             case .began:
@@ -263,6 +303,12 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
 
         @objc func onValueChanged(_ sender: UISlider) {
             guard viewModel.duration > 0 else { return }
+            if !shouldCustomizeSlider {
+                let total = viewModel.duration
+                let seconds = Double(sender.value) * total
+                viewModel.seekPrecisely(to: seconds)
+                return
+            }
             let wasTracking = viewModel.isTracking
             viewModel.isTracking = sender.isTracking
             if wasTracking == false && viewModel.isTracking == true {

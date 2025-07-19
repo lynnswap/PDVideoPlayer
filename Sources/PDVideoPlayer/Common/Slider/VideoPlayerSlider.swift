@@ -7,6 +7,17 @@
 
 import SwiftUI
 import AVFoundation
+
+#if swift(>=6.2)
+private let shouldCustomizeSlider: Bool = {
+    if #available(iOS 26.0, macOS 26.0, *) {
+        return false
+    }
+    return true
+}()
+#else
+private let shouldCustomizeSlider = true
+#endif
 #if os(macOS)
 import AppKit
 class VideoPlayerSliderCell: NSSliderCell {
@@ -87,28 +98,43 @@ class VideoPlayerSlider: NSSlider {
     }
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        cell = VideoPlayerSliderCell()
-        if let cell = cell as? VideoPlayerSliderCell {
-            cell.knobDiameter = knobDiameter
+        if shouldCustomizeSlider {
+            cell = VideoPlayerSliderCell()
+            if let cell = cell as? VideoPlayerSliderCell {
+                cell.knobDiameter = knobDiameter
+            }
+            allowsTickMarkValuesOnly = false
         }
-        allowsTickMarkValuesOnly = false
     }
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        cell = VideoPlayerSliderCell()
-        if let cell = cell as? VideoPlayerSliderCell {
-            cell.knobDiameter = knobDiameter
+        if shouldCustomizeSlider {
+            cell = VideoPlayerSliderCell()
+            if let cell = cell as? VideoPlayerSliderCell {
+                cell.knobDiameter = knobDiameter
+            }
         }
     }
     var baseColor: NSColor {
-        get { (cell as? VideoPlayerSliderCell)?.baseColor ?? .white }
-        set { (cell as? VideoPlayerSliderCell)?.baseColor = newValue }
+        get {
+            if shouldCustomizeSlider {
+                return (cell as? VideoPlayerSliderCell)?.baseColor ?? .white
+            } else {
+                return .white
+            }
+        }
+        set {
+            if shouldCustomizeSlider {
+                (cell as? VideoPlayerSliderCell)?.baseColor = newValue
+            }
+        }
     }
     var onScroll: ((NSEvent.Phase, Double) -> Void)?
 
     /// Restrict drag interactions to within the knob's height while keeping
     /// scroll gestures active for the full height.
     override func hitTest(_ point: NSPoint) -> NSView? {
+        guard shouldCustomizeSlider else { return super.hitTest(point) }
         if let event = NSApp.currentEvent {
             switch event.type {
             case .leftMouseDown, .leftMouseDragged, .leftMouseUp:
@@ -120,9 +146,14 @@ class VideoPlayerSlider: NSSlider {
         return super.hitTest(point)
     }
     override func wantsScrollEventsForSwipeTracking(on axis: NSEvent.GestureAxis) -> Bool {
-        axis == .horizontal
+        guard shouldCustomizeSlider else { return super.wantsScrollEventsForSwipeTracking(on: axis) }
+        return axis == .horizontal
     }
     override func scrollWheel(with event: NSEvent) {
+        guard shouldCustomizeSlider else {
+            super.scrollWheel(with: event)
+            return
+        }
         let phase = event.phase
         if phase == .ended || phase == .cancelled {
             onScroll?(phase, doubleValue)
@@ -156,9 +187,14 @@ class VideoPlayerSlider: NSSlider {
 class VideoPlayerSlider: UISlider {
 
     private var tapOffset: CGFloat = 0
-    
+
     /// ドラッグ開始
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        #if swift(>=6.2)
+        if #available(iOS 26.0, *) {
+            return super.beginTracking(touch, with: event)
+        }
+        #endif
         let location = touch.location(in: self)
         let fraction = CGFloat((value - minimumValue) / (maximumValue - minimumValue))
         let thumbX = fraction * bounds.width
@@ -168,41 +204,63 @@ class VideoPlayerSlider: UISlider {
     
     /// ドラッグ継続 (指を動かしている間)
     override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+        #if swift(>=6.2)
+        if #available(iOS 26.0, *) {
+            return super.continueTracking(touch, with: event)
+        }
+        #endif
         let location = touch.location(in: self)
-        
+
         // 1. 「タップ座標 - オフセット」を thumb の中心とみなす
         let sliderWidth = bounds.width
         let newThumbX = location.x - tapOffset
-        
+
         // 2. 0～スライダー幅 にクランプ
         let clampedX = min(max(0, newThumbX), sliderWidth)
-        
+
         // 3. [0..1] の範囲に換算
         let fraction = clampedX / sliderWidth
         let newValue = (maximumValue - minimumValue) * Float(fraction) + minimumValue
-        
+
         // 4. value を更新してイベント送出 (.valueChanged)
         if self.value != newValue {
             self.value = newValue
             sendActions(for: .valueChanged)
         }
-        
+
         // 継続する
         return true
     }
     
     /// ドラッグ終了
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
+        #if swift(>=6.2)
+        if #available(iOS 26.0, *) {
+            super.endTracking(touch, with: event)
+            return
+        }
+        #endif
         tapOffset = 0
         super.endTracking(touch, with: event)
     }
     
     /// ドラッグがキャンセルされたとき
     override func cancelTracking(with event: UIEvent?) {
+        #if swift(>=6.2)
+        if #available(iOS 26.0, *) {
+            super.cancelTracking(with: event)
+            return
+        }
+        #endif
         tapOffset = 0
         super.cancelTracking(with: event)
     }
     override var intrinsicContentSize: CGSize {
+        #if swift(>=6.2)
+        if #available(iOS 26.0, *) {
+            return super.intrinsicContentSize
+        }
+        #endif
         let size = super.intrinsicContentSize
         return CGSize(width: size.width, height: size.height + 40)
     }
