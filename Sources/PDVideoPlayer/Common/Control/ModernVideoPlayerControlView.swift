@@ -47,7 +47,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
 struct ModernVideoPlayerControlView<MenuContent: View>: View {
     var model: PDPlayerModel
     private let menuContent: () -> MenuContent
-
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     init(
         model: PDPlayerModel,
         @ViewBuilder menuContent: @escaping () -> MenuContent
@@ -57,32 +57,77 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
     }
 
     var body: some View {
-        VStack {
-            HStack(alignment: .bottom, spacing: 0) {
-                PlayPauseButton(model:model)
-                    .frame(width: 90, height: 60)
-                    .padding(.horizontal)
-                    .contentShape(Rectangle())
+        VStack(spacing:0) {
+            HStack(spacing:0) {
+                GlassEffectContainer{
+                    HStack(spacing:0){
+                        Button {
+                            model.togglePlay()
+                        } label: {
+                            ZStack{
+                                Color.clear
+                                    .contentShape(Circle())
+                                PlayPauseIcon(model: model)
+                            }
+                        }
+                        .frame(width: 36, height: 36)
+                        if model.isBuffering{
+                            ProgressView()
+                                .frame(width: 36, height: 36)
+                        }
+                    }
+                    .glassEffect(.clear)
+                }
+                .animation(.default,value:model.isBuffering)
                 Spacer()
                 
-                ZStack(alignment:.bottomTrailing){
+                HStack{
                     VideoPlayerDurationView(model:model)
-                        .padding(.trailing,48)
-                        .padding(.bottom,1.5)
-                    
-                    VideoPlayerMenuView {
+                        .frame(height: 36)
+                        .padding(.horizontal)
+                        .glassEffect(.clear)
+                    Menu {
+                        SubtitleMenuView()
+                            .pickerStyle(.menu)
+                            .menuActionDismissBehavior(.disabled)
+                        PlaybackSpeedMenuView()
+                            .pickerStyle(.menu)
+                            .menuActionDismissBehavior(.disabled)
+                        Divider()
                         menuContent()
+                    } label: {
+                        ZStack{
+                            Color.clear
+                                .contentShape(Circle())
+                            Image(systemName: "ellipsis")
+                        }
                     }
+                    .frame(width: 36, height: 36)
+                    .menuStyle(.button)
+                    .glassEffect(.clear,in:.ellipse)
                 }
-                .frame(height:60)
             }
+            .tint(foregroundColor.opacity(0.8))
             VideoPlayerSliderView(viewModel: model)
                 .frame(height: 36)
-                .padding(.horizontal)
                 .padding(.vertical,8)
                 .contentShape(Rectangle())
         }
+        .padding(.horizontal)
     }
 }
+private struct PlayPauseIcon: View {
+    @Environment(\.isPressed) private var isPressed
+    @Environment(\.videoPlayerForegroundColor) private var foregroundColor
+    var model: PDPlayerModel
+    
+    var body: some View {
+        Image(systemName: model.isPlaying ? "pause" : "play")
+            .symbolVariant(.fill)
+            .scaleEffect(isPressed ? 0.8 : 1.0)
+            .animation(.default, value: isPressed)
+    }
+}
+
 #endif
 #endif

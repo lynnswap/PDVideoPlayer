@@ -132,7 +132,7 @@ public struct PlayPauseButton: View{
         .buttonStyle(PlayButtonStyle())
     }
 }
-struct PlayPauseIcon: View {
+private struct PlayPauseIcon: View {
     @Environment(\.isPressed) private var isPressed
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     var model: PDPlayerModel
