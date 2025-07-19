@@ -203,8 +203,17 @@ class VideoPlayerSlider: UISlider {
         super.cancelTracking(with: event)
     }
     override var intrinsicContentSize: CGSize {
+#if swift(>=6.2)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            return super.intrinsicContentSize
+        } else {
+            let size = super.intrinsicContentSize
+            return CGSize(width: size.width, height: size.height + 40)
+        }
+#else
         let size = super.intrinsicContentSize
         return CGSize(width: size.width, height: size.height + 40)
+#endif
     }
 
 }
