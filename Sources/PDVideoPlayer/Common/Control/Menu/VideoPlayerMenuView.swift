@@ -12,14 +12,14 @@ public struct VideoPlayerMenuView<MenuContent: View>: View {
 
     public var body: some View {
         Menu {
+            menuContent()
+            Divider()
             SubtitleMenuView()
                 .pickerStyle(.menu)
                 .menuActionDismissBehavior(.disabled)
             PlaybackSpeedMenuView()
                 .pickerStyle(.menu)
                 .menuActionDismissBehavior(.disabled)
-            Divider()
-            menuContent()
         } label: {
             ZStack(alignment: .bottomTrailing) {
                 Rectangle()

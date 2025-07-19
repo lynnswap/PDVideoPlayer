@@ -8,6 +8,22 @@ import AVKit
 #Preview{
     NavigationStack{
         PDVideoPlayerSampleView(sampleURL: URL(fileURLWithPath: "/Users/kn/Downloads/ScreenRecording_04-20-2025 17-25-50_1.mov"))
+            .toolbar{
+                ToolbarItem(placement:.topBarLeading){
+                    if #available(iOS 26.0, *) {
+                        Button{
+                            
+                        }label:{
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .buttonStyle(.plain)
+                        .glassEffect(.clear,in:.circle)
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                }
+                
+            }
     }
 #if os(macOS)
     .frame(width:400,height:600)
@@ -63,6 +79,7 @@ public struct PDVideoPlayerSampleView: View {
 #endif
                             Spacer()
                             proxy.control
+                              
 #if os(macOS)
                                 .trackpadSwipeOverlay()
                                 .buttonStyle(.plain)

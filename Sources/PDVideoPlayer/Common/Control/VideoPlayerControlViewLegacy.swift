@@ -29,10 +29,10 @@ public struct VideoPlayerControlViewLegacy<MenuContent: View>: View {
                 Spacer()
                 VideoPlayerDurationView(model:model)
                 Menu{
+                    menuContent()
+                    Divider()
                     SubtitleMenuView()
                     PlaybackSpeedMenuView()
-                    Divider()
-                    menuContent()
                 }label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(foregroundColor)

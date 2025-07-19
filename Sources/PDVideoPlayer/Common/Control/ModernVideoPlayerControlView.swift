@@ -27,10 +27,10 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                 Spacer()
                 VideoPlayerDurationView(model:model)
                 Menu{
+                    menuContent()
+                    Divider()
                     SubtitleMenuView()
                     PlaybackSpeedMenuView()
-                    Divider()
-                    menuContent()
                 }label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(foregroundColor)
@@ -83,14 +83,14 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                 Spacer()
                 
                 Menu {
+                    menuContent()
+                    Divider()
                     SubtitleMenuView()
                         .pickerStyle(.menu)
                         .menuActionDismissBehavior(.disabled)
                     PlaybackSpeedMenuView()
                         .pickerStyle(.menu)
                         .menuActionDismissBehavior(.disabled)
-                    Divider()
-                    menuContent()
                 } label: {
                     ZStack{
                         Color.clear
