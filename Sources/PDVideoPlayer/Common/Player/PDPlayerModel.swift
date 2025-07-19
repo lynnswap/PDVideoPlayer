@@ -232,14 +232,27 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     }
 
     public func seek(to seconds: Double) {
-        let time = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        player.seek(to: time)
+        Task{
+            let time = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+            let shouldResume = isPlaying
+            if await player.seek(to: time){
+                if shouldResume {
+                    self.player.rate = self.playbackSpeed.value
+                }
+            }
+        }
     }
 
     public func seekPrecisely(to seconds: Double) {
-        let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
-        currentTime = seconds
+        Task{
+            let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+            let shouldResume = isPlaying
+            let result = await player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
+            if result, shouldResume{
+                self.player.rate = self.playbackSpeed.value
+            }
+            self.currentTime = seconds
+        }
     }
 
     // MARK: - Keyboard Navigation Support
