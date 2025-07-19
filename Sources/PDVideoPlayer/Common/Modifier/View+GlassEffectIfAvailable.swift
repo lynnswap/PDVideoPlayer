@@ -10,7 +10,7 @@ extension View {
     func glassEffectIfAvailable() -> some View {
 #if swift(>=6.2)
         if #available(iOS 26.0, macOS 26.0, *) {
-            return self.glassEffect()
+            return self.glassEffect(.clear)
         } else {
             return self
         }
