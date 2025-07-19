@@ -218,9 +218,17 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         }
         player.play()
         player.rate = playbackSpeed.value
+        if !isPlaying {
+            isPlaying = true
+        }
     }
 
-    func pause() { player.pause() }
+    func pause() {
+        player.pause()
+        if isPlaying {
+            isPlaying = false
+        }
+    }
 
     public func togglePlay() {
         isPlaying ? pause() : play()
