@@ -55,7 +55,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
         self.model = model
         self.menuContent = menuContent
     }
-
+    private let baseSize:CGFloat = 44
     var body: some View {
         VStack(spacing:8) {
             HStack(spacing:0) {
@@ -70,10 +70,10 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                                 PlayPauseIcon(model: model)
                             }
                         }
-                        .frame(width: 36, height: 36)
+                        .frame(width: baseSize, height: baseSize)
                         if model.isBuffering{
                             ProgressView()
-                                .frame(width: 36, height: 36)
+                                .frame(width: baseSize, height: baseSize)
                         }
                     }
                     .glassEffect(.clear)
@@ -100,7 +100,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                             .opacity(0.8)
                     }
                 }
-                .frame(width: 36, height: 36)
+                .frame(width: baseSize, height: baseSize)
                 .menuStyle(.button)
                 .glassEffect(.clear,in:.ellipse)
             }
@@ -121,7 +121,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                     .opacity(0.8)
             }
             .padding(.horizontal)
-            .frame(height: 36)
+            .frame(height: baseSize)
             .glassEffect(.clear)
         }
         .padding(.horizontal)
