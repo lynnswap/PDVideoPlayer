@@ -235,9 +235,10 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         Task{
             let time = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
             let shouldResume = isPlaying
-            if await player.seek(to: time){
+            if await player.seek(to: time) {
                 if shouldResume {
-                    self.player.rate = self.playbackSpeed.value
+                    player.play()
+                    player.rate = playbackSpeed.value
                 }
             }
         }
@@ -248,8 +249,9 @@ public class PDPlayerModel: NSObject, DynamicProperty {
             let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
             let shouldResume = isPlaying
             let result = await player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
-            if result, shouldResume{
-                self.player.rate = self.playbackSpeed.value
+            if result, shouldResume {
+                player.play()
+                player.rate = playbackSpeed.value
             }
             self.currentTime = seconds
         }
