@@ -31,11 +31,30 @@ public struct FastForwardIndicatorView: View {
         .opacity(0.8)
         .padding(.vertical, 4)
         .padding(.horizontal, 12)
-        .background {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.ultraThinMaterial)
-                .environment(\.colorScheme, .dark)
+        .backgroundStyle()
+    }
+}
+private extension View{
+    func backgroundStyle() -> some View{
+#if swift(>=6.2)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            return self.glassEffect(.clear)
+        } else {
+            return self
+                .background {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(.ultraThinMaterial)
+                        .environment(\.colorScheme, .dark)
+                }
         }
+#else
+        return self
+            .background {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+            }
+#endif
     }
 }
 
@@ -49,6 +68,9 @@ public struct FastForwardIndicatorView: View {
                 FastForwardIndicatorView()
             }
             .task { model.isLongpress = true }
+            .onTapGesture {
+                model.isLongpress.toggle()
+            }
     }
 }
 #endif
