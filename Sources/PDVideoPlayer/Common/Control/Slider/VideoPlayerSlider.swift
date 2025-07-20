@@ -176,7 +176,7 @@ class VideoPlayerSlider: UISlider {
         guard let viewModel else { return true }
       
         wasPlayingBeforeTracking = viewModel.isPlaying
-        viewModel.isTracking = self.isTracking
+        viewModel.isTracking = true
         if viewModel.isPlaying {
             viewModel.pause()
         }
@@ -241,7 +241,8 @@ class VideoPlayerSlider: UISlider {
         tapOffset = 0
 #endif
         guard let viewModel else { return }
-        if !viewModel.isTracking, wasPlayingBeforeTracking {
+        viewModel.isTracking = false
+        if wasPlayingBeforeTracking {
             viewModel.play()
         }
     }

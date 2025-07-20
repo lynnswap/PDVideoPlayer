@@ -89,7 +89,6 @@ public struct PDVideoPlayerSampleView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.bottom)
                     
                 }
             }
