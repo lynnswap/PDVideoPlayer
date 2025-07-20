@@ -23,7 +23,23 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
     let slider : VideoPlayerSlider
     public var isTracking = false
-    public var isBuffering: Bool = false
+    public var isBuffering: Bool = false {
+        didSet {
+            if isBuffering {
+                bufferingTask?.cancel()
+                bufferingTask = Task { [weak self] in
+                    try? await Task.sleep(for: .milliseconds(300))
+                    guard !Task.isCancelled else { return }
+                    self?.showBufferingIndicator = true
+                }
+            } else {
+                bufferingTask?.cancel()
+                showBufferingIndicator = false
+            }
+        }
+    }
+    public var showBufferingIndicator: Bool = false
+    @ObservationIgnored private var bufferingTask: Task<(), Never>?
 
     public var player: AVPlayer
     public var onClose: VideoPlayerCloseAction?

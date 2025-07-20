@@ -109,7 +109,7 @@ public struct PlayPauseButton: View{
                     .contentShape(Rectangle())
                 HStack(spacing:12){
                     PlayPauseIcon(model: model)
-                    if model.isBuffering{
+                    if model.showBufferingIndicator{
 #if os(macOS)
                     ProgressView()
                         .opacity(0)
@@ -126,7 +126,7 @@ public struct PlayPauseButton: View{
                     }
                     Spacer(minLength: 0)
                 }
-                .animation(.smooth(duration:0.2),value:model.isBuffering)
+                .animation(.smooth(duration:0.2),value:model.showBufferingIndicator)
             }
         }
         .buttonStyle(PlayButtonStyle())

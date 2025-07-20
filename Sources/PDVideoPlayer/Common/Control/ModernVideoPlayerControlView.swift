@@ -71,7 +71,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                             }
                         }
                         .frame(width: baseSize, height: baseSize)
-                        if model.isBuffering{
+                        if model.showBufferingIndicator{
                             ProgressView()
                                 .frame(width: baseSize, height: baseSize)
                         }
@@ -79,7 +79,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                     .glassEffect(.clear)
                     .tint(foregroundColor.opacity(0.8))
                 }
-                .animation(.default,value:model.isBuffering)
+                .animation(.default,value:model.showBufferingIndicator)
                 Spacer()
                 
                 Menu {
