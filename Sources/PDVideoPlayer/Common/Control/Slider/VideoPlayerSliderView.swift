@@ -199,6 +199,16 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
             action: #selector(Coordinator.onValueChanged(_:)),
             for: .valueChanged
         )
+        slider.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.touchDown(_:)),
+            for: .touchDown
+        )
+        slider.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.touchUp(_:)),
+            for: [.touchUpInside, .touchUpOutside, .touchCancel]
+        )
         let gesture = UIPanGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handlePan(_:))
@@ -262,27 +272,36 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
             }
         }
 
-        @objc func onValueChanged(_ sender: UISlider) {
+        @objc func touchDown(_ sender: UISlider) {
             guard viewModel.duration > 0 else { return }
-            let wasTracking = viewModel.isTracking
-            viewModel.isTracking = sender.isTracking
-            if wasTracking == false && viewModel.isTracking == true {
-                wasPlayingBeforeTracking = viewModel.isPlaying
+            viewModel.isTracking = true
+            wasPlayingBeforeTracking = viewModel.isPlaying
+            if wasPlayingBeforeTracking {
                 viewModel.pause()
             }
-            if wasTracking == true && viewModel.isTracking == false {
-                if wasPlayingBeforeTracking {
-                    viewModel.play()
-                }
-            }
+        }
+
+        @objc func touchUp(_ sender: UISlider) {
+            guard viewModel.duration > 0 else { return }
+            viewModel.isTracking = false
             let total = viewModel.duration
             let rawSeconds = Double(sender.value) * total
             let step = 0.03
             let snappedSeconds = (rawSeconds / step).rounded() * step
-            if !sender.isTracking {
-                let snappedRatio = snappedSeconds / total
-                sender.value = Float(snappedRatio)
+            let snappedRatio = snappedSeconds / total
+            sender.value = Float(snappedRatio)
+            viewModel.seekPrecisely(to: snappedSeconds)
+            if wasPlayingBeforeTracking {
+                viewModel.play()
             }
+        }
+
+        @objc func onValueChanged(_ sender: UISlider) {
+            guard viewModel.duration > 0 else { return }
+            let total = viewModel.duration
+            let rawSeconds = Double(sender.value) * total
+            let step = 0.03
+            let snappedSeconds = (rawSeconds / step).rounded() * step
             viewModel.seekPrecisely(to: snappedSeconds)
         }
     }
