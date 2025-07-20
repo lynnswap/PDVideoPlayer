@@ -21,7 +21,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public var currentTime: Double = 0
     public var duration: Double = 0
 
-    let slider = VideoPlayerSlider()
+    let slider : VideoPlayerSlider
     public var isTracking = false
     public var isBuffering: Bool = false
 
@@ -63,10 +63,16 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     // MARK: - Initializers
     public init(url: URL) {
         self.player = AVPlayer(url: url)
+        self.slider = VideoPlayerSlider()
+        super.init()
+        self.slider.viewModel = self
     }
 
     public init(player: AVPlayer) {
         self.player = player
+        self.slider = VideoPlayerSlider()
+        super.init()
+        self.slider.viewModel = self
     }
 
     // Replace the current player with a new instance while keeping the model.

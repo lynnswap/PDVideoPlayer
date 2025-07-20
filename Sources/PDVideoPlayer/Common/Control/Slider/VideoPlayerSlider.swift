@@ -154,7 +154,7 @@ class VideoPlayerSlider: NSSlider {
 
 #else
 class VideoPlayerSlider: UISlider {
-
+    weak var viewModel:PDPlayerModel?
     private var tapOffset: CGFloat = 0
     
     /// ドラッグ開始
@@ -163,44 +163,63 @@ class VideoPlayerSlider: UISlider {
         let fraction = CGFloat((value - minimumValue) / (maximumValue - minimumValue))
         let thumbX = fraction * bounds.width
         tapOffset = location.x - thumbX
+        guard let viewModel else { return true }
+      
+        wasPlayingBeforeTracking = viewModel.isPlaying
+        viewModel.isTracking = self.isTracking
+        if viewModel.isPlaying {
+            viewModel.pause()
+        }
+        
         return true
     }
     
-    /// ドラッグ継続 (指を動かしている間)
-    override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
-        let location = touch.location(in: self)
-        
-        // 1. 「タップ座標 - オフセット」を thumb の中心とみなす
-        let sliderWidth = bounds.width
-        let newThumbX = location.x - tapOffset
-        
-        // 2. 0～スライダー幅 にクランプ
-        let clampedX = min(max(0, newThumbX), sliderWidth)
-        
-        // 3. [0..1] の範囲に換算
-        let fraction = clampedX / sliderWidth
-        let newValue = (maximumValue - minimumValue) * Float(fraction) + minimumValue
-        
-        // 4. value を更新してイベント送出 (.valueChanged)
-        if self.value != newValue {
-            self.value = newValue
-            sendActions(for: .valueChanged)
-        }
-        
-        // 継続する
-        return true
-    }
+//    /// ドラッグ継続 (指を動かしている間)
+//    override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+//        super.continueTracking(touch, with: event)
+//        let location = touch.location(in: self)
+//        
+//        // 1. 「タップ座標 - オフセット」を thumb の中心とみなす
+//        let sliderWidth = bounds.width
+//        let newThumbX = location.x - tapOffset
+//        
+//        // 2. 0～スライダー幅 にクランプ
+//        let clampedX = min(max(0, newThumbX), sliderWidth)
+//        
+//        // 3. [0..1] の範囲に換算
+//        let fraction = clampedX / sliderWidth
+//        let newValue = (maximumValue - minimumValue) * Float(fraction) + minimumValue
+//        
+//        // 4. value を更新してイベント送出 (.valueChanged)
+//        if self.value != newValue {
+//            self.value = newValue
+//            sendActions(for: .valueChanged)
+//        }
+//        
+//        // 継続する
+//        return true
+//    }
     
     /// ドラッグ終了
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
-        tapOffset = 0
         super.endTracking(touch, with: event)
+        tapOffset = 0
+        guard let viewModel else { return }
+        if !viewModel.isTracking, wasPlayingBeforeTracking {
+            viewModel.play()
+        }
+        
     }
     
     /// ドラッグがキャンセルされたとき
     override func cancelTracking(with event: UIEvent?) {
-        tapOffset = 0
         super.cancelTracking(with: event)
+        tapOffset = 0
+        guard let viewModel else { return }
+        if !viewModel.isTracking, wasPlayingBeforeTracking {
+            viewModel.play()
+        }
+       
     }
     override var intrinsicContentSize: CGSize {
 #if swift(>=6.2)
@@ -215,6 +234,64 @@ class VideoPlayerSlider: UISlider {
         return CGSize(width: size.width, height: size.height + 40)
 #endif
     }
+    private var wasPlayingBeforeTracking = false
+    
+    @objc func onValueChanged(_ sender: UISlider) {
+        guard let viewModel else { return }
+        guard viewModel.duration > 0 else { return }
+        
+        
+        let total = viewModel.duration
+        let rawSeconds = Double(sender.value) * total
+        let step = 0.03
+        let snappedSeconds = (rawSeconds / step).rounded() * step
+        if !sender.isTracking {
+            let snappedRatio = snappedSeconds / total
+            sender.value = Float(snappedRatio)
+        }
+        viewModel.seekPrecisely(to: snappedSeconds)
+    }
+    @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
+        guard let viewModel else { return }
+        switch gesture.state {
+        case .began:
+            viewModel.isTracking = true
+            wasPlayingBeforeTracking = viewModel.isPlaying
+            if wasPlayingBeforeTracking {
+                viewModel.pause()
+            }
+        case .changed:
+            let translation = gesture.translation(in: self)
+            let deltaX = Float(translation.x)
+            let sensitivity: Float = 0.001
+            let newValue = self.value + deltaX * sensitivity
+            let clampedValue = min(max(newValue, self.minimumValue), self.maximumValue)
+            self.value = clampedValue
+            gesture.setTranslation(.zero, in: self)
+            if viewModel.duration > 0 {
+                let total = viewModel.duration
+                let currentSeconds = Double(self.value) * total
+                viewModel.seekPrecisely(to: currentSeconds)
+            }
+        case .ended, .cancelled, .failed:
+            viewModel.isTracking = false
+            if viewModel.duration > 0 {
+                let total = viewModel.duration
+                let rawSeconds = Double(self.value) * total
+                let step = 0.03
+                let snappedSeconds = (rawSeconds / step).rounded() * step
+                let snappedRatio = snappedSeconds / total
+                self.value = Float(snappedRatio)
+                viewModel.seekPrecisely(to: snappedSeconds)
+            }
+            if wasPlayingBeforeTracking {
+                viewModel.play()
+            }
+        default:
+            break
+        }
+    }
+
 
 }
 #endif

@@ -172,10 +172,6 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
     var knobSize: CGFloat
     var foregroundColor: Color
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(viewModel)
-    }
-
     func makeUIView(context: Context) -> UISlider {
         let slider = viewModel.slider
         let config = UIImage.SymbolConfiguration(
@@ -194,14 +190,19 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
         slider.maximumValue = 1
         slider.value = 0
         slider.isContinuous = true
+        if #available(iOS 26.0, *) {
+            slider.sliderStyle = .thumbless
+        } else {
+            // Fallback on earlier versions
+        }
         slider.addTarget(
             context.coordinator,
-            action: #selector(Coordinator.onValueChanged(_:)),
+            action: #selector(viewModel.slider.onValueChanged(_:)),
             for: .valueChanged
         )
         let gesture = UIPanGestureRecognizer(
             target: context.coordinator,
-            action: #selector(Coordinator.handlePan(_:))
+            action: #selector(viewModel.slider.handlePan(_:))
         )
         gesture.allowedScrollTypesMask = [.continuous, .discrete]
         gesture.minimumNumberOfTouches = 2
@@ -211,81 +212,6 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UISlider, context: Context) {}
-
-    @MainActor
-    class Coordinator: NSObject {
-        var viewModel: PDPlayerModel
-        private var wasPlayingBeforeTracking = false
-
-        init(_ viewModel: PDPlayerModel) {
-            self.viewModel = viewModel
-        }
-
-        @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
-            let slider = viewModel.slider
-            switch gesture.state {
-            case .began:
-                viewModel.isTracking = true
-                wasPlayingBeforeTracking = viewModel.isPlaying
-                if wasPlayingBeforeTracking {
-                    viewModel.pause()
-                }
-            case .changed:
-                let translation = gesture.translation(in: slider)
-                let deltaX = Float(translation.x)
-                let sensitivity: Float = 0.001
-                let newValue = slider.value + deltaX * sensitivity
-                let clampedValue = min(max(newValue, slider.minimumValue), slider.maximumValue)
-                slider.value = clampedValue
-                gesture.setTranslation(.zero, in: slider)
-                if viewModel.duration > 0 {
-                    let total = viewModel.duration
-                    let currentSeconds = Double(slider.value) * total
-                    viewModel.seekPrecisely(to: currentSeconds)
-                }
-            case .ended, .cancelled, .failed:
-                viewModel.isTracking = false
-                if viewModel.duration > 0 {
-                    let total = viewModel.duration
-                    let rawSeconds = Double(slider.value) * total
-                    let step = 0.03
-                    let snappedSeconds = (rawSeconds / step).rounded() * step
-                    let snappedRatio = snappedSeconds / total
-                    slider.value = Float(snappedRatio)
-                    viewModel.seekPrecisely(to: snappedSeconds)
-                }
-                if wasPlayingBeforeTracking {
-                    viewModel.play()
-                }
-            default:
-                break
-            }
-        }
-
-        @objc func onValueChanged(_ sender: UISlider) {
-            guard viewModel.duration > 0 else { return }
-            let wasTracking = viewModel.isTracking
-            viewModel.isTracking = sender.isTracking
-            if wasTracking == false && viewModel.isTracking == true {
-                wasPlayingBeforeTracking = viewModel.isPlaying
-                viewModel.pause()
-            }
-            if wasTracking == true && viewModel.isTracking == false {
-                if wasPlayingBeforeTracking {
-                    viewModel.play()
-                }
-            }
-            let total = viewModel.duration
-            let rawSeconds = Double(sender.value) * total
-            let step = 0.03
-            let snappedSeconds = (rawSeconds / step).rounded() * step
-            if !sender.isTracking {
-                let snappedRatio = snappedSeconds / total
-                sender.value = Float(snappedRatio)
-            }
-            viewModel.seekPrecisely(to: snappedSeconds)
-        }
-    }
 }
 #endif
 
