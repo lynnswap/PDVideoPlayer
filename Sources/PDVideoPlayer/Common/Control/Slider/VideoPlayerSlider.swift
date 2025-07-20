@@ -175,30 +175,57 @@ class VideoPlayerSlider: UISlider {
     }
     
 //    /// ドラッグ継続 (指を動かしている間)
-//    override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
-//        super.continueTracking(touch, with: event)
-//        let location = touch.location(in: self)
-//        
-//        // 1. 「タップ座標 - オフセット」を thumb の中心とみなす
-//        let sliderWidth = bounds.width
-//        let newThumbX = location.x - tapOffset
-//        
-//        // 2. 0～スライダー幅 にクランプ
-//        let clampedX = min(max(0, newThumbX), sliderWidth)
-//        
-//        // 3. [0..1] の範囲に換算
-//        let fraction = clampedX / sliderWidth
-//        let newValue = (maximumValue - minimumValue) * Float(fraction) + minimumValue
-//        
-//        // 4. value を更新してイベント送出 (.valueChanged)
-//        if self.value != newValue {
-//            self.value = newValue
-//            sendActions(for: .valueChanged)
-//        }
-//        
-//        // 継続する
-//        return true
-//    }
+    override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+#if swift(>=6.2)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            return super.continueTracking(touch, with: event)
+        }else{
+            let location = touch.location(in: self)
+            
+            // 1. 「タップ座標 - オフセット」を thumb の中心とみなす
+            let sliderWidth = bounds.width
+            let newThumbX = location.x - tapOffset
+            
+            // 2. 0～スライダー幅 にクランプ
+            let clampedX = min(max(0, newThumbX), sliderWidth)
+            
+            // 3. [0..1] の範囲に換算
+            let fraction = clampedX / sliderWidth
+            let newValue = (maximumValue - minimumValue) * Float(fraction) + minimumValue
+            
+            // 4. value を更新してイベント送出 (.valueChanged)
+            if self.value != newValue {
+                self.value = newValue
+                sendActions(for: .valueChanged)
+            }
+            
+            // 継続する
+            return true
+        }
+#else
+        let location = touch.location(in: self)
+        
+        // 1. 「タップ座標 - オフセット」を thumb の中心とみなす
+        let sliderWidth = bounds.width
+        let newThumbX = location.x - tapOffset
+        
+        // 2. 0～スライダー幅 にクランプ
+        let clampedX = min(max(0, newThumbX), sliderWidth)
+        
+        // 3. [0..1] の範囲に換算
+        let fraction = clampedX / sliderWidth
+        let newValue = (maximumValue - minimumValue) * Float(fraction) + minimumValue
+        
+        // 4. value を更新してイベント送出 (.valueChanged)
+        if self.value != newValue {
+            self.value = newValue
+            sendActions(for: .valueChanged)
+        }
+        
+        // 継続する
+        return true
+#endif
+    }
     
     /// ドラッグ終了
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
