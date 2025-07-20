@@ -159,10 +159,20 @@ class VideoPlayerSlider: UISlider {
     
     /// ドラッグ開始
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+#if swift(>=6.2)
+        if #unavailable(iOS 26.0, macOS 26.0) {
+            let location = touch.location(in: self)
+            let fraction = CGFloat((value - minimumValue) / (maximumValue - minimumValue))
+            let thumbX = fraction * bounds.width
+            tapOffset = location.x - thumbX
+        }
+#else
         let location = touch.location(in: self)
         let fraction = CGFloat((value - minimumValue) / (maximumValue - minimumValue))
         let thumbX = fraction * bounds.width
         tapOffset = location.x - thumbX
+#endif
+        
         guard let viewModel else { return true }
       
         wasPlayingBeforeTracking = viewModel.isPlaying
@@ -213,24 +223,29 @@ class VideoPlayerSlider: UISlider {
     /// ドラッグ終了
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
         super.endTracking(touch, with: event)
-        tapOffset = 0
-        guard let viewModel else { return }
-        if !viewModel.isTracking, wasPlayingBeforeTracking {
-            viewModel.play()
-        }
-        
+        self.endTracking()
     }
     
     /// ドラッグがキャンセルされたとき
     override func cancelTracking(with event: UIEvent?) {
         super.cancelTracking(with: event)
+        self.endTracking()
+    }
+    
+    private func endTracking(){
+#if swift(>=6.2)
+        if #unavailable(iOS 26.0, macOS 26.0) {
+            tapOffset = 0
+        }
+#else
         tapOffset = 0
+#endif
         guard let viewModel else { return }
         if !viewModel.isTracking, wasPlayingBeforeTracking {
             viewModel.play()
         }
-       
     }
+    
     override var intrinsicContentSize: CGSize {
 #if swift(>=6.2)
         if #available(iOS 26.0, macOS 26.0, *) {
