@@ -178,9 +178,12 @@ class VideoPlayerSlider: UISlider {
 #if swift(>=6.2)
         if #available(iOS 26.0, macOS 26.0, *) {
             return super.continueTracking(touch, with: event)
+        }else{
+            return updateLegacyTracking(touch)
         }
-#endif
+#else
         return updateLegacyTracking(touch)
+#endif
     }
 
     private func updateLegacyTracking(_ touch: UITouch) -> Bool {
