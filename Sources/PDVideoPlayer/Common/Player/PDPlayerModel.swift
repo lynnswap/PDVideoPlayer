@@ -65,14 +65,18 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         self.player = AVPlayer(url: url)
         self.slider = VideoPlayerSlider()
         super.init()
+#if os(iOS)
         self.slider.viewModel = self
+#endif
     }
 
     public init(player: AVPlayer) {
         self.player = player
         self.slider = VideoPlayerSlider()
         super.init()
+#if os(iOS)
         self.slider.viewModel = self
+#endif
     }
 
     // Replace the current player with a new instance while keeping the model.
