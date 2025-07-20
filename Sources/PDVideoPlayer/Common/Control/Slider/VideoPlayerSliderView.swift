@@ -194,15 +194,11 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
         slider.maximumValue = 1
         slider.value = 0
         slider.isContinuous = true
-        
-        if #unavailable(iOS 26.0) {
-            slider.addTarget(
-                context.coordinator,
-                action: #selector(Coordinator.onValueChanged(_:)),
-                for: .valueChanged
-            )
-        }
-        
+        slider.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.onValueChanged(_:)),
+            for: .valueChanged
+        )
         let gesture = UIPanGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handlePan(_:))
