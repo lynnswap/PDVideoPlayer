@@ -190,11 +190,11 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
         slider.maximumValue = 1
         slider.value = 0
         slider.isContinuous = true
+#if swift(>=6.2)
         if #available(iOS 26.0, *) {
             slider.sliderStyle = .thumbless
-        } else {
-            // Fallback on earlier versions
         }
+#endif
         slider.addTarget(
             context.coordinator,
             action: #selector(viewModel.slider.onValueChanged(_:)),
