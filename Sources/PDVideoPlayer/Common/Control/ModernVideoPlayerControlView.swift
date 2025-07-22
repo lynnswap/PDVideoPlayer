@@ -122,7 +122,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
             }
             .padding(.horizontal)
             .frame(height: baseSize)
-            .glassEffect(.clear.interactive())
+            .glassEffect(.clear)
         }
         .padding(.horizontal)
     }
