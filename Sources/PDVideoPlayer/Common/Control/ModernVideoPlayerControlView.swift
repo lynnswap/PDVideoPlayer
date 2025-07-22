@@ -59,27 +59,27 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
     var body: some View {
         VStack(spacing:8) {
             HStack(spacing:0) {
-                GlassEffectContainer{
-                    HStack(spacing:0){
-                        Button {
-                            model.togglePlay()
-                        } label: {
-                            ZStack{
-                                Color.clear
-                                    .contentShape(Circle())
-                                PlayPauseIcon(model: model)
-                            }
-                        }
-                        .frame(width: baseSize, height: baseSize)
-                        if model.showBufferingIndicator{
-                            ProgressView()
-                                .frame(width: baseSize, height: baseSize)
+                HStack{
+                    Button {
+                        model.togglePlay()
+                    } label: {
+                        ZStack{
+                            Color.clear
+                                .contentShape(Circle())
+                            PlayPauseIcon(model: model)
                         }
                     }
-                    .glassEffect(.clear)
-                    .tint(foregroundColor.opacity(0.8))
+                    .frame(width: baseSize, height: baseSize)
+                    .glassEffect(.clear.interactive())
+                    if model.showBufferingIndicator{
+                        ProgressView()
+                            .frame(width: baseSize, height: baseSize)
+                            .glassEffect(.clear)
+                    }
                 }
+                .tint(foregroundColor.opacity(0.8))
                 .animation(.default,value:model.showBufferingIndicator)
+             
                 Spacer()
                 
                 Menu {
@@ -102,7 +102,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                 }
                 .frame(width: baseSize, height: baseSize)
                 .menuStyle(.button)
-                .glassEffect(.clear,in:.ellipse)
+                .glassEffect(.clear.interactive(),in:.ellipse)
             }
       
             HStack{
@@ -122,7 +122,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
             }
             .padding(.horizontal)
             .frame(height: baseSize)
-            .glassEffect(.clear)
+            .glassEffect(.clear.interactive())
         }
         .padding(.horizontal)
     }
