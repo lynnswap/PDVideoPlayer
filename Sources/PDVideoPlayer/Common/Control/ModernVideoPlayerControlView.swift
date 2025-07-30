@@ -124,7 +124,7 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
             .frame(height: baseSize)
             .glassEffect(.clear)
         }
-        .padding(.horizontal)
+        .padding(.horizontal,20)
     }
 }
 private struct PlayPauseIcon: View {
