@@ -19,7 +19,7 @@ Add `PDVideoPlayer` to your project using Swift Package Manager. In Xcode choose
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/lynnswap/PDVideoPlayer", from: "0.1.x")
+    .package(url: "https://github.com/lynnswap/PDVideoPlayer", from: "0.2.x")
 ]
 ```
 
