@@ -12,7 +12,7 @@ struct VideoPlayerDurationView: View {
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     var body:some View{
         Text("\(formatTime(model.currentTime)) / \(formatTime(model.duration))")
-            .monospaced()
+            .monospacedDigit()
             .font(.caption)
             .foregroundStyle(foregroundColor)
             .opacity(0.8)

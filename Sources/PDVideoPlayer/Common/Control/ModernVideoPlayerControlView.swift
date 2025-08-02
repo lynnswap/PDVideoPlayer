@@ -107,14 +107,14 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
       
             HStack{
                 Text(model.currentTime.mmSSString)
-                    .monospaced()
+                    .monospacedDigit()
                     .font(.caption)
                     .fontDesign(.rounded)
                     .foregroundStyle(foregroundColor)
                     .opacity(0.8)
                 VideoPlayerSliderView(viewModel: model)
                 Text("-\(max(model.duration - model.currentTime, 0).mmSSString)")
-                    .monospaced()
+                    .monospacedDigit()
                     .font(.caption)
                     .fontDesign(.rounded)
                     .foregroundStyle(foregroundColor)
