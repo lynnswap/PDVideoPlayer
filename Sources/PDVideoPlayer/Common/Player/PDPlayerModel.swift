@@ -264,14 +264,14 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
     public func seekPrecisely(to seconds: Double) {
         let target = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        player.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
+        player.seek(to: target, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] result in
             guard let self else { return }
-            let actual = self.player.currentTime()
-            // フォールバック: 厳密なシークに失敗した場合は通常のシークを行う
-            if abs(CMTimeGetSeconds(actual) - seconds) > 0.01 {
-                self.player.seek(to: target)
+            Task{ @MainActor in
+                if !result {
+                    self.player.seek(to: target)
+                }
+                self.currentTime = CMTimeGetSeconds(self.player.currentTime())
             }
-            self.currentTime = CMTimeGetSeconds(self.player.currentTime())
         }
     }
 
