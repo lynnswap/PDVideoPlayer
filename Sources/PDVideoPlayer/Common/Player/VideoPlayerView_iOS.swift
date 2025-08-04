@@ -177,7 +177,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         }
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
-            guard !self.parent.model.isLongpress else { return }
             if self.parent.model.doubleTapCount == 0 {
                 var inside = true
                 if let playerView {
@@ -189,7 +188,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             }
         }
         @objc func handleSingleTap_mac(_ recognizer: UITapGestureRecognizer) {
-            guard !parent.model.isLongpress else { return }
             guard let playerView else {
                 parent.onTap?(true)
                 return
