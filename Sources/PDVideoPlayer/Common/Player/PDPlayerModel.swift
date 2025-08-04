@@ -264,8 +264,10 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
     public func seekPrecisely(to seconds: Double) {
         let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-        player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
-        currentTime = seconds
+        player.seek(to: cm) { [weak self] _ in
+            guard let self else { return }
+            self.currentTime = CMTimeGetSeconds(self.player.currentTime())
+        }
     }
 
     // MARK: - Keyboard Navigation Support
