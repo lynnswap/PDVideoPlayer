@@ -298,6 +298,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #if os(iOS)
     // MARK: - Gesture Support (iOS)
     @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
+        guard !isLongpress else { return }
         let location = recognizer.location(in: recognizer.view)
         guard let view = recognizer.view else { return }
         let viewWidth = view.bounds.width

@@ -177,6 +177,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         }
 
         @objc func handleSingleTap(_ recognizer: UITapGestureRecognizer) {
+            guard !self.parent.model.isLongpress else { return }
             if self.parent.model.doubleTapCount == 0 {
                 var inside = true
                 if let playerView {
@@ -188,6 +189,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             }
         }
         @objc func handleSingleTap_mac(_ recognizer: UITapGestureRecognizer) {
+            guard !parent.model.isLongpress else { return }
             guard let playerView else {
                 parent.onTap?(true)
                 return
@@ -199,7 +201,7 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         }
         @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
             let model = parent.model
-            
+
             switch recognizer.state {
             case .began:
                 // 今の再生レートを保持
@@ -210,12 +212,24 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     self.parent.model.player.rate = min(self.parent.model.originalRate * 2.0, 2.0)
                     self.parent.model.isLongpress = true
                     self.parent.onLongPress?(true)
+                    // Disable other gesture recognizers while long press is active
+                    recognizer.view?.gestureRecognizers?.forEach { gesture in
+                        if gesture !== recognizer {
+                            gesture.isEnabled = false
+                        }
+                    }
                 }
             case .ended, .cancelled, .failed:
                 // 長押し終了時に元のレートに戻す
                 self.parent.model.player.rate = self.parent.model.originalRate
                 self.parent.model.isLongpress = false
                 self.parent.onLongPress?(false)
+                // Re-enable previously disabled gesture recognizers
+                recognizer.view?.gestureRecognizers?.forEach { gesture in
+                    if gesture !== recognizer {
+                        gesture.isEnabled = true
+                    }
+                }
             default:
                 break
             }
