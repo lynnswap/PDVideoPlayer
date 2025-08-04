@@ -196,12 +196,12 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
         }
 #endif
         slider.addTarget(
-            context.coordinator,
+            viewModel.slider,
             action: #selector(viewModel.slider.onValueChanged(_:)),
             for: .valueChanged
         )
         let gesture = UIPanGestureRecognizer(
-            target: context.coordinator,
+            target: viewModel.slider,
             action: #selector(viewModel.slider.handlePan(_:))
         )
         gesture.allowedScrollTypesMask = [.continuous, .discrete]
