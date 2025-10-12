@@ -40,6 +40,12 @@ public extension PDVideoPlayer {
         return copy
     }
 
+    func rippleForegroundColor(_ color: Color) -> Self {
+        var copy = self
+        copy.rippleForegroundColor = color
+        return copy
+    }
+
 #if os(macOS)
     /// Allows the window to move when dragging on the player view.
     func windowDraggable(_ value: Bool = true) -> Self {

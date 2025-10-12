@@ -41,10 +41,10 @@ extension EnvironmentValues {
     @Entry var videoPlayerControlsVisible: Binding<Bool>? = nil
     @Entry var videoPlayerOnLongPress: VideoPlayerLongpressAction? = nil
     @Entry var videoPlayerForegroundColor: Color = .white
+    @Entry var videoPlayerRippleForegroundColor: Color = .white
 #if os(macOS)
     @Entry var videoPlayerSliderKnobSize: CGFloat = 12
 #else
     @Entry var videoPlayerSliderKnobSize: CGFloat = 6
 #endif
 }
-

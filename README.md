@@ -71,6 +71,7 @@ struct ContentView: View {
             print("onClose", value)
         }
         .playerForegroundColor(.white)
+        .rippleForegroundColor(.white.opacity(0.8))
     }
 }
 ```
@@ -89,8 +90,9 @@ This view showcases a basic player setup with custom controls.
 
 - `playbackSpeed(_:)` – Bind the playback speed.
 - `onClose(_:)` – Handle closing the player.
-- `onLongPress(_:)` – Respond to long‑press gestures.
+- `onLongPress(_:)` – Respond to long-press gestures.
 - `playerForegroundColor(_:)` – Set tint color for controls.
+- `rippleForegroundColor(_:)` – Override the color used by skip ripple overlays (defaults to the player foreground color).
 - `windowDraggable(_:)` – Allow dragging the window. *(macOS)*
 
 ### Player View (`proxy.player`)

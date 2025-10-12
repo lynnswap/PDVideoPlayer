@@ -20,6 +20,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
     var onClose: VideoPlayerCloseAction?
     var onLongPress: VideoPlayerLongpressAction?
     var foregroundColor: Color = .white
+    var rippleForegroundColor: Color? = nil
 #if os(macOS)
     /// Enables moving the window when dragging on the player view.
     var windowDraggable: Bool = false
@@ -81,6 +82,7 @@ public struct PDVideoPlayer<MenuContent: View, Content: View>: View {
                 .environment(\.videoPlayerOnClose, onClose)
                 .environment(\.videoPlayerOnLongPress, onLongPress)
                 .environment(\.videoPlayerForegroundColor, foregroundColor)
+                .environment(\.videoPlayerRippleForegroundColor, rippleForegroundColor ?? foregroundColor)
                 .onChange(of: playbackSpeed?.wrappedValue) {
                     if let speed = playbackSpeed?.wrappedValue {
                         model.playbackSpeed = speed
