@@ -74,7 +74,6 @@ struct ModernVideoPlayerControlView<MenuContent: View>: View {
                     if model.showBufferingIndicator{
                         ProgressView()
                             .frame(width: baseSize, height: baseSize)
-                            .glassEffect(.clear)
                     }
                 }
                 .tint(foregroundColor.opacity(0.8))
