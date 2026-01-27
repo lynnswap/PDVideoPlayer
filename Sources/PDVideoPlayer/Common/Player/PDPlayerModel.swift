@@ -95,6 +95,17 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 #endif
     }
 
+    isolated deinit {
+        bufferingTask?.cancel()
+        removePeriodicTimeObserver()
+#if os(iOS)
+        doubleTapResetTask?.cancel()
+#endif
+        currentItemObservation?.invalidate()
+        itemStatusObservation?.invalidate()
+        cancellables.removeAll()
+    }
+
     // Replace the current player with a new instance while keeping the model.
     public func replacePlayer(with newPlayer: AVPlayer) {
         removePeriodicTimeObserver()

@@ -97,4 +97,8 @@ struct RippleData: Identifiable,Equatable {
             return .middle
         }
     }
+
+    isolated deinit {
+        removeAllTask?.cancel()
+    }
 }
