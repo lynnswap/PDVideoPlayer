@@ -13,6 +13,9 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
         var model: PDPlayerModel
         weak var overlay: NSView?
         var monitor: Any?
+        private var wasPlayingBeforeScroll = false
+        private var isScrubbing = false
+        private var ratioValue: Double = 0
 
         init(model: PDPlayerModel) { self.model = model }
 
@@ -28,8 +31,7 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
                 let local = view.convert(event.locationInWindow, from: nil)
 
                 if view.bounds.contains(local) {
-                    self.model.slider.scrollWheel(with: event)
-                    return nil
+                    return self.handleScroll(event)
                 }
                 return event
             }
@@ -38,6 +40,42 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
         func stopMonitoring() {
             if let monitor { NSEvent.removeMonitor(monitor) }
             monitor = nil
+        }
+
+        private func handleScroll(_ event: NSEvent) -> NSEvent? {
+            guard model.duration > 0 else { return event }
+
+            if !event.momentumPhase.isEmpty { return event }
+            if abs(event.scrollingDeltaX) <= abs(event.scrollingDeltaY),
+               event.scrollingDeltaX == 0 && event.scrollingDeltaY == 0 {
+                return event
+            }
+
+            if event.phase == .began || (!isScrubbing && event.phase != .ended && event.phase != .cancelled) {
+                ratioValue = model.currentTime / model.duration
+                wasPlayingBeforeScroll = model.isPlaying
+                model.pause()
+                model.isTracking = true
+                model.isScrubbing = true
+                isScrubbing = true
+            }
+
+            let sign: Double = event.isDirectionInvertedFromDevice ? 1 : -1
+            let sensitivity: Double = event.hasPreciseScrollingDeltas ? 0.002 : 0.0003
+            ratioValue = min(max(ratioValue + event.scrollingDeltaX * sign * sensitivity, 0), 1)
+            model.seekPrecisely(to: ratioValue * model.duration)
+
+            if event.phase == .ended || event.phase == .cancelled {
+                let total = model.duration
+                let step  = 0.03
+                let snapped = (ratioValue * total / step).rounded() * step
+                model.seekPrecisely(to: snapped)
+                model.isTracking = false
+                model.isScrubbing = false
+                if wasPlayingBeforeScroll { model.play() }
+                isScrubbing = false
+            }
+            return nil
         }
     }
 

@@ -21,8 +21,9 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public var currentTime: Double = 0
     public var duration: Double = 0
 
-    let slider : VideoPlayerSlider
     public var isTracking = false
+    /// True while trackpad scrubbing is active (macOS overlay).
+    public var isScrubbing = false
     public var isBuffering: Bool = false {
         didSet {
             if isBuffering {
@@ -61,14 +62,10 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     private var doubleTapResetTask: Task<(), Never>?
     private var doubleTapDirection: SkipDirection?
     let rippleStore = RippleEffectStore()
-    public var scrollView = UIScrollView()
-    private var playerVC: AVPlayerViewController?
     public var isLongpress: Bool = false
 #elseif os(macOS)
     /// When true, dragging on the player view moves the window.
     public var windowDraggable: Bool = false
-    public var scrollView = PlayerScrollView()
-    private var playerView: PlayerNSView?
 #endif
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
@@ -79,20 +76,12 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     // MARK: - Initializers
     public init(url: URL) {
         self.player = AVPlayer(url: url)
-        self.slider = VideoPlayerSlider()
         super.init()
-#if os(iOS)
-        self.slider.viewModel = self
-#endif
     }
 
     public init(player: AVPlayer) {
         self.player = player
-        self.slider = VideoPlayerSlider()
         super.init()
-#if os(iOS)
-        self.slider.viewModel = self
-#endif
     }
 
     isolated deinit {
@@ -108,27 +97,26 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
     // Replace the current player with a new instance while keeping the model.
     public func replacePlayer(with newPlayer: AVPlayer) {
-        removePeriodicTimeObserver()
-        cancellables.removeAll()
         player.pause()
         player = newPlayer
-#if os(iOS)
-        playerVC?.player = newPlayer
-#elseif os(macOS)
-        playerView?.setPlayer(newPlayer, videoGravity: .resizeAspect)
-#endif
         newPlayer.defaultRate = playbackSpeed.value
         newPlayer.rate = playbackSpeed.value
-        newPlayer.appliesMediaSelectionCriteriaAutomatically = false
-        addObserver()
-        if let item = newPlayer.currentItem {
+        startObserving()
+    }
+    
+    func startObserving() {
+        player.appliesMediaSelectionCriteriaAutomatically = false
+        cancellables.removeAll()
+        currentItemObservation?.invalidate()
+        currentItemObservation = nil
+        itemStatusObservation?.invalidate()
+        itemStatusObservation = nil
+        removePeriodicTimeObserver()
+        if let item = player.currentItem {
             duration = CMTimeGetSeconds(item.duration)
         } else {
             duration = 0
         }
-    }
-    
-    private func addObserver(){
         observePlayerStatus()
         observeSubtitleUpdates()
         addPeriodicTimeObserver()
@@ -192,35 +180,6 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         }
     }
 
-#if os(iOS)
-    // MARK: - iOS Setup
-    func setupPlayer() -> AVPlayerViewController {
-        let vc = AVPlayerViewController()
-        self.playerVC = vc
-        let player = self.player
-        vc.player = player
-        player.appliesMediaSelectionCriteriaAutomatically = false
-        addObserver()
-        return vc
-    }
-#elseif os(macOS)
-    // MARK: - macOS Setup
-    func setupPlayerView() -> PlayerNSView {
-        let view = PlayerNSView()
-        view.model = self
-        view.isWindowDraggable = windowDraggable
-        self.playerView = view
-
-        view.setPlayer(player, videoGravity: .resizeAspect)
-        addObserver()
-
-        if let item = player.currentItem {
-            duration = CMTimeGetSeconds(item.duration)
-        }
-        return view
-    }
-#endif
-
     // MARK: - Time Observation
     private func addPeriodicTimeObserver(){
         let stream = player.periodicTimeStream(forInterval: CMTime(value: 1, timescale: 30),queue: .main)
@@ -231,14 +190,6 @@ public class PDPlayerModel: NSObject, DynamicProperty {
                 if let item = player.currentItem {
                     let total = CMTimeGetSeconds(item.duration)
                     if total.isFinite { duration = total }
-                }
-                if !self.isTracking {
-                    let ratio = (self.duration > 0) ? self.currentTime / self.duration : 0
-#if os(macOS)
-                    self.slider.doubleValue = ratio
-#else
-                    self.slider.value = Float(ratio)
-#endif
                 }
             }
         }

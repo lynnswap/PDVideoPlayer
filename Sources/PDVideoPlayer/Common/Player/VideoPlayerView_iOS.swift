@@ -1,6 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import AVKit
+import Combine
 
 public typealias PDVideoPlayerRepresentable = PDVideoPlayerView_iOS
 
@@ -33,9 +34,10 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
     @Environment(\.videoPlayerOnLongPress) private var onLongPress
 
     public func makeUIView(context: Context) -> UIScrollView {
-        let scrollView = model.scrollView
+        let scrollView = UIScrollView()
         
-        let playerView = model.setupPlayer()
+        let playerView = AVPlayerViewController()
+        playerView.player = model.player
         context.coordinator.playerView = playerView
 
         
@@ -116,23 +118,8 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         longPressGestureRecognizer.minimumPressDuration = 0.5
         scrollView.addGestureRecognizer(longPressGestureRecognizer)
         
-        if let playerItem = model.player.currentItem {
-            context.coordinator.presentationSizeObservation?.invalidate()
-            context.coordinator.presentationSizeObservation = nil
-            context.coordinator.presentationSizeObservation = playerItem.observe(\.presentationSize, options: [.new, .initial]) { item, _ in
-                let size = item.presentationSize
-                if size.width > 0, size.height > 0 {
-                    Task { @MainActor in
-                        context.coordinator.presentationSizeObservation?.invalidate()
-                        context.coordinator.presentationSizeObservation = nil
-                        containerView.playerView = playerView.view
-                        containerView.contentSize = size
-                        containerView.updateAspectConstraint()
-                        onPresentationSizeChange?(playerView.view, size)
-                    }
-                }
-            }
-        }
+        model.startObserving()
+        context.coordinator.updatePresentationSizeObservation(for: model.player)
         if contextMenuProvider != nil {
             let contextMenuInteraction = UIContextMenuInteraction(delegate: context.coordinator)
             playerView.view.addInteraction(contextMenuInteraction)
@@ -141,14 +128,22 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
 
         return scrollView
     }
-    public func updateUIView(_ uiView: UIScrollView, context: Context) {}
+    public func updateUIView(_ uiView: UIScrollView, context: Context) {
+        context.coordinator.parent = self
+        if context.coordinator.playerView?.player !== model.player {
+            context.coordinator.playerView?.player = model.player
+        }
+        context.coordinator.updatePresentationSizeObservation(for: model.player)
+        scrollViewConfigurator?(uiView)
+    }
 
     public static func dismantleUIView(
         _ uiView: Self.UIViewType,
         coordinator: Self.Coordinator
     ){
-        coordinator.presentationSizeObservation?.invalidate()
-        coordinator.presentationSizeObservation = nil
+        coordinator.presentationSizeCancellable?.cancel()
+        coordinator.presentationSizeCancellable = nil
+        coordinator.observedItem = nil
     }
     public func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -157,9 +152,33 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         var parent: PDVideoPlayerRepresentable
         weak var playerView:AVPlayerViewController?
         weak var containerView: PlayerContainerView?
-        var presentationSizeObservation: NSKeyValueObservation?
+        var presentationSizeCancellable: AnyCancellable?
+        weak var observedItem: AVPlayerItem?
         init(_ parent: PDVideoPlayerRepresentable) {
             self.parent = parent
+        }
+
+        func updatePresentationSizeObservation(for player: AVPlayer) {
+            guard let item = player.currentItem else { return }
+            if item === observedItem { return }
+            observedItem = item
+
+            presentationSizeCancellable?.cancel()
+            presentationSizeCancellable = item.publisher(for: \.presentationSize, options: [.new, .initial])
+                .receive(on: RunLoop.main)
+                .sink { [weak self] size in
+                    guard let self,
+                          let containerView = self.containerView,
+                          let playerView = self.playerView else { return }
+                    if size.width > 0, size.height > 0 {
+                        self.presentationSizeCancellable?.cancel()
+                        self.presentationSizeCancellable = nil
+                        containerView.playerView = playerView.view
+                        containerView.contentSize = size
+                        containerView.updateAspectConstraint()
+                        self.parent.onPresentationSizeChange?(playerView.view, size)
+                    }
+                }
         }
         
         public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
