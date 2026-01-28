@@ -159,7 +159,7 @@ public final class PlayerViewModel {
         }
         player.play()
         player.rate = playbackSpeed.value
-        if !isTracking { isPlaying = true }
+        if !isTracking, player.currentItem != nil { isPlaying = true }
     }
 
     func pause() {
