@@ -168,7 +168,9 @@ public final class PlayerViewModel {
     }
 
     public func togglePlay() {
-        if player.timeControlStatus == .playing || player.rate != 0 {
+        if player.timeControlStatus == .playing ||
+            player.timeControlStatus == .waitingToPlayAtSpecifiedRate ||
+            player.rate != 0 {
             pause()
         } else {
             play()
