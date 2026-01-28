@@ -49,7 +49,9 @@ final class PlayerEngine {
         startObservationTasks(streamID: streamID)
 
         return PlayerEventStream(stream: stream) { [weak self] in
-            self?.invalidateStreamIfCurrent(streamID: streamID)
+            DispatchQueue.main.async { [weak self] in
+                self?.invalidateStreamIfCurrent(streamID: streamID)
+            }
         }
     }
 
@@ -206,25 +208,52 @@ final class PlayerEngine {
 @MainActor
 final class PlayerEventStream: AsyncSequence {
     typealias Element = PlayerEngine.Event
-    typealias AsyncIterator = AsyncThrowingStream<Element, Error>.AsyncIterator
+    typealias AsyncIterator = Iterator
 
     nonisolated let stream: AsyncThrowingStream<Element, Error>
-    private let onTermination: () -> Void
+    private let onTermination: @Sendable () -> Void
 
     init(
         stream: AsyncThrowingStream<Element, Error>,
-        onTermination: @escaping () -> Void
+        onTermination: @escaping @Sendable () -> Void
     ) {
         self.stream = stream
         self.onTermination = onTermination
     }
 
-    nonisolated func makeAsyncIterator() -> AsyncIterator {
-        stream.makeAsyncIterator()
+    nonisolated func makeAsyncIterator() -> Iterator {
+        Iterator(
+            iterator: stream.makeAsyncIterator(),
+            onTermination: onTermination
+        )
     }
 
     isolated deinit {
         onTermination()
+    }
+
+    final class Iterator: AsyncIteratorProtocol {
+        private var iterator: AsyncThrowingStream<PlayerEngine.Event, Error>.AsyncIterator
+        private var onTermination: (@Sendable () -> Void)?
+
+        init(
+            iterator: AsyncThrowingStream<PlayerEngine.Event, Error>.AsyncIterator,
+            onTermination: @escaping @Sendable () -> Void
+        ) {
+            self.iterator = iterator
+            self.onTermination = onTermination
+        }
+
+        func next() async throws -> PlayerEngine.Event? {
+            var localIterator = iterator
+            defer { iterator = localIterator }
+            return try await localIterator.next()
+        }
+
+        deinit {
+            onTermination?()
+            onTermination = nil
+        }
     }
 }
 
