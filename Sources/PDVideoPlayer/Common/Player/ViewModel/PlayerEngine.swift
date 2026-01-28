@@ -7,9 +7,6 @@ final class PlayerEngine {
         case time(current: Double, duration: Double)
         case status(AVPlayer.TimeControlStatus, AVPlayer.WaitingReason?)
         case itemReady
-    }
-
-    enum StreamError: Error {
         case itemFailed(underlying: Error?)
     }
 
@@ -170,7 +167,7 @@ final class PlayerEngine {
                 case .readyToPlay:
                     yieldEvent(.itemReady, streamID: streamID)
                 case .failed:
-                    finishStream(throwing: StreamError.itemFailed(underlying: item.error), streamID: streamID)
+                    yieldEvent(.itemFailed(underlying: item.error), streamID: streamID)
                     return
                 default:
                     break
@@ -179,14 +176,6 @@ final class PlayerEngine {
         } catch {
             return
         }
-    }
-
-    private func finishStream(throwing error: Error, streamID: UUID) {
-        guard currentStreamID == streamID else { return }
-        cancelObservationTasks()
-        eventContinuation?.finish(throwing: error)
-        eventContinuation = nil
-        currentStreamID = nil
     }
 
     private func currentDurationSeconds() -> Double {

@@ -138,6 +138,12 @@ public final class PlayerViewModel {
                         }
                     case .itemReady:
                         Task { await loadSubtitleOptions() }
+                    case .itemFailed(let error):
+                        if isBuffering { isBuffering = false }
+                        if isPlaying, !isTracking { isPlaying = false }
+#if DEBUG
+                        print("⚠️ player item failed:", error as Any)
+#endif
                     }
                 }
             } catch {
