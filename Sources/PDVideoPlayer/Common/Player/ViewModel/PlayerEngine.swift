@@ -49,7 +49,7 @@ final class PlayerEngine {
         startObservationTasks(streamID: streamID)
 
         return PlayerEventStream(stream: stream) { [weak self] in
-            DispatchQueue.main.async { [weak self] in
+            Task { @MainActor [weak self] in
                 self?.invalidateStreamIfCurrent(streamID: streamID)
             }
         }
