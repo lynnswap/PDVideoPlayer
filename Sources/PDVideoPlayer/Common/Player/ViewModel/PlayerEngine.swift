@@ -1,27 +1,32 @@
 import Foundation
 import AVFoundation
 
+enum PlayerEngineEvent: Sendable {
+    case time(current: Double, duration: Double)
+    case status(AVPlayer.TimeControlStatus, AVPlayer.WaitingReason?)
+    case itemReady
+    case itemFailed(description: String?)
+}
+
 @MainActor
 final class PlayerEngine {
-    enum Event {
-        case time(current: Double, duration: Double)
-        case status(AVPlayer.TimeControlStatus, AVPlayer.WaitingReason?)
-        case itemReady
-        case itemFailed(underlying: Error?)
-    }
-
     private(set) var player: AVPlayer
 
     private var timeTask: Task<Void, Never>?
     private var statusTask: Task<Void, Never>?
     private var currentItemTask: Task<Void, Never>?
-    private var eventContinuation: AsyncStream<Event>.Continuation?
-    private var currentStreamID: UUID?
+    private var eventBroadcaster = EventBroadcaster<PlayerEngineEvent>()
     private let observer: PlayerEngineObserving
 
     init(player: AVPlayer, observer: PlayerEngineObserving = PlayerEngineObserver()) {
         self.player = player
         self.observer = observer
+        eventBroadcaster.onFirstSubscriber = { [weak self] in
+            self?.startObservationTasks()
+        }
+        eventBroadcaster.onLastSubscriber = { [weak self] in
+            self?.cancelObservationTasks()
+        }
     }
 
     func replacePlayer(with newPlayer: AVPlayer) {
@@ -31,38 +36,17 @@ final class PlayerEngine {
     }
 
     func startObserving() -> PlayerEventStream {
-        stopObserving(finishStream: true)
         player.appliesMediaSelectionCriteriaAutomatically = false
 
-        let streamID = UUID()
-        currentStreamID = streamID
-        let stream = AsyncStream<Event> { continuation in
-            eventContinuation = continuation
-        }
-
         let (initialTime, initialDuration) = observer.initialTime(for: player)
-        yieldEvent(.time(current: initialTime.isFinite ? initialTime : 0, duration: initialDuration), streamID: streamID)
-
-        startObservationTasks(streamID: streamID)
-
-        return PlayerEventStream(stream: stream) { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.invalidateStreamIfCurrent(streamID: streamID)
-            }
+        return eventBroadcaster.makeStream { continuation in
+            continuation.yield(.time(current: initialTime.isFinite ? initialTime : 0, duration: initialDuration))
         }
     }
 
     func stopObserving() {
-        stopObserving(finishStream: true)
-    }
-
-    private func stopObserving(finishStream: Bool) {
         cancelObservationTasks()
-        if finishStream {
-            eventContinuation?.finish()
-        }
-        eventContinuation = nil
-        currentStreamID = nil
+        eventBroadcaster.finishAll()
     }
 
     private func cancelObservationTasks() {
@@ -74,14 +58,7 @@ final class PlayerEngine {
         currentItemTask = nil
     }
 
-    private func invalidateStreamIfCurrent(streamID: UUID) {
-        guard currentStreamID == streamID else { return }
-        cancelObservationTasks()
-        eventContinuation = nil
-        currentStreamID = nil
-    }
-
-    private func startObservationTasks(streamID: UUID) {
+    private func startObservationTasks() {
         timeTask?.cancel()
         statusTask?.cancel()
         currentItemTask?.cancel()
@@ -91,45 +68,45 @@ final class PlayerEngine {
         let itemStream = observer.currentItemStream(for: player)
 
         timeTask = Task { @MainActor [weak self] in
-            await self?.observeTime(stream: timeStream, streamID: streamID)
+            await self?.observeTime(stream: timeStream)
         }
 
         statusTask = Task { @MainActor [weak self] in
-            await self?.observeStatus(stream: statusStream, streamID: streamID)
+            await self?.observeStatus(stream: statusStream)
         }
 
         currentItemTask = Task { @MainActor [weak self] in
-            await self?.observeCurrentItem(stream: itemStream, streamID: streamID)
+            await self?.observeCurrentItem(stream: itemStream)
         }
     }
 
-    private func observeTime(stream: AnyAsyncSequence<CMTime>, streamID: UUID) async {
+    private func observeTime(stream: AnyAsyncSequence<CMTime>) async {
         let timeStream = stream
         do {
             for try await time in timeStream {
                 guard !Task.isCancelled else { break }
                 let current = CMTimeGetSeconds(time)
                 let duration = currentDurationSeconds()
-                yieldEvent(.time(current: current.isFinite ? current : 0, duration: duration), streamID: streamID)
+                yieldEvent(.time(current: current.isFinite ? current : 0, duration: duration))
             }
         } catch {
             return
         }
     }
 
-    private func observeStatus(stream: AnyAsyncSequence<AVPlayer.TimeControlStatus>, streamID: UUID) async {
+    private func observeStatus(stream: AnyAsyncSequence<AVPlayer.TimeControlStatus>) async {
         let statusStream = stream
         do {
             for try await status in statusStream {
                 guard !Task.isCancelled else { break }
-                yieldEvent(.status(status, observer.waitingReason(for: player)), streamID: streamID)
+                yieldEvent(.status(status, observer.waitingReason(for: player)))
             }
         } catch {
             return
         }
     }
 
-    private func observeCurrentItem(stream: AnyAsyncSequence<Void>, streamID: UUID) async {
+    private func observeCurrentItem(stream: AnyAsyncSequence<Void>) async {
         let itemStream = stream
         var itemTask: Task<Void, Never>?
         var didReceiveInitialItem = false
@@ -143,14 +120,14 @@ final class PlayerEngine {
 
                 if didReceiveInitialItem {
                     let (initialTime, initialDuration) = observer.initialTime(for: player)
-                    yieldEvent(.time(current: initialTime.isFinite ? initialTime : 0, duration: initialDuration), streamID: streamID)
+                    yieldEvent(.time(current: initialTime.isFinite ? initialTime : 0, duration: initialDuration))
                 } else {
                     didReceiveInitialItem = true
                 }
 
                 guard let item = player.currentItem else { continue }
                 itemTask = Task { @MainActor [weak self] in
-                    await self?.observeItemStatus(for: item, streamID: streamID)
+                    await self?.observeItemStatus(for: item)
                 }
             }
         } catch {
@@ -158,16 +135,16 @@ final class PlayerEngine {
         }
     }
 
-    private func observeItemStatus(for item: AVPlayerItem, streamID: UUID) async {
+    private func observeItemStatus(for item: AVPlayerItem) async {
         let statusStream = observer.itemStatusStream(for: item)
         do {
             for try await status in statusStream {
                 guard !Task.isCancelled else { break }
                 switch status {
                 case .readyToPlay:
-                    yieldEvent(.itemReady, streamID: streamID)
+                    yieldEvent(.itemReady)
                 case .failed:
-                    yieldEvent(.itemFailed(underlying: item.error), streamID: streamID)
+                    yieldEvent(.itemFailed(description: item.error?.localizedDescription))
                 default:
                     break
                 }
@@ -183,9 +160,8 @@ final class PlayerEngine {
         return total.isFinite ? total : 0
     }
 
-    private func yieldEvent(_ event: Event, streamID: UUID) {
-        guard currentStreamID == streamID else { return }
-        eventContinuation?.yield(event)
+    private func yieldEvent(_ event: PlayerEngineEvent) {
+        eventBroadcaster.broadcast(event)
     }
 
     isolated deinit {
@@ -194,56 +170,59 @@ final class PlayerEngine {
 }
 
 @MainActor
-final class PlayerEventStream: AsyncSequence {
-    typealias Element = PlayerEngine.Event
-    typealias AsyncIterator = Iterator
+private final class EventBroadcaster<Event: Sendable> {
+    typealias Stream = AsyncStream<Event>
 
-    nonisolated let stream: AsyncStream<Element>
-    private let onTermination: @Sendable () -> Void
+    private var continuations: [UUID: Stream.Continuation] = [:]
+    var onFirstSubscriber: () -> Void = {}
+    var onLastSubscriber: () -> Void = {}
 
-    init(
-        stream: AsyncStream<Element>,
-        onTermination: @escaping @Sendable () -> Void
-    ) {
-        self.stream = stream
-        self.onTermination = onTermination
-    }
+    func makeStream(onSubscribe: ((Stream.Continuation) -> Void)? = nil) -> Stream {
+        Stream { [weak self] continuation in
+            guard let self else {
+                continuation.finish()
+                return
+            }
 
-    nonisolated func makeAsyncIterator() -> Iterator {
-        Iterator(
-            iterator: stream.makeAsyncIterator(),
-            onTermination: onTermination
-        )
-    }
+            let streamID = UUID()
+            continuations[streamID] = continuation
 
-    isolated deinit {
-        onTermination()
-    }
+            onSubscribe?(continuation)
 
-    final class Iterator: AsyncIteratorProtocol {
-        private var iterator: AsyncStream<PlayerEngine.Event>.Iterator
-        private var onTermination: (@Sendable () -> Void)?
+            if continuations.count == 1 {
+                onFirstSubscriber()
+            }
 
-        init(
-            iterator: AsyncStream<PlayerEngine.Event>.Iterator,
-            onTermination: @escaping @Sendable () -> Void
-        ) {
-            self.iterator = iterator
-            self.onTermination = onTermination
+            continuation.onTermination = { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.removeContinuation(id: streamID)
+                }
+            }
         }
+    }
 
-        func next() async -> PlayerEngine.Event? {
-            var localIterator = iterator
-            defer { iterator = localIterator }
-            return await localIterator.next()
+    func broadcast(_ event: Event) {
+        guard !continuations.isEmpty else { return }
+        for continuation in continuations.values {
+            continuation.yield(event)
         }
+    }
 
-        deinit {
-            onTermination?()
-            onTermination = nil
+    func finishAll() {
+        let activeContinuations = Array(continuations.values)
+        continuations.removeAll()
+        activeContinuations.forEach { $0.finish() }
+    }
+
+    private func removeContinuation(id: UUID) {
+        guard continuations.removeValue(forKey: id) != nil else { return }
+        if continuations.isEmpty {
+            onLastSubscriber()
         }
     }
 }
+
+typealias PlayerEventStream = AsyncStream<PlayerEngineEvent>
 
 struct AnyAsyncSequence<Element>: AsyncSequence {
     typealias AsyncIterator = AnyAsyncIterator<Element>
