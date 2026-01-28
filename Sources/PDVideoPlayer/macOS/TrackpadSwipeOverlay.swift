@@ -13,11 +13,8 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
         var model: PDPlayerModel
         weak var overlay: NSView?
         var monitor: Any?
-        private var wasPlayingBeforeScroll = false
-        private var isScrubbing = false
-        private var ratioValue: Double = 0
+        private var scrubStateMachine = TrackpadScrubStateMachine()
         private var phaseLessEndTask: Task<Void, Never>?
-        private let phaseLessEndDelayNanoseconds: UInt64 = 200_000_000
 
         init(model: PDPlayerModel) { self.model = model }
 
@@ -46,74 +43,64 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
         }
 
         private func handleScroll(_ event: NSEvent) -> NSEvent? {
-            guard model.duration > 0 else { return event }
+            let actions = scrubStateMachine.handle(makeInput(from: event))
+            if apply(actions) {
+                return nil
+            }
+            return event
+        }
 
-            let isPhaseLess = event.phase.isEmpty
-            let isEnded = event.phase == .ended || event.phase == .cancelled
-            let isHorizontal = abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY)
+        private func makeInput(from event: NSEvent) -> TrackpadScrubStateMachine.Input {
+            TrackpadScrubStateMachine.Input(
+                phase: TrackpadScrubStateMachine.Phase(eventPhase: event.phase),
+                hasMomentum: !event.momentumPhase.isEmpty,
+                deltaX: event.scrollingDeltaX,
+                deltaY: event.scrollingDeltaY,
+                isDirectionInvertedFromDevice: event.isDirectionInvertedFromDevice,
+                hasPreciseDeltas: event.hasPreciseScrollingDeltas,
+                currentTime: model.currentTime,
+                duration: model.duration,
+                isPlaying: model.isPlaying
+            )
+        }
 
-            if isEnded {
-                if isScrubbing {
-                    finishScrubbing()
-                    return nil
+        private func apply(_ actions: [TrackpadScrubStateMachine.Action]) -> Bool {
+            guard !actions.isEmpty else { return false }
+            for action in actions {
+                switch action {
+                case .pause:
+                    model.pause()
+                case .play:
+                    model.play()
+                case let .setTracking(value):
+                    model.isTracking = value
+                case let .setScrubbing(value):
+                    model.isScrubbing = value
+                case let .seek(time):
+                    model.seekPrecisely(to: time)
+                case let .snapSeek(time):
+                    model.seekPrecisely(to: time)
+                case let .schedulePhaseLessEnd(delayNanoseconds):
+                    schedulePhaseLessEnd(after: delayNanoseconds)
+                case .cancelPhaseLessEnd:
+                    cancelPhaseLessEndTask()
                 }
-                return event
             }
-
-            if !event.momentumPhase.isEmpty { return event }
-
-            if !isScrubbing {
-                guard isHorizontal else { return event }
-                beginScrubbing()
-            }
-
-            if isHorizontal {
-                updateScrubbing(with: event)
-            }
-
-            if isPhaseLess {
-                schedulePhaseLessEnd()
-            } else {
-                cancelPhaseLessEndTask()
-            }
-            return nil
+            return true
         }
 
-        private func beginScrubbing() {
-            ratioValue = model.currentTime / model.duration
-            wasPlayingBeforeScroll = model.isPlaying
-            model.pause()
-            model.isTracking = true
-            model.isScrubbing = true
-            isScrubbing = true
-        }
-
-        private func updateScrubbing(with event: NSEvent) {
-            let sign: Double = event.isDirectionInvertedFromDevice ? 1 : -1
-            let sensitivity: Double = event.hasPreciseScrollingDeltas ? 0.002 : 0.0003
-            ratioValue = min(max(ratioValue + event.scrollingDeltaX * sign * sensitivity, 0), 1)
-            model.seekPrecisely(to: ratioValue * model.duration)
-        }
-
-        private func finishScrubbing() {
-            guard isScrubbing else { return }
-            cancelPhaseLessEndTask()
-            let total = model.duration
-            let step  = 0.03
-            let snapped = (ratioValue * total / step).rounded() * step
-            model.seekPrecisely(to: snapped)
-            model.isTracking = false
-            model.isScrubbing = false
-            if wasPlayingBeforeScroll { model.play() }
-            isScrubbing = false
-        }
-
-        private func schedulePhaseLessEnd() {
+        private func schedulePhaseLessEnd(after delayNanoseconds: UInt64) {
             cancelPhaseLessEndTask()
             phaseLessEndTask = Task { @MainActor [weak self] in
                 guard let self else { return }
-                try? await Task.sleep(nanoseconds: self.phaseLessEndDelayNanoseconds)
-                self.finishScrubbing()
+                do {
+                    try await Task.sleep(nanoseconds: delayNanoseconds)
+                } catch {
+                    return
+                }
+                guard !Task.isCancelled else { return }
+                let actions = self.scrubStateMachine.handlePhaseLessEndTimeout()
+                _ = self.apply(actions)
             }
         }
 
@@ -144,6 +131,22 @@ public extension View {
     /// for scrubbing with two fingers.
     func trackpadSwipeOverlay() -> some View {
         overlay(TrackpadSwipeOverlay())
+    }
+}
+
+private extension TrackpadScrubStateMachine.Phase {
+    init(eventPhase: NSEvent.Phase) {
+        if eventPhase.contains(.ended) {
+            self = .ended
+        } else if eventPhase.contains(.cancelled) {
+            self = .cancelled
+        } else if eventPhase.contains(.began) {
+            self = .began
+        } else if eventPhase.contains(.changed) {
+            self = .changed
+        } else {
+            self = .none
+        }
     }
 }
 #endif
