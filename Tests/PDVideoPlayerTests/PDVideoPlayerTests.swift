@@ -465,10 +465,16 @@ import Testing
         observer.didRequestItemStatusStream
     }
     #expect(didSubscribe == true)
+    let initialRequestCount = observer.itemStatusStreamRequestCount
 
     observer.itemStatusContinuation?.yield(.failed)
     let didFail = await waitUntil(timeout: .milliseconds(200)) { failedCount == 1 }
     #expect(didFail == true)
+
+    observer.itemStatusContinuation?.yield(.readyToPlay)
+    let didRecoverSameItem = await waitUntil(timeout: .milliseconds(200)) { readyCount == 1 }
+    #expect(didRecoverSameItem == true)
+    #expect(observer.itemStatusStreamRequestCount == initialRequestCount)
 
     observer.didRequestItemStatusStream = false
     let nextItem = AVPlayerItem(asset: AVMutableComposition())
@@ -478,19 +484,21 @@ import Testing
         observer.didRequestItemStatusStream
     }
     #expect(didResubscribe == true)
+    #expect(observer.itemStatusStreamRequestCount == initialRequestCount + 1)
 
     observer.itemStatusContinuation?.yield(.readyToPlay)
-    let didReady = await waitUntil(timeout: .milliseconds(200)) { readyCount == 1 }
+    let didReady = await waitUntil(timeout: .milliseconds(200)) { readyCount == 2 }
     #expect(didReady == true)
 
     #expect(failedCount == 1)
-    #expect(readyCount == 1)
+    #expect(readyCount == 2)
 }
 
 final class TestPlayerEngineObserver: PlayerEngineObserving {
     var initialTime: (Double, Double) = (0, 0)
     var waitingReason: AVPlayer.WaitingReason?
     var didRequestItemStatusStream = false
+    var itemStatusStreamRequestCount = 0
     var timeContinuation: AsyncStream<CMTime>.Continuation?
     var statusContinuation: AsyncStream<AVPlayer.TimeControlStatus>.Continuation?
     var currentItemContinuation: AsyncStream<Void>.Continuation?
@@ -518,6 +526,7 @@ final class TestPlayerEngineObserver: PlayerEngineObserving {
 
     @MainActor func itemStatusStream(for item: AVPlayerItem) -> AnyAsyncSequence<AVPlayerItem.Status> {
         didRequestItemStatusStream = true
+        itemStatusStreamRequestCount += 1
         return AnyAsyncSequence(AsyncStream { continuation in
             itemStatusContinuation = continuation
         })

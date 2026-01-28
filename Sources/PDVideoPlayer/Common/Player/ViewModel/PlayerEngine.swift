@@ -168,7 +168,6 @@ final class PlayerEngine {
                     yieldEvent(.itemReady, streamID: streamID)
                 case .failed:
                     yieldEvent(.itemFailed(underlying: item.error), streamID: streamID)
-                    return
                 default:
                     break
                 }
