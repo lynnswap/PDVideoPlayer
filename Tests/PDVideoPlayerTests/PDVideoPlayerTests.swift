@@ -60,14 +60,46 @@ import Testing
 }
 
 @MainActor
+@Test func viewModelMapsPlayingAndPausedStatus() async throws {
+    let observer = TestPlayerEngineObserver()
+    let model = PlayerViewModel(player: AVPlayer(), observer: observer)
+    model.startObserving()
+
+    observer.statusSubject.send(.playing)
+    let didPlay = await waitUntil { model.isPlaying }
+    #expect(didPlay == true)
+
+    observer.statusSubject.send(.paused)
+    let didPause = await waitUntil { model.isPlaying == false }
+    #expect(didPause == true)
+}
+
+@MainActor
+@Test func viewModelMapsBufferingFromWaitingReason() async throws {
+    let observer = TestPlayerEngineObserver()
+    let model = PlayerViewModel(player: AVPlayer(), observer: observer)
+    model.startObserving()
+
+    observer.waitingReason = .toMinimizeStalls
+    observer.statusSubject.send(.waitingToPlayAtSpecifiedRate)
+    let didBuffer = await waitUntil { model.isBuffering }
+    #expect(didBuffer == true)
+
+    observer.waitingReason = nil
+    observer.statusSubject.send(.waitingToPlayAtSpecifiedRate)
+    let didClear = await waitUntil { model.isBuffering == false }
+    #expect(didClear == true)
+}
+
+@MainActor
 @Test func bufferingIndicatorShowsAfterDelay() async throws {
     let model = PlayerViewModel(player: AVPlayer())
 
     model.isBuffering = true
     #expect(model.showBufferingIndicator == false)
 
-    try await Task.sleep(for: .milliseconds(350))
-    #expect(model.showBufferingIndicator == true)
+    let didShow = await waitUntil(timeout: .seconds(1)) { model.showBufferingIndicator }
+    #expect(didShow == true)
 
     model.isBuffering = false
     #expect(model.showBufferingIndicator == false)
@@ -81,8 +113,8 @@ import Testing
     try await Task.sleep(for: .milliseconds(100))
     model.isBuffering = false
 
-    try await Task.sleep(for: .milliseconds(350))
-    #expect(model.showBufferingIndicator == false)
+    let didShow = await waitUntil(timeout: .milliseconds(400)) { model.showBufferingIndicator }
+    #expect(didShow == false)
 }
 
 @MainActor
@@ -154,7 +186,10 @@ import Testing
     let target = resolvedSeekTime(for: item)
     let didSeek = await seekPlayer(player, to: target)
     #expect(didSeek == true)
-    #expect(abs(player.currentTime().seconds - target) < 0.3)
+    let didSnap = await waitUntil(timeout: .seconds(1)) {
+        abs(player.currentTime().seconds - target) < 0.3
+    }
+    #expect(didSnap == true)
 
     player.play()
     let advanced = await waitForPlaybackProgress(player: player)
@@ -245,8 +280,8 @@ import Testing
     model.handleDoubleTap(at: CGPoint(x: 10, y: 50), viewWidth: 100)
     #expect(model.doubleTapCount == 1)
 
-    try await Task.sleep(for: .milliseconds(1300))
-    #expect(model.doubleTapCount == 0)
+    let didReset = await waitUntil(timeout: .seconds(2)) { model.doubleTapCount == 0 }
+    #expect(didReset == true)
 }
 #endif
 
@@ -270,7 +305,8 @@ import Testing
     #expect(timeEvents.first?.1 == 10.0)
 
     observer.timeContinuation?.yield(CMTime(seconds: 2, preferredTimescale: 1))
-    try await Task.sleep(for: .milliseconds(10))
+    let didUpdate = await waitUntil(timeout: .milliseconds(200)) { timeEvents.count > 1 }
+    #expect(didUpdate == true)
 
     #expect(timeEvents.last?.0 == 2.0)
     #expect(timeEvents.last?.1 == 0.0)
@@ -291,7 +327,8 @@ import Testing
     )
 
     observer.statusSubject.send(.paused)
-    try await Task.sleep(for: .milliseconds(10))
+    let didReceive = await waitUntil(timeout: .milliseconds(200)) { statusEvents == [.paused] }
+    #expect(didReceive == true)
 
     #expect(statusEvents == [.paused])
 }
@@ -312,9 +349,13 @@ import Testing
 
     let item = AVPlayerItem(asset: AVMutableComposition())
     observer.currentItemSubject.send(item)
-    try await Task.sleep(for: .milliseconds(10))
+    let didSubscribe = await waitUntil(timeout: .milliseconds(200)) {
+        observer.didRequestItemStatusPublisher
+    }
+    #expect(didSubscribe == true)
     observer.itemStatusSubject.send(.readyToPlay)
-    try await Task.sleep(for: .milliseconds(10))
+    let didReady = await waitUntil(timeout: .milliseconds(200)) { readyCount == 1 }
+    #expect(didReady == true)
 
     #expect(readyCount == 1)
 }
@@ -335,7 +376,8 @@ import Testing
 
     engine.stopObserving()
     observer.statusSubject.send(.paused)
-    try await Task.sleep(for: .milliseconds(10))
+    let didReceive = await waitUntil(timeout: .milliseconds(200)) { !statusEvents.isEmpty }
+    #expect(didReceive == false)
 
     #expect(statusEvents.isEmpty)
 }
@@ -358,7 +400,8 @@ import Testing
 
     engine.stopObserving()
     observer.timeContinuation?.yield(CMTime(seconds: 3, preferredTimescale: 1))
-    try await Task.sleep(for: .milliseconds(10))
+    let didReceive = await waitUntil(timeout: .milliseconds(200)) { timeEvents.count > 1 }
+    #expect(didReceive == false)
 
     #expect(timeEvents.count == 1)
 }
@@ -368,6 +411,8 @@ final class TestPlayerEngineObserver: PlayerEngineObserving {
     let statusSubject = PassthroughSubject<AVPlayer.TimeControlStatus, Never>()
     let currentItemSubject = PassthroughSubject<AVPlayerItem?, Never>()
     let itemStatusSubject = PassthroughSubject<AVPlayerItem.Status, Never>()
+    var waitingReason: AVPlayer.WaitingReason?
+    var didRequestItemStatusPublisher = false
     var timeContinuation: AsyncStream<CMTime>.Continuation?
 
     func initialTime(for player: AVPlayer) -> (Double, Double) { initialTime }
@@ -387,7 +432,12 @@ final class TestPlayerEngineObserver: PlayerEngineObserving {
     }
 
     func itemStatusPublisher(for item: AVPlayerItem) -> AnyPublisher<AVPlayerItem.Status, Never> {
-        itemStatusSubject.eraseToAnyPublisher()
+        didRequestItemStatusPublisher = true
+        return itemStatusSubject.eraseToAnyPublisher()
+    }
+
+    func waitingReason(for player: AVPlayer) -> AVPlayer.WaitingReason? {
+        waitingReason
     }
 }
 
@@ -404,11 +454,8 @@ private func previewVideoURL() throws -> URL {
 
 @MainActor
 private func waitForReady(_ item: AVPlayerItem, timeout: Duration = .seconds(3)) async -> AVPlayerItem.Status {
-    let clock = ContinuousClock()
-    let deadline = clock.now.advanced(by: timeout)
-
-    while item.status == .unknown && clock.now < deadline {
-        try? await Task.sleep(for: .milliseconds(50))
+    _ = await waitUntil(timeout: timeout, poll: .milliseconds(50)) {
+        item.status != .unknown
     }
 
     return item.status
@@ -420,18 +467,11 @@ private func waitForPlaybackProgress(
     minimumAdvance: Double = 0.2,
     timeout: Duration = .seconds(2)
 ) async -> Bool {
-    let clock = ContinuousClock()
-    let deadline = clock.now.advanced(by: timeout)
     let startTime = player.currentTime().seconds
 
-    while clock.now < deadline {
-        if player.currentTime().seconds >= startTime + minimumAdvance {
-            return true
-        }
-        try? await Task.sleep(for: .milliseconds(50))
+    return await waitUntil(timeout: timeout, poll: .milliseconds(20)) {
+        player.currentTime().seconds >= startTime + minimumAdvance
     }
-
-    return false
 }
 
 @MainActor
@@ -455,4 +495,22 @@ private func resolvedSeekTime(for item: AVPlayerItem) -> Double {
         }
     }
     return 1.0
+}
+
+@MainActor
+private func waitUntil(
+    timeout: Duration = .seconds(2),
+    poll: Duration = .milliseconds(20),
+    condition: @escaping @MainActor () -> Bool
+) async -> Bool {
+    let clock = ContinuousClock()
+    let deadline = clock.now.advanced(by: timeout)
+
+    while clock.now < deadline {
+        if condition() { return true }
+        await Task.yield()
+        try? await Task.sleep(for: poll)
+    }
+
+    return condition()
 }

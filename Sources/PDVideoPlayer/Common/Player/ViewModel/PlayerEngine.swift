@@ -38,7 +38,7 @@ final class PlayerEngine {
             .sink { [weak self] status in
                 Task { @MainActor [weak self] in
                     guard let self else { return }
-                    onStatus(status, self.player.reasonForWaitingToPlay)
+                    onStatus(status, self.observer.waitingReason(for: self.player))
                 }
             }
             .store(in: &cancellables)
@@ -99,6 +99,7 @@ protocol PlayerEngineObserving {
     func timeControlStatusPublisher(for player: AVPlayer) -> AnyPublisher<AVPlayer.TimeControlStatus, Never>
     func currentItemPublisher(for player: AVPlayer) -> AnyPublisher<AVPlayerItem?, Never>
     func itemStatusPublisher(for item: AVPlayerItem) -> AnyPublisher<AVPlayerItem.Status, Never>
+    func waitingReason(for player: AVPlayer) -> AVPlayer.WaitingReason?
 }
 
 struct PlayerEngineObserver: PlayerEngineObserving {
@@ -128,6 +129,10 @@ struct PlayerEngineObserver: PlayerEngineObserving {
     func itemStatusPublisher(for item: AVPlayerItem) -> AnyPublisher<AVPlayerItem.Status, Never> {
         item.publisher(for: \.status, options: [.new, .initial])
             .eraseToAnyPublisher()
+    }
+
+    func waitingReason(for player: AVPlayer) -> AVPlayer.WaitingReason? {
+        player.reasonForWaitingToPlay
     }
 
     private func currentDurationSeconds(for player: AVPlayer) -> Double {

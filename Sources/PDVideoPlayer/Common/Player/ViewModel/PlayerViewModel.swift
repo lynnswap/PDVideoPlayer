@@ -78,6 +78,10 @@ public final class PlayerViewModel {
         self.engine = PlayerEngine(player: player)
     }
 
+    init(player: AVPlayer, observer: PlayerEngineObserving) {
+        self.engine = PlayerEngine(player: player, observer: observer)
+    }
+
     isolated deinit {
         bufferingTask?.cancel()
 #if os(iOS)
