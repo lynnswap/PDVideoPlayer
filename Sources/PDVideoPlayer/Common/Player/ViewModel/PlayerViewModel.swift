@@ -2,7 +2,7 @@
 import AppKit
 #endif
 import SwiftUI
-@preconcurrency import AVFoundation
+import AVFoundation
 
 #if os(iOS)
 enum SkipDirection {
@@ -137,6 +137,12 @@ public final class PlayerViewModel {
                     }
                 case .itemReady:
                     Task { await loadSubtitleOptions() }
+                case .itemFailed(let error):
+                    if isBuffering { isBuffering = false }
+                    if isPlaying, !isTracking { isPlaying = false }
+#if DEBUG
+                    print("⚠️ player item failed:", error as Any)
+#endif
                 }
             }
         }
@@ -153,12 +159,22 @@ public final class PlayerViewModel {
         }
         player.play()
         player.rate = playbackSpeed.value
+        if !isTracking, player.currentItem != nil { isPlaying = true }
     }
 
-    func pause() { player.pause() }
+    func pause() {
+        player.pause()
+        if !isTracking { isPlaying = false }
+    }
 
     public func togglePlay() {
-        isPlaying ? pause() : play()
+        if player.timeControlStatus == .playing ||
+            player.timeControlStatus == .waitingToPlayAtSpecifiedRate ||
+            player.rate != 0 {
+            pause()
+        } else {
+            play()
+        }
     }
 
     public func seekRatio(_ ratio: Double) {

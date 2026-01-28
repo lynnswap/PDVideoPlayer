@@ -1,5 +1,4 @@
 import AVFoundation
-import Combine
 import Testing
 @testable import PDVideoPlayer
 
@@ -65,11 +64,11 @@ import Testing
     let model = PlayerViewModel(player: AVPlayer(), observer: observer)
     model.startObserving()
 
-    observer.statusSubject.send(.playing)
+    observer.statusContinuation?.yield(.playing)
     let didPlay = await waitUntil { model.isPlaying }
     #expect(didPlay == true)
 
-    observer.statusSubject.send(.paused)
+    observer.statusContinuation?.yield(.paused)
     let didPause = await waitUntil { model.isPlaying == false }
     #expect(didPause == true)
 }
@@ -81,12 +80,12 @@ import Testing
     model.startObserving()
 
     observer.waitingReason = .toMinimizeStalls
-    observer.statusSubject.send(.waitingToPlayAtSpecifiedRate)
+    observer.statusContinuation?.yield(.waitingToPlayAtSpecifiedRate)
     let didBuffer = await waitUntil { model.isBuffering }
     #expect(didBuffer == true)
 
     observer.waitingReason = nil
-    observer.statusSubject.send(.waitingToPlayAtSpecifiedRate)
+    observer.statusContinuation?.yield(.waitingToPlayAtSpecifiedRate)
     let didClear = await waitUntil { model.isBuffering == false }
     #expect(didClear == true)
 }
@@ -339,7 +338,7 @@ import Testing
         task.cancel()
     }
 
-    observer.statusSubject.send(.paused)
+    observer.statusContinuation?.yield(.paused)
     let didReceive = await waitUntil(timeout: .milliseconds(200)) { statusEvents == [.paused] }
     #expect(didReceive == true)
 
@@ -366,12 +365,13 @@ import Testing
     }
 
     let item = AVPlayerItem(asset: AVMutableComposition())
-    observer.currentItemSubject.send(item)
+    engine.player.replaceCurrentItem(with: item)
+    observer.currentItemContinuation?.yield(())
     let didSubscribe = await waitUntil(timeout: .milliseconds(200)) {
-        observer.didRequestItemStatusPublisher
+        observer.didRequestItemStatusStream
     }
     #expect(didSubscribe == true)
-    observer.itemStatusSubject.send(.readyToPlay)
+    observer.itemStatusContinuation?.yield(.readyToPlay)
     let didReady = await waitUntil(timeout: .milliseconds(200)) { readyCount == 1 }
     #expect(didReady == true)
 
@@ -395,7 +395,7 @@ import Testing
     defer { task.cancel() }
 
     engine.stopObserving()
-    observer.statusSubject.send(.paused)
+    observer.statusContinuation?.yield(.paused)
     let didReceive = await waitUntil(timeout: .milliseconds(200)) { !statusEvents.isEmpty }
     #expect(didReceive == false)
 
@@ -416,7 +416,9 @@ import Testing
             }
         }
     }
-    defer { task.cancel() }
+    defer {
+        task.cancel()
+    }
 
     let didSeed = await waitUntil(timeout: .milliseconds(200)) { timeEvents.count == 1 }
     #expect(didSeed == true)
@@ -431,37 +433,106 @@ import Testing
     #expect(timeEvents.count == 1)
 }
 
-final class TestPlayerEngineObserver: PlayerEngineObserving {
-    var initialTime: (Double, Double) = (0, 0)
-    let statusSubject = PassthroughSubject<AVPlayer.TimeControlStatus, Never>()
-    let currentItemSubject = PassthroughSubject<AVPlayerItem?, Never>()
-    let itemStatusSubject = PassthroughSubject<AVPlayerItem.Status, Never>()
-    var waitingReason: AVPlayer.WaitingReason?
-    var didRequestItemStatusPublisher = false
-    var timeContinuation: AsyncStream<CMTime>.Continuation?
+@MainActor
+@Test func playerEngineEmitsItemFailedAndContinues() async throws {
+    let observer = TestPlayerEngineObserver()
+    let engine = PlayerEngine(player: AVPlayer(), observer: observer)
 
-    func initialTime(for player: AVPlayer) -> (Double, Double) { initialTime }
-
-    @MainActor func timeStream(for player: AVPlayer) -> AsyncStream<CMTime> {
-        AsyncStream { continuation in
-            timeContinuation = continuation
+    var failedCount = 0
+    var readyCount = 0
+    let stream = engine.startObserving()
+    let task = Task {
+        for await event in stream {
+            switch event {
+            case .itemFailed:
+                failedCount += 1
+            case .itemReady:
+                readyCount += 1
+            default:
+                break
+            }
         }
     }
-
-    func timeControlStatusPublisher(for player: AVPlayer) -> AnyPublisher<AVPlayer.TimeControlStatus, Never> {
-        statusSubject.eraseToAnyPublisher()
+    defer {
+        engine.stopObserving()
+        task.cancel()
     }
 
-    func currentItemPublisher(for player: AVPlayer) -> AnyPublisher<AVPlayerItem?, Never> {
-        currentItemSubject.eraseToAnyPublisher()
+    let item = AVPlayerItem(asset: AVMutableComposition())
+    engine.player.replaceCurrentItem(with: item)
+    observer.currentItemContinuation?.yield(())
+    let didSubscribe = await waitUntil(timeout: .milliseconds(200)) {
+        observer.didRequestItemStatusStream
+    }
+    #expect(didSubscribe == true)
+    let initialRequestCount = observer.itemStatusStreamRequestCount
+
+    observer.itemStatusContinuation?.yield(.failed)
+    let didFail = await waitUntil(timeout: .milliseconds(200)) { failedCount == 1 }
+    #expect(didFail == true)
+
+    observer.itemStatusContinuation?.yield(.readyToPlay)
+    let didRecoverSameItem = await waitUntil(timeout: .milliseconds(200)) { readyCount == 1 }
+    #expect(didRecoverSameItem == true)
+    #expect(observer.itemStatusStreamRequestCount == initialRequestCount)
+
+    observer.didRequestItemStatusStream = false
+    let nextItem = AVPlayerItem(asset: AVMutableComposition())
+    engine.player.replaceCurrentItem(with: nextItem)
+    observer.currentItemContinuation?.yield(())
+    let didResubscribe = await waitUntil(timeout: .milliseconds(200)) {
+        observer.didRequestItemStatusStream
+    }
+    #expect(didResubscribe == true)
+    #expect(observer.itemStatusStreamRequestCount == initialRequestCount + 1)
+
+    observer.itemStatusContinuation?.yield(.readyToPlay)
+    let didReady = await waitUntil(timeout: .milliseconds(200)) { readyCount == 2 }
+    #expect(didReady == true)
+
+    #expect(failedCount == 1)
+    #expect(readyCount == 2)
+}
+
+final class TestPlayerEngineObserver: PlayerEngineObserving {
+    var initialTime: (Double, Double) = (0, 0)
+    var waitingReason: AVPlayer.WaitingReason?
+    var didRequestItemStatusStream = false
+    var itemStatusStreamRequestCount = 0
+    var timeContinuation: AsyncStream<CMTime>.Continuation?
+    var statusContinuation: AsyncStream<AVPlayer.TimeControlStatus>.Continuation?
+    var currentItemContinuation: AsyncStream<Void>.Continuation?
+    var itemStatusContinuation: AsyncStream<AVPlayerItem.Status>.Continuation?
+
+    @MainActor func initialTime(for player: AVPlayer) -> (Double, Double) { initialTime }
+
+    @MainActor func timeStream(for player: AVPlayer) -> AnyAsyncSequence<CMTime> {
+        AnyAsyncSequence(AsyncStream { continuation in
+            timeContinuation = continuation
+        })
     }
 
-    func itemStatusPublisher(for item: AVPlayerItem) -> AnyPublisher<AVPlayerItem.Status, Never> {
-        didRequestItemStatusPublisher = true
-        return itemStatusSubject.eraseToAnyPublisher()
+    @MainActor func timeControlStatusStream(for player: AVPlayer) -> AnyAsyncSequence<AVPlayer.TimeControlStatus> {
+        AnyAsyncSequence(AsyncStream { continuation in
+            statusContinuation = continuation
+        })
     }
 
-    func waitingReason(for player: AVPlayer) -> AVPlayer.WaitingReason? {
+    @MainActor func currentItemStream(for player: AVPlayer) -> AnyAsyncSequence<Void> {
+        AnyAsyncSequence(AsyncStream { continuation in
+            currentItemContinuation = continuation
+        })
+    }
+
+    @MainActor func itemStatusStream(for item: AVPlayerItem) -> AnyAsyncSequence<AVPlayerItem.Status> {
+        didRequestItemStatusStream = true
+        itemStatusStreamRequestCount += 1
+        return AnyAsyncSequence(AsyncStream { continuation in
+            itemStatusContinuation = continuation
+        })
+    }
+
+    @MainActor func waitingReason(for player: AVPlayer) -> AVPlayer.WaitingReason? {
         waitingReason
     }
 }
