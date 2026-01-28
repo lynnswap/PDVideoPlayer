@@ -104,54 +104,46 @@ public final class PlayerViewModel {
         let stream = engine.startObserving()
         observeTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            do {
-                for try await event in stream {
-                    switch event {
-                    case .time(let current, let duration):
-                        currentTime = current
-                        self.duration = duration
-                    case .status(let status, let waitingReason):
-                        switch status {
-                        case .playing:
-                            if !isPlaying { isPlaying = true }
+            for await event in stream {
+                switch event {
+                case .time(let current, let duration):
+                    currentTime = current
+                    self.duration = duration
+                case .status(let status, let waitingReason):
+                    switch status {
+                    case .playing:
+                        if !isPlaying { isPlaying = true }
 #if os(iOS)
-                            if isLongpress {
-                                let fastRate = min(originalRate * 2.0, 2.0)
-                                if player.rate != fastRate {
-                                    player.rate = fastRate
-                                }
+                        if isLongpress {
+                            let fastRate = min(originalRate * 2.0, 2.0)
+                            if player.rate != fastRate {
+                                player.rate = fastRate
                             }
-#endif
-                            if isBuffering { isBuffering = false }
-                        case .paused:
-                            if isPlaying, !isTracking { isPlaying = false }
-                            if isBuffering { isBuffering = false }
-                        case .waitingToPlayAtSpecifiedRate:
-                            switch waitingReason {
-                            case .evaluatingBufferingRate, .toMinimizeStalls:
-                                if !isBuffering { isBuffering = true }
-                            default:
-                                if isBuffering { isBuffering = false }
-                            }
-                        @unknown default:
-                            break
                         }
-                    case .itemReady:
-                        Task { await loadSubtitleOptions() }
-                    case .itemFailed(let error):
+#endif
                         if isBuffering { isBuffering = false }
+                    case .paused:
                         if isPlaying, !isTracking { isPlaying = false }
-#if DEBUG
-                        print("⚠️ player item failed:", error as Any)
-#endif
+                        if isBuffering { isBuffering = false }
+                    case .waitingToPlayAtSpecifiedRate:
+                        switch waitingReason {
+                        case .evaluatingBufferingRate, .toMinimizeStalls:
+                            if !isBuffering { isBuffering = true }
+                        default:
+                            if isBuffering { isBuffering = false }
+                        }
+                    @unknown default:
+                        break
                     }
-                }
-            } catch {
-                if isBuffering { isBuffering = false }
-                if isPlaying, !isTracking { isPlaying = false }
+                case .itemReady:
+                    Task { await loadSubtitleOptions() }
+                case .itemFailed(let error):
+                    if isBuffering { isBuffering = false }
+                    if isPlaying, !isTracking { isPlaying = false }
 #if DEBUG
-                print("⚠️ player observation failed:", error)
+                    print("⚠️ player item failed:", error as Any)
 #endif
+                }
             }
         }
     }

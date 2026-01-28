@@ -293,13 +293,11 @@ import Testing
     var timeEvents: [(Double, Double)] = []
     let stream = engine.startObserving()
     let task = Task {
-        do {
-            for try await event in stream {
-                if case .time(let time, let duration) = event {
-                    timeEvents.append((time, duration))
-                }
+        for await event in stream {
+            if case .time(let time, let duration) = event {
+                timeEvents.append((time, duration))
             }
-        } catch { }
+        }
     }
     defer {
         engine.stopObserving()
@@ -329,13 +327,11 @@ import Testing
     var statusEvents: [AVPlayer.TimeControlStatus] = []
     let stream = engine.startObserving()
     let task = Task {
-        do {
-            for try await event in stream {
-                if case .status(let status, _) = event {
-                    statusEvents.append(status)
-                }
+        for await event in stream {
+            if case .status(let status, _) = event {
+                statusEvents.append(status)
             }
-        } catch { }
+        }
     }
     defer {
         engine.stopObserving()
@@ -357,13 +353,11 @@ import Testing
     var readyCount = 0
     let stream = engine.startObserving()
     let task = Task {
-        do {
-            for try await event in stream {
-                if case .itemReady = event {
-                    readyCount += 1
-                }
+        for await event in stream {
+            if case .itemReady = event {
+                readyCount += 1
             }
-        } catch { }
+        }
     }
     defer {
         engine.stopObserving()
@@ -392,13 +386,11 @@ import Testing
     var statusEvents: [AVPlayer.TimeControlStatus] = []
     let stream = engine.startObserving()
     let task = Task {
-        do {
-            for try await event in stream {
-                if case .status(let status, _) = event {
-                    statusEvents.append(status)
-                }
+        for await event in stream {
+            if case .status(let status, _) = event {
+                statusEvents.append(status)
             }
-        } catch { }
+        }
     }
     defer { task.cancel() }
 
@@ -418,15 +410,15 @@ import Testing
     var timeEvents: [(Double, Double)] = []
     let stream = engine.startObserving()
     let task = Task {
-        do {
-            for try await event in stream {
-                if case .time(let time, let duration) = event {
-                    timeEvents.append((time, duration))
-                }
+        for await event in stream {
+            if case .time(let time, let duration) = event {
+                timeEvents.append((time, duration))
             }
-        } catch { }
+        }
     }
-    defer { task.cancel() }
+    defer {
+        task.cancel()
+    }
 
     let didSeed = await waitUntil(timeout: .milliseconds(200)) { timeEvents.count == 1 }
     #expect(didSeed == true)
@@ -439,6 +431,60 @@ import Testing
     #expect(didReceive == false)
 
     #expect(timeEvents.count == 1)
+}
+
+@MainActor
+@Test func playerEngineEmitsItemFailedAndContinues() async throws {
+    let observer = TestPlayerEngineObserver()
+    let engine = PlayerEngine(player: AVPlayer(), observer: observer)
+
+    var failedCount = 0
+    var readyCount = 0
+    let stream = engine.startObserving()
+    let task = Task {
+        for await event in stream {
+            switch event {
+            case .itemFailed:
+                failedCount += 1
+            case .itemReady:
+                readyCount += 1
+            default:
+                break
+            }
+        }
+    }
+    defer {
+        engine.stopObserving()
+        task.cancel()
+    }
+
+    let item = AVPlayerItem(asset: AVMutableComposition())
+    engine.player.replaceCurrentItem(with: item)
+    observer.currentItemContinuation?.yield(())
+    let didSubscribe = await waitUntil(timeout: .milliseconds(200)) {
+        observer.didRequestItemStatusStream
+    }
+    #expect(didSubscribe == true)
+
+    observer.itemStatusContinuation?.yield(.failed)
+    let didFail = await waitUntil(timeout: .milliseconds(200)) { failedCount == 1 }
+    #expect(didFail == true)
+
+    observer.didRequestItemStatusStream = false
+    let nextItem = AVPlayerItem(asset: AVMutableComposition())
+    engine.player.replaceCurrentItem(with: nextItem)
+    observer.currentItemContinuation?.yield(())
+    let didResubscribe = await waitUntil(timeout: .milliseconds(200)) {
+        observer.didRequestItemStatusStream
+    }
+    #expect(didResubscribe == true)
+
+    observer.itemStatusContinuation?.yield(.readyToPlay)
+    let didReady = await waitUntil(timeout: .milliseconds(200)) { readyCount == 1 }
+    #expect(didReady == true)
+
+    #expect(failedCount == 1)
+    #expect(readyCount == 1)
 }
 
 final class TestPlayerEngineObserver: PlayerEngineObserving {

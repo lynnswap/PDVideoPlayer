@@ -15,7 +15,7 @@ final class PlayerEngine {
     private var timeTask: Task<Void, Never>?
     private var statusTask: Task<Void, Never>?
     private var currentItemTask: Task<Void, Never>?
-    private var eventContinuation: AsyncThrowingStream<Event, Error>.Continuation?
+    private var eventContinuation: AsyncStream<Event>.Continuation?
     private var currentStreamID: UUID?
     private let observer: PlayerEngineObserving
 
@@ -36,7 +36,7 @@ final class PlayerEngine {
 
         let streamID = UUID()
         currentStreamID = streamID
-        let stream = AsyncThrowingStream<Event, Error> { continuation in
+        let stream = AsyncStream<Event> { continuation in
             eventContinuation = continuation
         }
 
@@ -199,11 +199,11 @@ final class PlayerEventStream: AsyncSequence {
     typealias Element = PlayerEngine.Event
     typealias AsyncIterator = Iterator
 
-    nonisolated let stream: AsyncThrowingStream<Element, Error>
+    nonisolated let stream: AsyncStream<Element>
     private let onTermination: @Sendable () -> Void
 
     init(
-        stream: AsyncThrowingStream<Element, Error>,
+        stream: AsyncStream<Element>,
         onTermination: @escaping @Sendable () -> Void
     ) {
         self.stream = stream
@@ -222,21 +222,21 @@ final class PlayerEventStream: AsyncSequence {
     }
 
     final class Iterator: AsyncIteratorProtocol {
-        private var iterator: AsyncThrowingStream<PlayerEngine.Event, Error>.AsyncIterator
+        private var iterator: AsyncStream<PlayerEngine.Event>.Iterator
         private var onTermination: (@Sendable () -> Void)?
 
         init(
-            iterator: AsyncThrowingStream<PlayerEngine.Event, Error>.AsyncIterator,
+            iterator: AsyncStream<PlayerEngine.Event>.Iterator,
             onTermination: @escaping @Sendable () -> Void
         ) {
             self.iterator = iterator
             self.onTermination = onTermination
         }
 
-        func next() async throws -> PlayerEngine.Event? {
+        func next() async -> PlayerEngine.Event? {
             var localIterator = iterator
             defer { iterator = localIterator }
-            return try await localIterator.next()
+            return await localIterator.next()
         }
 
         deinit {
