@@ -30,7 +30,7 @@ struct RippleData: Identifiable, Equatable {
     
     var viewSize: CGSize = .zero
 
-    private var removeAllTask: Task<(), Never>?
+    private var removeAllTask: Task<Void, any Error>?
 
     func addRipple(at location: CGPoint, duration: Int) {
         let region = getTapRegion(for: location, in: viewSize)
@@ -51,10 +51,10 @@ struct RippleData: Identifiable, Equatable {
         globalEndTime = Date().addingTimeInterval(totalDuration)
 
         removeAllTask?.cancel()
-        removeAllTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(totalDuration))
+        removeAllTask = Task {
+            try await Task.sleep(for: .seconds(totalDuration))
             guard !Task.isCancelled else { return }
-            clearAllRipples()
+            self.clearAllRipples()
         }
     }
 

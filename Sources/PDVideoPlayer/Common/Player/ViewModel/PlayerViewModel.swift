@@ -26,10 +26,10 @@ public final class PlayerViewModel {
         didSet {
             if isBuffering {
                 bufferingTask?.cancel()
-                bufferingTask = Task { [weak self] in
-                    try? await Task.sleep(for: .milliseconds(300))
+                bufferingTask = Task {
+                    try await Task.sleep(for: .milliseconds(300))
                     guard !Task.isCancelled else { return }
-                    self?.showBufferingIndicator = true
+                    self.showBufferingIndicator = true
                 }
             } else {
                 bufferingTask?.cancel()
@@ -38,7 +38,7 @@ public final class PlayerViewModel {
         }
     }
     public var showBufferingIndicator: Bool = false
-    @ObservationIgnored private var bufferingTask: Task<(), Never>?
+    @ObservationIgnored private var bufferingTask: Task<Void, any Error>?
 
     public var player: AVPlayer { engine.player }
     public var onClose: VideoPlayerCloseAction?
@@ -57,7 +57,7 @@ public final class PlayerViewModel {
     public var isLooping: Bool = true
     var doubleTapCount: Int = 0
     private var doubleTapBaseTime: Double = 0
-    private var doubleTapResetTask: Task<(), Never>?
+    private var doubleTapResetTask: Task<Void, any Error>?
     private var doubleTapDirection: SkipDirection?
     let rippleStore = RippleEffectStore()
     public private(set) var isLongpress: Bool = false
@@ -237,9 +237,9 @@ public final class PlayerViewModel {
         seek(to: targetTime)
 
         doubleTapResetTask?.cancel()
-        doubleTapResetTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(1.2))
-            guard !Task.isCancelled, let self else { return }
+        doubleTapResetTask = Task {
+            try await Task.sleep(for: .seconds(1.2))
+            guard !Task.isCancelled else { return }
             self.doubleTapCount = 0
             self.doubleTapBaseTime = 0
             self.doubleTapDirection = nil

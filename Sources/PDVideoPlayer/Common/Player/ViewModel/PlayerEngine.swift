@@ -34,41 +34,37 @@ final class PlayerEngine {
         onTime(initialTime.isFinite ? initialTime : 0, initialDuration)
 
         observer.timeControlStatusPublisher(for: player)
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    onStatus(status, self.observer.waitingReason(for: self.player))
-                }
+                guard let self else { return }
+                onStatus(status, self.observer.waitingReason(for: self.player))
             }
             .store(in: &cancellables)
 
         observer.currentItemPublisher(for: player)
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] item in
                 guard let self else { return }
                 self.itemStatusCancellable?.cancel()
                 self.itemStatusCancellable = nil
                 guard let item else { return }
                 self.itemStatusCancellable = self.observer.itemStatusPublisher(for: item)
-                    .receive(on: RunLoop.main)
+                    .receive(on: DispatchQueue.main)
                     .sink { status in
                         if status == .readyToPlay {
-                            Task { @MainActor in
-                                onItemReady()
-                            }
+                            onItemReady()
                         }
                     }
             }
             .store(in: &cancellables)
 
         let stream = observer.timeStream(for: player)
-        timeTask = Task { @MainActor [weak self] in
+        timeTask = Task { [weak self] in
             for await time in stream {
                 guard let self else { return }
                 if Task.isCancelled { break }
                 let current = CMTimeGetSeconds(time)
-                let duration = self.currentDurationSeconds()
+                let duration = currentDurationSeconds()
                 onTime(current.isFinite ? current : 0, duration)
             }
         }
