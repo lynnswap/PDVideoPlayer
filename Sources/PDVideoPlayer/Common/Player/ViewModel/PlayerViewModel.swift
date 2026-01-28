@@ -39,6 +39,7 @@ public final class PlayerViewModel {
     }
     public var showBufferingIndicator: Bool = false
     @ObservationIgnored private var bufferingTask: Task<Void, any Error>?
+    @ObservationIgnored private var observeTask: Task<Void, Never>?
 
     public var player: AVPlayer { engine.player }
     public var onClose: VideoPlayerCloseAction?
@@ -84,6 +85,7 @@ public final class PlayerViewModel {
 
     isolated deinit {
         bufferingTask?.cancel()
+        observeTask?.cancel()
 #if os(iOS)
         doubleTapResetTask?.cancel()
 #endif
@@ -98,45 +100,46 @@ public final class PlayerViewModel {
     }
     
     func startObserving() {
-        engine.startObserving(
-            onTime: { [weak self] current, duration in
-                guard let self else { return }
-                self.currentTime = current
-                self.duration = duration
-            },
-            onStatus: { [weak self] status, waitingReason in
-                guard let self else { return }
-                switch status {
-                case .playing:
-                    if !self.isPlaying { self.isPlaying = true }
+        observeTask?.cancel()
+        let stream = engine.startObserving()
+        observeTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            for await event in stream {
+                switch event {
+                case .time(let current, let duration):
+                    currentTime = current
+                    self.duration = duration
+                case .status(let status, let waitingReason):
+                    switch status {
+                    case .playing:
+                        if !isPlaying { isPlaying = true }
 #if os(iOS)
-                    if self.isLongpress {
-                        let fastRate = min(self.originalRate * 2.0, 2.0)
-                        if self.player.rate != fastRate {
-                            self.player.rate = fastRate
+                        if isLongpress {
+                            let fastRate = min(originalRate * 2.0, 2.0)
+                            if player.rate != fastRate {
+                                player.rate = fastRate
+                            }
                         }
-                    }
 #endif
-                    if self.isBuffering { self.isBuffering = false }
-                case .paused:
-                    if self.isPlaying, !self.isTracking { self.isPlaying = false }
-                    if self.isBuffering { self.isBuffering = false }
-                case .waitingToPlayAtSpecifiedRate:
-                    switch waitingReason {
-                    case .evaluatingBufferingRate, .toMinimizeStalls:
-                        if !self.isBuffering { self.isBuffering = true }
-                    default:
-                        if self.isBuffering { self.isBuffering = false }
+                        if isBuffering { isBuffering = false }
+                    case .paused:
+                        if isPlaying, !isTracking { isPlaying = false }
+                        if isBuffering { isBuffering = false }
+                    case .waitingToPlayAtSpecifiedRate:
+                        switch waitingReason {
+                        case .evaluatingBufferingRate, .toMinimizeStalls:
+                            if !isBuffering { isBuffering = true }
+                        default:
+                            if isBuffering { isBuffering = false }
+                        }
+                    @unknown default:
+                        break
                     }
-                @unknown default:
-                    break
+                case .itemReady:
+                    Task { await loadSubtitleOptions() }
                 }
-            },
-            onItemReady: { [weak self] in
-                guard let self else { return }
-                Task { await self.loadSubtitleOptions() }
             }
-        )
+        }
     }
     
     public func replacePlayer(url: URL) {

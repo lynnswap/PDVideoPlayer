@@ -4,11 +4,18 @@ import Combine
 
 @MainActor
 final class PlayerEngine {
+    enum Event {
+        case time(current: Double, duration: Double)
+        case status(AVPlayer.TimeControlStatus, AVPlayer.WaitingReason?)
+        case itemReady
+    }
+
     private(set) var player: AVPlayer
 
     private var cancellables = Set<AnyCancellable>()
     private var itemStatusCancellable: AnyCancellable?
     private var timeTask: Task<Void, Never>?
+    private var eventContinuation: AsyncStream<Event>.Continuation?
     private let observer: PlayerEngineObserving
 
     init(player: AVPlayer, observer: PlayerEngineObserving = PlayerEngineObserver()) {
@@ -22,22 +29,27 @@ final class PlayerEngine {
         player = newPlayer
     }
 
-    func startObserving(
-        onTime: @MainActor @escaping (Double, Double) -> Void,
-        onStatus: @MainActor @escaping (AVPlayer.TimeControlStatus, AVPlayer.WaitingReason?) -> Void,
-        onItemReady: @MainActor @escaping () -> Void
-    ) {
+    func startObserving() -> AsyncStream<Event> {
         stopObserving()
         player.appliesMediaSelectionCriteriaAutomatically = false
 
+        let stream = AsyncStream<Event> { continuation in
+            eventContinuation = continuation
+            continuation.onTermination = { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.stopObserving()
+                }
+            }
+        }
+
         let (initialTime, initialDuration) = observer.initialTime(for: player)
-        onTime(initialTime.isFinite ? initialTime : 0, initialDuration)
+        yieldEvent(.time(current: initialTime.isFinite ? initialTime : 0, duration: initialDuration))
 
         observer.timeControlStatusPublisher(for: player)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
                 guard let self else { return }
-                onStatus(status, self.observer.waitingReason(for: self.player))
+                self.yieldEvent(.status(status, self.observer.waitingReason(for: self.player)))
             }
             .store(in: &cancellables)
 
@@ -52,22 +64,24 @@ final class PlayerEngine {
                     .receive(on: DispatchQueue.main)
                     .sink { status in
                         if status == .readyToPlay {
-                            onItemReady()
+                            self.yieldEvent(.itemReady)
                         }
                     }
             }
             .store(in: &cancellables)
 
-        let stream = observer.timeStream(for: player)
+        let timeStream = observer.timeStream(for: player)
         timeTask = Task { [weak self] in
-            for await time in stream {
+            for await time in timeStream {
                 guard let self else { return }
                 if Task.isCancelled { break }
                 let current = CMTimeGetSeconds(time)
                 let duration = currentDurationSeconds()
-                onTime(current.isFinite ? current : 0, duration)
+                self.yieldEvent(.time(current: current.isFinite ? current : 0, duration: duration))
             }
         }
+
+        return stream
     }
 
     func stopObserving() {
@@ -76,12 +90,18 @@ final class PlayerEngine {
         itemStatusCancellable?.cancel()
         itemStatusCancellable = nil
         cancellables.removeAll()
+        eventContinuation?.finish()
+        eventContinuation = nil
     }
 
     private func currentDurationSeconds() -> Double {
         guard let item = player.currentItem else { return 0 }
         let total = CMTimeGetSeconds(item.duration)
         return total.isFinite ? total : 0
+    }
+
+    private func yieldEvent(_ event: Event) {
+        eventContinuation?.yield(event)
     }
 
     isolated deinit {

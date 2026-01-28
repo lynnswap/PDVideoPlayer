@@ -292,13 +292,21 @@ import Testing
     let engine = PlayerEngine(player: AVPlayer(), observer: observer)
 
     var timeEvents: [(Double, Double)] = []
-    engine.startObserving(
-        onTime: { time, duration in
-            timeEvents.append((time, duration))
-        },
-        onStatus: { _, _ in },
-        onItemReady: {}
-    )
+    let stream = engine.startObserving()
+    let task = Task {
+        for await event in stream {
+            if case .time(let time, let duration) = event {
+                timeEvents.append((time, duration))
+            }
+        }
+    }
+    defer {
+        engine.stopObserving()
+        task.cancel()
+    }
+
+    let didSeed = await waitUntil(timeout: .milliseconds(200)) { timeEvents.count == 1 }
+    #expect(didSeed == true)
 
     #expect(timeEvents.count == 1)
     #expect(timeEvents.first?.0 == 1.5)
@@ -318,13 +326,18 @@ import Testing
     let engine = PlayerEngine(player: AVPlayer(), observer: observer)
 
     var statusEvents: [AVPlayer.TimeControlStatus] = []
-    engine.startObserving(
-        onTime: { _, _ in },
-        onStatus: { status, _ in
-            statusEvents.append(status)
-        },
-        onItemReady: {}
-    )
+    let stream = engine.startObserving()
+    let task = Task {
+        for await event in stream {
+            if case .status(let status, _) = event {
+                statusEvents.append(status)
+            }
+        }
+    }
+    defer {
+        engine.stopObserving()
+        task.cancel()
+    }
 
     observer.statusSubject.send(.paused)
     let didReceive = await waitUntil(timeout: .milliseconds(200)) { statusEvents == [.paused] }
@@ -339,13 +352,18 @@ import Testing
     let engine = PlayerEngine(player: AVPlayer(), observer: observer)
 
     var readyCount = 0
-    engine.startObserving(
-        onTime: { _, _ in },
-        onStatus: { _, _ in },
-        onItemReady: {
-            readyCount += 1
+    let stream = engine.startObserving()
+    let task = Task {
+        for await event in stream {
+            if case .itemReady = event {
+                readyCount += 1
+            }
         }
-    )
+    }
+    defer {
+        engine.stopObserving()
+        task.cancel()
+    }
 
     let item = AVPlayerItem(asset: AVMutableComposition())
     observer.currentItemSubject.send(item)
@@ -366,13 +384,15 @@ import Testing
     let engine = PlayerEngine(player: AVPlayer(), observer: observer)
 
     var statusEvents: [AVPlayer.TimeControlStatus] = []
-    engine.startObserving(
-        onTime: { _, _ in },
-        onStatus: { status, _ in
-            statusEvents.append(status)
-        },
-        onItemReady: {}
-    )
+    let stream = engine.startObserving()
+    let task = Task {
+        for await event in stream {
+            if case .status(let status, _) = event {
+                statusEvents.append(status)
+            }
+        }
+    }
+    defer { task.cancel() }
 
     engine.stopObserving()
     observer.statusSubject.send(.paused)
@@ -388,13 +408,18 @@ import Testing
     let engine = PlayerEngine(player: AVPlayer(), observer: observer)
 
     var timeEvents: [(Double, Double)] = []
-    engine.startObserving(
-        onTime: { time, duration in
-            timeEvents.append((time, duration))
-        },
-        onStatus: { _, _ in },
-        onItemReady: {}
-    )
+    let stream = engine.startObserving()
+    let task = Task {
+        for await event in stream {
+            if case .time(let time, let duration) = event {
+                timeEvents.append((time, duration))
+            }
+        }
+    }
+    defer { task.cancel() }
+
+    let didSeed = await waitUntil(timeout: .milliseconds(200)) { timeEvents.count == 1 }
+    #expect(didSeed == true)
 
     #expect(timeEvents.count == 1)
 
