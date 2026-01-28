@@ -35,7 +35,6 @@ public struct VideoPlayerTapAction {
 }
 
 extension EnvironmentValues {
-    /// Xcode 16 の `@Entry` マクロを利用した環境値の定義
     @Entry var videoPlayerOnClose: VideoPlayerCloseAction? = nil
     @Entry var videoPlayerPlaybackSpeed: Binding<PlaybackSpeed>? = nil
     @Entry var videoPlayerControlsVisible: Binding<Bool>? = nil

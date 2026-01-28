@@ -1,10 +1,3 @@
-//
-//  VideoPlayerControlViewLegacy.swift
-//  PDVideoPlayer
-//
-//  Created by Kazuki Nakashima on 2025/02/26.
-//
-
 import SwiftUI
 #if os(macOS)
 public struct VideoPlayerControlViewLegacy<MenuContent: View>: View {
@@ -22,22 +15,22 @@ public struct VideoPlayerControlViewLegacy<MenuContent: View>: View {
     }
 
     public var body: some View {
-        VStack(spacing:0){
+        VStack(spacing: 0) {
             HStack(alignment: .bottom) {
-                PlayPauseButton(model:model)
+                PlayPauseButton(model: model)
                     .frame(width: 60, height: 40)
                 Spacer()
-                VideoPlayerDurationView(model:model)
-                Menu{
+                VideoPlayerDurationView(model: model)
+                Menu {
                     menuContent()
                     Divider()
                     SubtitleMenuView()
                     PlaybackSpeedMenuView()
-                }label: {
+                } label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(foregroundColor)
                 }
-            } 
+            }
             VideoPlayerSliderView(viewModel: model)
         }
         .contentShape(Rectangle())
@@ -62,14 +55,14 @@ public struct VideoPlayerControlViewLegacy<MenuContent: View>: View {
     public var body: some View {
         VStack {
             HStack(alignment: .bottom, spacing: 0) {
-                PlayPauseButton(model:model)
+                PlayPauseButton(model: model)
                     .frame(width: 90, height: 60)
                     .padding(.horizontal)
                     .contentShape(Rectangle())
                 Spacer()
                 
-                ZStack(alignment:.bottomTrailing){
-                    VideoPlayerDurationView(model:model)
+                ZStack(alignment: .bottomTrailing) {
+                    VideoPlayerDurationView(model: model)
                         .padding(.trailing,48)
                         .padding(.bottom,1.5)
                     
@@ -95,7 +88,7 @@ public struct PlayPauseButton: View{
     @Environment(\.videoPlayerForegroundColor) private var foregroundColor
     
     public init(
-        model:PDPlayerModel
+        model: PDPlayerModel
     ){
         self.model = model
     }
@@ -107,9 +100,9 @@ public struct PlayPauseButton: View{
                 Rectangle()
                     .foregroundStyle(.clear)
                     .contentShape(Rectangle())
-                HStack(spacing:12){
+                HStack(spacing: 12) {
                     PlayPauseIcon(model: model)
-                    if model.showBufferingIndicator{
+                    if model.showBufferingIndicator {
 #if os(macOS)
                     ProgressView()
                         .opacity(0)
@@ -126,7 +119,7 @@ public struct PlayPauseButton: View{
                     }
                     Spacer(minLength: 0)
                 }
-                .animation(.smooth(duration:0.2),value:model.showBufferingIndicator)
+                .animation(.smooth(duration: 0.2), value: model.showBufferingIndicator)
             }
         }
         .buttonStyle(PlayButtonStyle())

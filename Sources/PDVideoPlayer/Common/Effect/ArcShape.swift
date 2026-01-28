@@ -1,10 +1,3 @@
-//
-//  ArcShape.swift
-//  PDVideoPlayer
-//
-//  Created by Kazuki Nakashima on 2025/04/14.
-//
-
 import SwiftUI
 struct ArcShape: Shape {
     let isLeft: Bool
@@ -21,7 +14,6 @@ struct ArcShape: Shape {
         var path = Path()
         
         if isLeft {
-            // 左弧のパスを描く
             path.move(to: .init(x: 0, y: 0))
             path.addLine(to: .init(x: 0.4 * width, y: 0))
             let controlPoint = CGPoint(x: 0.5 * width, y: height / 2)
@@ -32,7 +24,6 @@ struct ArcShape: Shape {
             path.addLine(to: CGPoint(x: 0, y: height))
             path.closeSubpath()
         } else {
-            // 右弧のパスを描く
             path.move(to: .init(x: width, y: 0))
             path.addLine(to: .init(x: 0.6 * width, y: 0))
             let controlPoint = CGPoint(x: 0.5 * width, y: height / 2)

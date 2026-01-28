@@ -36,7 +36,6 @@ public struct FastForwardIndicatorView: View {
 }
 private extension View{
     func backgroundStyle() -> some View{
-#if swift(>=6.2)
         if #available(iOS 26.0, macOS 26.0, *) {
             return self.glassEffect(.clear)
         } else {
@@ -47,14 +46,6 @@ private extension View{
                         .environment(\.colorScheme, .dark)
                 }
         }
-#else
-        return self
-            .background {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.ultraThinMaterial)
-                    .environment(\.colorScheme, .dark)
-            }
-#endif
     }
 }
 
@@ -67,9 +58,17 @@ private extension View{
             .overlay(alignment: .top) {
                 FastForwardIndicatorView()
             }
-            .task { model.isLongpress = true }
+            .task {
+                model.isPlaying = true
+                _ = model.beginLongPress()
+            }
             .onTapGesture {
-                model.isLongpress.toggle()
+                model.isPlaying = true
+                if model.isLongpress {
+                    model.endLongPress()
+                } else {
+                    _ = model.beginLongPress()
+                }
             }
     }
 }

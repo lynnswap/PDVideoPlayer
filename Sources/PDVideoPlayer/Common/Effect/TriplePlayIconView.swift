@@ -1,14 +1,8 @@
-//
-//  TriplePlayIconView.swift
-//  PDVideoPlayer
-//
-//  Created by Kazuki Nakashima on 2025/04/14.
-//
 #if canImport(UIKit)
 import SwiftUI
 struct TriplePlayIconView: View {
-    var model:PDPlayerModel
-    var item:RippleData
+    var model: PDPlayerModel
+    var item: RippleData
     let totalRippleDuration: Double
 
     var body: some View {
@@ -24,14 +18,14 @@ struct TriplePlayIconView: View {
         }
     }
     func opacities(for fraction: Double) -> (Double, Double, Double) {
-        if model.doubleTapCount >= 2{
+        if model.doubleTapCount >= 2 {
             switch fraction {
             case 0..<0.25: (1, 1, 1)
             case 0.25..<0.6: (1, 1, 1)
             case 0.6..<0.85: (0, 1, 1)
             default: (0, 0, 1)
             }
-        }else{
+        } else {
             switch fraction {
             case 0..<0.25: (1, 0, 0)
             case 0.25..<0.5: (1, 1, 0)

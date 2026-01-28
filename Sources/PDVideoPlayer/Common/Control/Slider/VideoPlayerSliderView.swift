@@ -19,42 +19,13 @@ public struct VideoPlayerSliderView: View {
         VideoPlayerSliderRepresentable(
             viewModel: viewModel,
             knobSize: knobSize,
-            foregroundColor: foregroundColor
+            foregroundColor: foregroundColor,
+            currentTime: viewModel.currentTime,
+            duration: viewModel.duration,
+            isTracking: viewModel.isTracking,
+            isScrubbing: viewModel.isScrubbing
         )
-#if os(iOS)
-        .onChange(of: knobSize) {
-            updateThumb(size: knobSize, color: foregroundColor)
-        }
-        .onChange(of: foregroundColor) {
-            updateThumb(size: knobSize, color: foregroundColor)
-        }
-#else
-        .onChange(of: knobSize) {
-            viewModel.slider.knobDiameter = knobSize
-        }
-        .onChange(of: foregroundColor) {
-            viewModel.slider.baseColor = NSColor(foregroundColor)
-        }
-#endif
     }
-
-#if os(iOS)
-    private func updateThumb(size: CGFloat, color: Color) {
-        let slider = viewModel.slider
-        let config = UIImage.SymbolConfiguration(
-            pointSize: size,
-            weight: .regular,
-            scale: .default
-        )
-        let leftColor = UIColor(color.opacity(0.8))
-        let rightColor = UIColor(color.opacity(0.3))
-        let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
-            .withTintColor(leftColor, renderingMode: .alwaysOriginal)
-        slider.setThumbImage(thumbImage, for: .normal)
-        slider.minimumTrackTintColor = leftColor
-        slider.maximumTrackTintColor = rightColor
-    }
-#endif
 }
 
 
@@ -63,9 +34,13 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
     var viewModel: PDPlayerModel
     var knobSize: CGFloat
     var foregroundColor: Color
+    var currentTime: Double
+    var duration: Double
+    var isTracking: Bool
+    var isScrubbing: Bool
 
     func makeNSView(context: Context) -> NSSlider {
-        let slider = viewModel.slider
+        let slider = VideoPlayerSlider()
         slider.knobDiameter = knobSize
         slider.baseColor = NSColor(foregroundColor)
         slider.minValue = 0
@@ -74,13 +49,23 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
         slider.isContinuous = true
         slider.target = context.coordinator
         slider.action = #selector(Coordinator.onValueChanged(_:))
-        slider.onScroll = { phase, value in
-            context.coordinator.handleScroll(phase: phase, ratioValue: value)
+        slider.onScroll = { [weak slider] phase, value in
+            guard let slider else { return }
+            context.coordinator.handleScroll(phase: phase, ratioValue: value, slider: slider)
         }
         return slider
     }
 
-    func updateNSView(_ nsView: NSSlider, context: Context) {}
+    func updateNSView(_ nsView: NSSlider, context: Context) {
+        guard let slider = nsView as? VideoPlayerSlider else { return }
+        slider.knobDiameter = knobSize
+        slider.baseColor = NSColor(foregroundColor)
+        if duration > 0, (!isTracking || isScrubbing) {
+            slider.doubleValue = currentTime / duration
+        } else if duration <= 0, (!isTracking || isScrubbing) {
+            slider.doubleValue = 0
+        }
+    }
 
     static func dismantleNSView(_ nsView: NSSlider, coordinator: Coordinator) {
         if let slider = nsView as? VideoPlayerSlider {
@@ -114,7 +99,7 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
                 seek(to: sender.doubleValue)
             case .leftMouseUp:
                 viewModel.isTracking = false
-                snapAndSeek(to: sender.doubleValue)
+                snapAndSeek(sender, to: sender.doubleValue)
                 if wasPlayingBeforeTracking {
                     viewModel.play()
                 }
@@ -123,12 +108,12 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
             }
         }
 
-        private func snapAndSeek(to ratio: Double) {
+        private func snapAndSeek(_ slider: NSSlider, to ratio: Double) {
             let total   = viewModel.duration
             let step    = 0.03
             let seconds = (ratio * total / step).rounded() * step
             viewModel.seekPrecisely(to: seconds)
-            viewModel.slider.doubleValue = seconds / total
+            slider.doubleValue = seconds / total
         }
 
         private func seek(to ratio: Double) {
@@ -136,7 +121,7 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
             viewModel.seekPrecisely(to: ratio * total)
         }
 
-        func handleScroll(phase: NSEvent.Phase, ratioValue: Double) {
+        func handleScroll(phase: NSEvent.Phase, ratioValue: Double, slider: NSSlider) {
             guard viewModel.duration > 0 else { return }
             let total = viewModel.duration
 
@@ -148,18 +133,18 @@ struct VideoPlayerSliderRepresentable: NSViewRepresentable {
             case .changed:
                 viewModel.seekPrecisely(to: ratioValue * total)
             case .ended, .cancelled:
-                snap(to: ratioValue)
+                snap(slider, to: ratioValue)
             default:
                 break
             }
         }
 
-        private func snap(to ratioValue: Double) {
+        private func snap(_ slider: NSSlider, to ratioValue: Double) {
             let total = viewModel.duration
             let step  = 0.03
             let snapped = (ratioValue * total / step).rounded() * step
             viewModel.seekPrecisely(to: snapped)
-            viewModel.slider.doubleValue = snapped / total
+            slider.doubleValue = snapped / total
             viewModel.isTracking = false
             if wasPlayingBeforeScroll { viewModel.play() }
         }
@@ -171,38 +156,34 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
     var viewModel: PDPlayerModel
     var knobSize: CGFloat
     var foregroundColor: Color
+    var currentTime: Double
+    var duration: Double
+    var isTracking: Bool
+    var isScrubbing: Bool
 
     func makeUIView(context: Context) -> UISlider {
-        let slider = viewModel.slider
-        let config = UIImage.SymbolConfiguration(
-            pointSize: knobSize,
-            weight: .regular,
-            scale: .default
+        let slider = VideoPlayerSlider()
+        slider.viewModel = viewModel
+        context.coordinator.updateAppearanceIfNeeded(
+            for: slider,
+            knobSize: knobSize,
+            foregroundColor: foregroundColor
         )
-        let leftColor = UIColor(foregroundColor.opacity(0.8))
-        let rightColor = UIColor(foregroundColor.opacity(0.3))
-        let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
-            .withTintColor(leftColor, renderingMode: .alwaysOriginal)
-        slider.setThumbImage(thumbImage, for: .normal)
-        slider.minimumTrackTintColor = leftColor
-        slider.maximumTrackTintColor = rightColor
         slider.minimumValue = 0
         slider.maximumValue = 1
         slider.value = 0
         slider.isContinuous = true
-#if swift(>=6.2)
         if #available(iOS 26.0, *) {
             slider.sliderStyle = .thumbless
         }
-#endif
         slider.addTarget(
-            viewModel.slider,
-            action: #selector(viewModel.slider.onValueChanged(_:)),
+            slider,
+            action: #selector(VideoPlayerSlider.onValueChanged(_:)),
             for: .valueChanged
         )
         let gesture = UIPanGestureRecognizer(
-            target: viewModel.slider,
-            action: #selector(viewModel.slider.handlePan(_:))
+            target: slider,
+            action: #selector(VideoPlayerSlider.handlePan(_:))
         )
         gesture.allowedScrollTypesMask = [.continuous, .discrete]
         gesture.minimumNumberOfTouches = 2
@@ -211,7 +192,54 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
         return slider
     }
 
-    func updateUIView(_ uiView: UISlider, context: Context) {}
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func updateUIView(_ uiView: UISlider, context: Context) {
+        guard let slider = uiView as? VideoPlayerSlider else { return }
+        slider.viewModel = viewModel
+        context.coordinator.updateAppearanceIfNeeded(
+            for: slider,
+            knobSize: knobSize,
+            foregroundColor: foregroundColor
+        )
+        if duration > 0, (!isTracking || isScrubbing) {
+            slider.value = Float(currentTime / duration)
+        } else if duration <= 0, (!isTracking || isScrubbing) {
+            slider.value = 0
+        }
+    }
+    @MainActor
+    final class Coordinator {
+        private var lastKnobSize: CGFloat?
+        private var lastForegroundColor: UIColor?
+
+        func updateAppearanceIfNeeded(
+            for slider: UISlider,
+            knobSize: CGFloat,
+            foregroundColor: Color
+        ) {
+            let uiColor = UIColor(foregroundColor)
+            if lastKnobSize == knobSize, lastForegroundColor?.isEqual(uiColor) == true {
+                return
+            }
+            lastKnobSize = knobSize
+            lastForegroundColor = uiColor
+
+            let config = UIImage.SymbolConfiguration(
+                pointSize: knobSize,
+                weight: .regular,
+                scale: .default
+            )
+            let leftColor = uiColor.withAlphaComponent(0.8)
+            let rightColor = uiColor.withAlphaComponent(0.3)
+            let thumbImage = UIImage(systemName: "circle.fill", withConfiguration: config)?
+                .withTintColor(leftColor, renderingMode: .alwaysOriginal)
+            slider.setThumbImage(thumbImage, for: .normal)
+            slider.minimumTrackTintColor = leftColor
+            slider.maximumTrackTintColor = rightColor
+        }
+    }
 }
 #endif
-

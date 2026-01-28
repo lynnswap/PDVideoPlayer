@@ -1,10 +1,3 @@
-//
-//  VideoPlayerSlider.swift
-//  PDVideoPlayer
-//
-//  Created by Kazuki Nakashima on 2025/02/16.
-//
-
 import SwiftUI
 import AVFoundation
 #if os(macOS)
@@ -157,21 +150,13 @@ class VideoPlayerSlider: UISlider {
     weak var viewModel:PDPlayerModel?
     private var tapOffset: CGFloat = 0
     
-    /// ドラッグ開始
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
-#if swift(>=6.2)
         if #unavailable(iOS 26.0, macOS 26.0) {
             let location = touch.location(in: self)
             let fraction = CGFloat((value - minimumValue) / (maximumValue - minimumValue))
             let thumbX = fraction * bounds.width
             tapOffset = location.x - thumbX
         }
-#else
-        let location = touch.location(in: self)
-        let fraction = CGFloat((value - minimumValue) / (maximumValue - minimumValue))
-        let thumbX = fraction * bounds.width
-        tapOffset = location.x - thumbX
-#endif
         
         guard let viewModel else { return true }
       
@@ -185,61 +170,46 @@ class VideoPlayerSlider: UISlider {
     }
     
     override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
-#if swift(>=6.2)
         if #available(iOS 26.0, macOS 26.0, *) {
             return super.continueTracking(touch, with: event)
         }else{
             return updateLegacyTracking(touch)
         }
-#else
-        return updateLegacyTracking(touch)
-#endif
     }
 
     private func updateLegacyTracking(_ touch: UITouch) -> Bool {
         let location = touch.location(in: self)
 
-        // 1. 「タップ座標 - オフセット」を thumb の中心とみなす
         let sliderWidth = bounds.width
         let newThumbX = location.x - tapOffset
 
-        // 2. 0～スライダー幅 にクランプ
         let clampedX = min(max(0, newThumbX), sliderWidth)
 
-        // 3. [0..1] の範囲に換算
         let fraction = clampedX / sliderWidth
         let newValue = (maximumValue - minimumValue) * Float(fraction) + minimumValue
 
-        // 4. value を更新してイベント送出 (.valueChanged)
         if self.value != newValue {
             self.value = newValue
             sendActions(for: .valueChanged)
         }
 
-        // 継続する
         return true
     }
     
-    /// ドラッグ終了
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
         super.endTracking(touch, with: event)
         self.endTracking()
     }
     
-    /// ドラッグがキャンセルされたとき
     override func cancelTracking(with event: UIEvent?) {
         super.cancelTracking(with: event)
         self.endTracking()
     }
     
     private func endTracking(){
-#if swift(>=6.2)
         if #unavailable(iOS 26.0, macOS 26.0) {
             tapOffset = 0
         }
-#else
-        tapOffset = 0
-#endif
         guard let viewModel else { return }
         viewModel.isTracking = false
         if wasPlayingBeforeTracking {
@@ -248,17 +218,12 @@ class VideoPlayerSlider: UISlider {
     }
     
     override var intrinsicContentSize: CGSize {
-#if swift(>=6.2)
         if #available(iOS 26.0, macOS 26.0, *) {
             return super.intrinsicContentSize
         } else {
             let size = super.intrinsicContentSize
             return CGSize(width: size.width, height: size.height + 40)
         }
-#else
-        let size = super.intrinsicContentSize
-        return CGSize(width: size.width, height: size.height + 40)
-#endif
     }
     private var wasPlayingBeforeTracking = false
     
