@@ -14,57 +14,69 @@ enum SkipDirection {
 @MainActor
 @Observable
 public final class PlayerViewModel {
-    // MARK: - Common Properties
-    public var isPlaying: Bool = false
-    public var currentTime: Double = 0
-    public var duration: Double = 0
-
-    public var isTracking = false
-    /// True while trackpad scrubbing is active (macOS overlay).
-    public var isScrubbing = false
-    public var isBuffering: Bool = false {
-        didSet {
-            if isBuffering {
-                bufferingTask?.cancel()
-                bufferingTask = Task {
-                    try await Task.sleep(for: .milliseconds(300))
-                    guard !Task.isCancelled else { return }
-                    self.showBufferingIndicator = true
-                }
-            } else {
-                bufferingTask?.cancel()
-                showBufferingIndicator = false
-            }
-        }
-    }
-    public var showBufferingIndicator: Bool = false
+    public private(set) var state: PlayerState
     @ObservationIgnored private var bufferingTask: Task<Void, any Error>?
     @ObservationIgnored private var observeTask: Task<Void, Never>?
 
     public var player: AVPlayer { engine.player }
     public var onClose: VideoPlayerCloseAction?
-    public private(set) var originalRate: Float = 1.0
-    public var playbackSpeed: PlaybackSpeed = .x1_0 {
-        didSet {
-            originalRate = playbackSpeed.value
-            engine.player.defaultRate = playbackSpeed.value
-            if isPlaying {
-                engine.player.rate = playbackSpeed.value
-            }
-        }
+
+    public var isPlaying: Bool {
+        get { state.isPlaying }
+        set { updateState { $0.isPlaying = newValue } }
+    }
+
+    public var currentTime: Double {
+        get { state.currentTime }
+        set { updateState { $0.currentTime = newValue } }
+    }
+
+    public var duration: Double {
+        get { state.duration }
+        set { updateState { $0.duration = newValue } }
+    }
+
+    public var isTracking: Bool {
+        get { state.isTracking }
+        set { updateState { $0.isTracking = newValue } }
+    }
+
+    /// True while trackpad scrubbing is active (macOS overlay).
+    public var isScrubbing: Bool {
+        get { state.isScrubbing }
+        set { updateState { $0.isScrubbing = newValue } }
+    }
+
+    public var isBuffering: Bool {
+        get { state.isBuffering }
+        set { setBuffering(newValue) }
+    }
+
+    public var showBufferingIndicator: Bool { state.showBufferingIndicator }
+
+    public var originalRate: Float { state.originalRate }
+
+    public var playbackSpeed: PlaybackSpeed {
+        get { state.playbackSpeed }
+        set { setPlaybackSpeed(newValue) }
     }
 
 #if os(iOS)
-    public var isLooping: Bool = true
-    var doubleTapCount: Int = 0
-    private var doubleTapBaseTime: Double = 0
+    public var isLooping: Bool {
+        get { state.isLooping }
+        set { updateState { $0.isLooping = newValue } }
+    }
+
+    public var doubleTapCount: Int { state.doubleTapCount }
+    public var isLongpress: Bool { state.isLongpress }
     private var doubleTapResetTask: Task<Void, any Error>?
-    private var doubleTapDirection: SkipDirection?
     let rippleStore = RippleEffectStore()
-    public private(set) var isLongpress: Bool = false
 #elseif os(macOS)
     /// When true, dragging on the player view moves the window.
-    public var windowDraggable: Bool = false
+    public var windowDraggable: Bool {
+        get { state.windowDraggable }
+        set { updateState { $0.windowDraggable = newValue } }
+    }
 #endif
 
     @ObservationIgnored private let engine: PlayerEngine
@@ -73,14 +85,17 @@ public final class PlayerViewModel {
     public init(url: URL) {
         let player = AVPlayer(url: url)
         self.engine = PlayerEngine(player: player)
+        self.state = .default
     }
 
     public init(player: AVPlayer) {
         self.engine = PlayerEngine(player: player)
+        self.state = .default
     }
 
     init(player: AVPlayer, observer: PlayerEngineObserving) {
         self.engine = PlayerEngine(player: player, observer: observer)
+        self.state = .default
     }
 
     isolated deinit {
@@ -94,8 +109,8 @@ public final class PlayerViewModel {
     // Replace the current player with a new instance while keeping the model.
     public func replacePlayer(with newPlayer: AVPlayer) {
         engine.replacePlayer(with: newPlayer)
-        newPlayer.defaultRate = playbackSpeed.value
-        newPlayer.rate = playbackSpeed.value
+        newPlayer.defaultRate = state.playbackSpeed.value
+        newPlayer.rate = state.playbackSpeed.value
         startObserving()
     }
     
@@ -107,30 +122,30 @@ public final class PlayerViewModel {
             for await event in stream {
                 switch event {
                 case .time(let current, let duration):
-                    currentTime = current
-                    self.duration = duration
+                    updateState { state in
+                        state.currentTime = current
+                        state.duration = duration
+                    }
                 case .status(let status, let waitingReason):
                     switch status {
                     case .playing:
-                        if !isPlaying { isPlaying = true }
+                        if !state.isPlaying { updateState { $0.isPlaying = true } }
 #if os(iOS)
-                        if isLongpress {
-                            let fastRate = min(originalRate * 2.0, 2.0)
-                            if player.rate != fastRate {
-                                player.rate = fastRate
-                            }
+                        if state.isLongpress {
+                            let fastRate = min(state.originalRate * 2.0, 2.0)
+                            if player.rate != fastRate { player.rate = fastRate }
                         }
 #endif
-                        if isBuffering { isBuffering = false }
+                        if state.isBuffering { setBuffering(false) }
                     case .paused:
-                        if isPlaying, !isTracking { isPlaying = false }
-                        if isBuffering { isBuffering = false }
+                        if state.isPlaying, !state.isTracking { updateState { $0.isPlaying = false } }
+                        if state.isBuffering { setBuffering(false) }
                     case .waitingToPlayAtSpecifiedRate:
                         switch waitingReason {
                         case .evaluatingBufferingRate, .toMinimizeStalls:
-                            if !isBuffering { isBuffering = true }
+                            if !state.isBuffering { setBuffering(true) }
                         default:
-                            if isBuffering { isBuffering = false }
+                            if state.isBuffering { setBuffering(false) }
                         }
                     @unknown default:
                         break
@@ -152,7 +167,7 @@ public final class PlayerViewModel {
             seek(to: 0)
         }
         player.play()
-        player.rate = playbackSpeed.value
+        player.rate = state.playbackSpeed.value
     }
 
     func pause() { player.pause() }
@@ -162,7 +177,7 @@ public final class PlayerViewModel {
     }
 
     public func seekRatio(_ ratio: Double) {
-        let target = duration * ratio
+        let target = state.duration * ratio
         seek(to: target)
     }
 
@@ -174,7 +189,7 @@ public final class PlayerViewModel {
     public func seekPrecisely(to seconds: Double) {
         let cm = CMTime(seconds: seconds, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
         player.seek(to: cm, toleranceBefore: .zero, toleranceAfter: .zero)
-        currentTime = seconds
+        updateState { $0.currentTime = seconds }
     }
 
     // MARK: - Keyboard Navigation Support
@@ -182,7 +197,7 @@ public final class PlayerViewModel {
         pause()
         player.currentItem?.step(byCount: count)
         if let current = player.currentItem?.currentTime() {
-            currentTime = CMTimeGetSeconds(current)
+            updateState { $0.currentTime = CMTimeGetSeconds(current) }
         }
     }
 
@@ -194,14 +209,14 @@ public final class PlayerViewModel {
         if isRewind { rateIndex = 0; isRewind = false }
         rateIndex = min(rateIndex + 1, rateValues.count - 1)
         player.rate = rateValues[rateIndex]
-        isPlaying = true
+        updateState { $0.isPlaying = true }
     }
 
     func cycleRewindRate() {
         if !isRewind { rateIndex = 0; isRewind = true }
         rateIndex = min(rateIndex + 1, rateValues.count - 1)
         player.rate = -rateValues[rateIndex]
-        isPlaying = true
+        updateState { $0.isPlaying = true }
     }
 
 #if os(iOS)
@@ -209,28 +224,32 @@ public final class PlayerViewModel {
     func handleDoubleTap(at location: CGPoint, viewWidth: CGFloat) {
         guard viewWidth > 0 else { return }
         let tapX = location.x
-        let current = currentTime
+        let current = state.currentTime
         let newDirection: SkipDirection = (tapX < viewWidth / 2) ? .backward : .forward
 
-        if doubleTapDirection != newDirection {
-            doubleTapCount = 0
-            doubleTapBaseTime = current
-            doubleTapDirection = newDirection
+        if state.doubleTapDirection != newDirection {
+            updateState {
+                $0.doubleTapCount = 0
+                $0.doubleTapBaseTime = current
+                $0.doubleTapDirection = newDirection
+            }
         }
 
-        if doubleTapDirection == nil {
-            doubleTapDirection = newDirection
-            doubleTapBaseTime = current
+        if state.doubleTapDirection == nil {
+            updateState {
+                $0.doubleTapDirection = newDirection
+                $0.doubleTapBaseTime = current
+            }
         }
 
-        doubleTapCount += 1
-        let skipSeconds = Double(10 * doubleTapCount)
+        updateState { $0.doubleTapCount += 1 }
+        let skipSeconds = Double(10 * state.doubleTapCount)
         let targetTime: Double
-        switch doubleTapDirection {
+        switch state.doubleTapDirection {
         case .backward:
-            targetTime = max(doubleTapBaseTime - skipSeconds, 0)
+            targetTime = max(state.doubleTapBaseTime - skipSeconds, 0)
         case .forward:
-            targetTime = min(doubleTapBaseTime + skipSeconds, duration)
+            targetTime = min(state.doubleTapBaseTime + skipSeconds, state.duration)
         case .none:
             return
         }
@@ -243,27 +262,29 @@ public final class PlayerViewModel {
         doubleTapResetTask = Task {
             try await Task.sleep(for: .seconds(1.2))
             guard !Task.isCancelled else { return }
-            self.doubleTapCount = 0
-            self.doubleTapBaseTime = 0
-            self.doubleTapDirection = nil
+            updateState {
+                $0.doubleTapCount = 0
+                $0.doubleTapBaseTime = 0
+                $0.doubleTapDirection = nil
+            }
         }
     }
 
     func beginLongPress() -> Bool {
-        guard isPlaying else { return false }
-        originalRate = player.rate
-        let fastRate = min(originalRate * 2.0, 2.0)
+        guard state.isPlaying else { return false }
+        updateState { $0.originalRate = player.rate }
+        let fastRate = min(state.originalRate * 2.0, 2.0)
         if player.rate != fastRate {
             player.rate = fastRate
         }
-        isLongpress = true
+        updateState { $0.isLongpress = true }
         return true
     }
 
     func endLongPress() {
-        guard isLongpress else { return }
-        player.rate = originalRate
-        isLongpress = false
+        guard state.isLongpress else { return }
+        player.rate = state.originalRate
+        updateState { $0.isLongpress = false }
     }
 
 #endif
@@ -273,6 +294,40 @@ public final class PlayerViewModel {
     public var subtitleOptions: [AVMediaSelectionOption] = []
     public var selectedSubtitle: AVMediaSelectionOption? {
         didSet { Task { await applySelectedSubtitle() } }
+    }
+}
+
+private extension PlayerViewModel {
+    func updateState(_ mutate: (inout PlayerState) -> Void) {
+        var next = state
+        mutate(&next)
+        state = next
+    }
+
+    func setPlaybackSpeed(_ speed: PlaybackSpeed) {
+        updateState {
+            $0.playbackSpeed = speed
+            $0.originalRate = speed.value
+        }
+        engine.player.defaultRate = speed.value
+        if state.isPlaying {
+            engine.player.rate = speed.value
+        }
+    }
+
+    func setBuffering(_ buffering: Bool) {
+        updateState { $0.isBuffering = buffering }
+        if buffering {
+            bufferingTask?.cancel()
+            bufferingTask = Task {
+                try await Task.sleep(for: .milliseconds(300))
+                guard !Task.isCancelled else { return }
+                updateState { $0.showBufferingIndicator = true }
+            }
+        } else {
+            bufferingTask?.cancel()
+            updateState { $0.showBufferingIndicator = false }
+        }
     }
 }
 
