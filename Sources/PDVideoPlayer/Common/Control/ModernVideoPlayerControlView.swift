@@ -1,8 +1,4 @@
 import SwiftUI
-
-#if swift(>=6.2)
-
-
 #if os(macOS)
 @available(iOS 26.0, macOS 26.0, *)
 struct ModernVideoPlayerControlView<MenuContent: View>: View {
@@ -139,5 +135,4 @@ private struct PlayPauseIcon: View {
     }
 }
 
-#endif
 #endif

@@ -46,8 +46,7 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
             guard model.duration > 0 else { return event }
 
             if !event.momentumPhase.isEmpty { return event }
-            if abs(event.scrollingDeltaX) <= abs(event.scrollingDeltaY),
-               event.scrollingDeltaX == 0 && event.scrollingDeltaY == 0 {
+            if abs(event.scrollingDeltaX) <= abs(event.scrollingDeltaY) {
                 return event
             }
 

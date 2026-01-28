@@ -1,10 +1,3 @@
-//
-//  VideoPlayerDurationView.swift
-//  PDVideoPlayer
-//
-//  Created by lynnswap on 2025/07/19.
-//
-
 import SwiftUI
 
 struct VideoPlayerDurationView: View {
@@ -17,7 +10,6 @@ struct VideoPlayerDurationView: View {
             .foregroundStyle(foregroundColor)
             .opacity(0.8)
     }
-    // MARK: - 時刻表示フォーマッタ
     private func formatTime(_ time: Double) -> String {
         guard time.isFinite && time >= 0 else { return "00:00" }
         let totalSec = Int(time)

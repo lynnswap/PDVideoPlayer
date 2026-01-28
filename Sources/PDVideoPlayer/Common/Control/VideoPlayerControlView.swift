@@ -13,14 +13,10 @@ public struct VideoPlayerControlView<MenuContent: View>: View {
     }
 
     public var body: some View {
-#if swift(>=6.2)
         if #available(iOS 26.0, macOS 26.0, *) {
             ModernVideoPlayerControlView(model: model, menuContent: menuContent)
         } else {
             VideoPlayerControlViewLegacy(model: model, menuContent: menuContent)
         }
-#else
-        VideoPlayerControlViewLegacy(model: model, menuContent: menuContent)
-#endif
     }
 }

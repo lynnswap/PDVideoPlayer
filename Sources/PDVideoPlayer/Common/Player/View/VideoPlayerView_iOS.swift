@@ -48,14 +48,12 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.contentInsetAdjustmentBehavior = .never
         
-#if swift(>=6.2)
         if #available(iOS 26.0,macOS 26.0, *) {
             scrollView.topEdgeEffect.isHidden = true
             scrollView.bottomEdgeEffect.isHidden = true
             scrollView.leftEdgeEffect.isHidden = true
             scrollView.rightEdgeEffect.isHidden = true
         }
-#endif
        
         let containerView = PlayerContainerView()
         context.coordinator.containerView = containerView
@@ -93,17 +91,14 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         ])
 
         if ProcessInfo.processInfo.isiOSAppOnMac {
-            // シングルタップジェスチャ
             let singleTapGestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleSingleTap_mac(_:)))
             singleTapGestureRecognizer.numberOfTapsRequired = 1
             scrollView.addGestureRecognizer(singleTapGestureRecognizer)
         }else{
-            // ダブルタップジェスチャ
-            let doubleTapGestureRecognizer = UITapGestureRecognizer(target: model, action: #selector(model.handleDoubleTap(_:)))
+            let doubleTapGestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleDoubleTap(_:)))
             doubleTapGestureRecognizer.numberOfTapsRequired = 2
             scrollView.addGestureRecognizer(doubleTapGestureRecognizer)
             
-            // シングルタップジェスチャ
             let singleTapGestureRecognizer = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleSingleTap(_:)))
             singleTapGestureRecognizer.numberOfTapsRequired = 1
             singleTapGestureRecognizer.require(toFail: doubleTapGestureRecognizer)
@@ -144,13 +139,15 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         coordinator.presentationSizeCancellable?.cancel()
         coordinator.presentationSizeCancellable = nil
         coordinator.observedItem = nil
+        coordinator.playerView?.player = nil
+        coordinator.playerView = nil
     }
     public func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     public class Coordinator: NSObject, UIScrollViewDelegate {
         var parent: PDVideoPlayerRepresentable
-        weak var playerView:AVPlayerViewController?
+        var playerView: AVPlayerViewController?
         weak var containerView: PlayerContainerView?
         var presentationSizeCancellable: AnyCancellable?
         weak var observedItem: AVPlayerItem?
@@ -186,7 +183,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         }
         public func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
             if scale == 1.0 {
-                // Enable the pan gesture recognizer
                 scrollView.gestureRecognizers?.forEach { recognizer in
                     if let panRecognizer = recognizer as? UIPanGestureRecognizer {
                         panRecognizer.isEnabled = true
@@ -216,20 +212,18 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
             let inside = videoRect.contains(locationInPlayerView)
             parent.onTap?(inside)
         }
+        @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
+            guard let view = recognizer.view else { return }
+            let location = recognizer.location(in: view)
+            parent.model.handleDoubleTap(at: location, viewWidth: view.bounds.width)
+        }
         @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
             let model = parent.model
 
             switch recognizer.state {
             case .began:
-                // 今の再生レートを保持
-                self.parent.model.originalRate = model.player.rate
-                // もし再生中であれば（rateが0でなければ）
-                if self.parent.model.isPlaying {
-                    // 現在のレートの2倍にする
-                    self.parent.model.player.rate = min(self.parent.model.originalRate * 2.0, 2.0)
-                    self.parent.model.isLongpress = true
+                if model.beginLongPress() {
                     self.parent.onLongPress?(true)
-                    // Disable other gesture recognizers while long press is active
                     recognizer.view?.gestureRecognizers?.forEach { gesture in
                         if gesture !== recognizer {
                             gesture.isEnabled = false
@@ -237,11 +231,8 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
                     }
                 }
             case .ended, .cancelled, .failed:
-                // 長押し終了時に元のレートに戻す
-                self.parent.model.player.rate = self.parent.model.originalRate
-                self.parent.model.isLongpress = false
+                model.endLongPress()
                 self.parent.onLongPress?(false)
-                // Re-enable previously disabled gesture recognizers
                 recognizer.view?.gestureRecognizers?.forEach { gesture in
                     if gesture !== recognizer {
                         gesture.isEnabled = true
@@ -253,25 +244,6 @@ public struct PDVideoPlayerView_iOS: UIViewRepresentable {
         }
     }
 
-}
-
-
-class PlayerUIView: UIView,UIGestureRecognizerDelegate {
-    func setPlayer(_ player: AVPlayer,
-                   _ videoGravity: AVLayerVideoGravity) -> AVPlayerLayer {
-        self.playerLayer.player = player
-        self.playerLayer.videoGravity = videoGravity
-        return self.playerLayer
-    }
-
-    var playerLayer: AVPlayerLayer {
-        return layer as! AVPlayerLayer
-    }
-
-    override class var layerClass: AnyClass {
-        return AVPlayerLayer.self
-    }
-    
 }
 extension PDVideoPlayerRepresentable.Coordinator: UIGestureRecognizerDelegate {
     public func gestureRecognizer(
@@ -286,7 +258,7 @@ extension PDVideoPlayerRepresentable.Coordinator: UIGestureRecognizerDelegate {
         let locationInPlayerView = touch.location(in: playerView.view)
 
         let height = playerView.view.bounds.height - playerView.view.safeAreaInsets.bottom
-        let adjustInset = min(ADJSUT_GESTURE_INSET,height / 5)
+        let adjustInset = min(adjustGestureInset, height / 5)
         
         let bottomSafeAreaStart = height - adjustInset
         if locationInPlayerView.y >= bottomSafeAreaStart {
@@ -300,7 +272,7 @@ extension PDVideoPlayerRepresentable.Coordinator: UIGestureRecognizerDelegate {
         return true
     }
 }
-private let ADJSUT_GESTURE_INSET :CGFloat = 150
+private let adjustGestureInset: CGFloat = 150
 extension PDVideoPlayerRepresentable.Coordinator: UIContextMenuInteractionDelegate {
     
     public func contextMenuInteraction(
@@ -310,7 +282,7 @@ extension PDVideoPlayerRepresentable.Coordinator: UIContextMenuInteractionDelega
         guard let playerView else { return nil }
         
         let height = playerView.view.bounds.height - playerView.view.safeAreaInsets.bottom
-        let adjustInset = min(ADJSUT_GESTURE_INSET,height / 5)
+        let adjustInset = min(adjustGestureInset, height / 5)
         
         let bottomSafeAreaStart = height - adjustInset
         

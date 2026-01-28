@@ -3,8 +3,6 @@ import AppKit
 #endif
 import SwiftUI
 @preconcurrency import AVFoundation
-import AVKit
-import Combine
 
 #if os(iOS)
 enum SkipDirection {
@@ -15,7 +13,7 @@ enum SkipDirection {
 
 @MainActor
 @Observable
-public class PDPlayerModel: NSObject, DynamicProperty {
+public final class PlayerViewModel {
     // MARK: - Common Properties
     public var isPlaying: Bool = false
     public var currentTime: Double = 0
@@ -42,15 +40,15 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     public var showBufferingIndicator: Bool = false
     @ObservationIgnored private var bufferingTask: Task<(), Never>?
 
-    public var player: AVPlayer
+    public var player: AVPlayer { engine.player }
     public var onClose: VideoPlayerCloseAction?
-    public var originalRate: Float = 1.0
+    public private(set) var originalRate: Float = 1.0
     public var playbackSpeed: PlaybackSpeed = .x1_0 {
         didSet {
             originalRate = playbackSpeed.value
-            player.defaultRate = playbackSpeed.value
+            engine.player.defaultRate = playbackSpeed.value
             if isPlaying {
-                player.rate = playbackSpeed.value
+                engine.player.rate = playbackSpeed.value
             }
         }
     }
@@ -62,74 +60,47 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     private var doubleTapResetTask: Task<(), Never>?
     private var doubleTapDirection: SkipDirection?
     let rippleStore = RippleEffectStore()
-    public var isLongpress: Bool = false
+    public private(set) var isLongpress: Bool = false
 #elseif os(macOS)
     /// When true, dragging on the player view moves the window.
     public var windowDraggable: Bool = false
 #endif
 
-    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
-    @ObservationIgnored private var currentItemObservation: NSKeyValueObservation?
-    @ObservationIgnored private var itemStatusObservation: NSKeyValueObservation?
-    @ObservationIgnored private var timeTask: Task<Void, any Error>? = nil
+    @ObservationIgnored private let engine: PlayerEngine
 
     // MARK: - Initializers
     public init(url: URL) {
-        self.player = AVPlayer(url: url)
-        super.init()
+        let player = AVPlayer(url: url)
+        self.engine = PlayerEngine(player: player)
     }
 
     public init(player: AVPlayer) {
-        self.player = player
-        super.init()
+        self.engine = PlayerEngine(player: player)
     }
 
     isolated deinit {
         bufferingTask?.cancel()
-        removePeriodicTimeObserver()
 #if os(iOS)
         doubleTapResetTask?.cancel()
 #endif
-        currentItemObservation?.invalidate()
-        itemStatusObservation?.invalidate()
-        cancellables.removeAll()
     }
 
     // Replace the current player with a new instance while keeping the model.
     public func replacePlayer(with newPlayer: AVPlayer) {
-        player.pause()
-        player = newPlayer
+        engine.replacePlayer(with: newPlayer)
         newPlayer.defaultRate = playbackSpeed.value
         newPlayer.rate = playbackSpeed.value
         startObserving()
     }
     
     func startObserving() {
-        player.appliesMediaSelectionCriteriaAutomatically = false
-        cancellables.removeAll()
-        currentItemObservation?.invalidate()
-        currentItemObservation = nil
-        itemStatusObservation?.invalidate()
-        itemStatusObservation = nil
-        removePeriodicTimeObserver()
-        if let item = player.currentItem {
-            duration = CMTimeGetSeconds(item.duration)
-        } else {
-            duration = 0
-        }
-        observePlayerStatus()
-        observeSubtitleUpdates()
-        addPeriodicTimeObserver()
-    }
-    
-    public func replacePlayer(url: URL) {
-        replacePlayer(with: AVPlayer(url: url))
-    }
-
-    private func observePlayerStatus() {
-        player.publisher(for: \.timeControlStatus)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] status in
+        engine.startObserving(
+            onTime: { [weak self] current, duration in
+                guard let self else { return }
+                self.currentTime = current
+                self.duration = duration
+            },
+            onStatus: { [weak self] status, waitingReason in
                 guard let self else { return }
                 switch status {
                 case .playing:
@@ -147,7 +118,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
                     if self.isPlaying, !self.isTracking { self.isPlaying = false }
                     if self.isBuffering { self.isBuffering = false }
                 case .waitingToPlayAtSpecifiedRate:
-                    switch self.player.reasonForWaitingToPlay {
+                    switch waitingReason {
                     case .evaluatingBufferingRate, .toMinimizeStalls:
                         if !self.isBuffering { self.isBuffering = true }
                     default:
@@ -156,47 +127,16 @@ public class PDPlayerModel: NSObject, DynamicProperty {
                 @unknown default:
                     break
                 }
-            }
-            .store(in: &cancellables)
-    }
-
-    private func observeSubtitleUpdates() {
-        currentItemObservation?.invalidate()
-        currentItemObservation = player.observe(\.currentItem, options: [.new, .initial]) { [weak self] player, _ in
-            guard let self else { return }
-            let currentItem = player.currentItem
-            Task { @MainActor [weak self] in
+            },
+            onItemReady: { [weak self] in
                 guard let self else { return }
-                self.itemStatusObservation?.invalidate()
-                if let item = currentItem {
-                    self.itemStatusObservation = item.observe(\.status, options: [.new, .initial]) { [weak self] item, _ in
-                        guard let self else { return }
-                        if item.status == .readyToPlay {
-                            Task { await self.loadSubtitleOptions() }
-                        }
-                    }
-                }
+                Task { await self.loadSubtitleOptions() }
             }
-        }
+        )
     }
-
-    // MARK: - Time Observation
-    private func addPeriodicTimeObserver(){
-        let stream = player.periodicTimeStream(forInterval: CMTime(value: 1, timescale: 30),queue: .main)
-        timeTask = Task{ [weak self] in
-            for await time in stream{
-                guard let self else { return }
-                currentTime = CMTimeGetSeconds(time)
-                if let item = player.currentItem {
-                    let total = CMTimeGetSeconds(item.duration)
-                    if total.isFinite { duration = total }
-                }
-            }
-        }
-    }
-
-    private func removePeriodicTimeObserver() {
-        timeTask?.cancel()
+    
+    public func replacePlayer(url: URL) {
+        replacePlayer(with: AVPlayer(url: url))
     }
 
     // MARK: - Playback Controls
@@ -259,10 +199,8 @@ public class PDPlayerModel: NSObject, DynamicProperty {
 
 #if os(iOS)
     // MARK: - Gesture Support (iOS)
-    @objc func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
-        let location = recognizer.location(in: recognizer.view)
-        guard let view = recognizer.view else { return }
-        let viewWidth = view.bounds.width
+    func handleDoubleTap(at location: CGPoint, viewWidth: CGFloat) {
+        guard viewWidth > 0 else { return }
         let tapX = location.x
         let current = currentTime
         let newDirection: SkipDirection = (tapX < viewWidth / 2) ? .backward : .forward
@@ -304,6 +242,23 @@ public class PDPlayerModel: NSObject, DynamicProperty {
         }
     }
 
+    func beginLongPress() -> Bool {
+        guard isPlaying else { return false }
+        originalRate = player.rate
+        let fastRate = min(originalRate * 2.0, 2.0)
+        if player.rate != fastRate {
+            player.rate = fastRate
+        }
+        isLongpress = true
+        return true
+    }
+
+    func endLongPress() {
+        guard isLongpress else { return }
+        player.rate = originalRate
+        isLongpress = false
+    }
+
 #endif
 
     // MARK: - Subtitle Support
@@ -314,25 +269,7 @@ public class PDPlayerModel: NSObject, DynamicProperty {
     }
 }
 
-#if os(iOS)
-extension UIView {
-    func setAnchorPoint(anchorPointInContainerView: CGPoint, forView view: UIView) {
-        let anchorPoint = CGPoint(x: anchorPointInContainerView.x / view.bounds.width, y: anchorPointInContainerView.y / view.bounds.height)
-        let newPoint = CGPoint(x: view.bounds.size.width * anchorPoint.x, y: view.bounds.size.height * anchorPoint.y)
-        let oldPoint = CGPoint(x: view.bounds.size.width * view.layer.anchorPoint.x, y: view.bounds.size.height * view.layer.anchorPoint.y)
-        var position = view.layer.position
-        position.x -= oldPoint.x
-        position.x += newPoint.x
-        position.y -= oldPoint.y
-        position.y += newPoint.y
-        view.layer.position = position
-        view.layer.anchorPoint = anchorPoint
-    }
-}
-#endif
-
-
-extension PDPlayerModel {
+extension PlayerViewModel {
     public func loadSubtitleOptions() async {
         guard let item = player.currentItem else { return }
         do {
@@ -356,30 +293,5 @@ extension PDPlayerModel {
         guard let item = player.currentItem,
               let group = subtitleGroup else { return }
         item.select(selectedSubtitle, in: group)
-    }
-}
-
-public extension AVPlayer {
-    func periodicTimeStream(
-        forInterval interval: CMTime,
-        queue: DispatchQueue
-    ) -> AsyncStream<CMTime> {
-        AsyncStream { continuation in
-            let rawToken = addPeriodicTimeObserver(
-                forInterval: interval,
-                queue: queue
-            ) { time in
-                continuation.yield(time)
-            }
-            
-            struct TokenBox: @unchecked Sendable {
-                let token: Any
-            }
-            let box = TokenBox(token: rawToken)
-            
-            continuation.onTermination = { _ in
-                self.removeTimeObserver(box.token)
-            }
-        }
     }
 }

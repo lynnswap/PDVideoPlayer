@@ -1,10 +1,3 @@
-//
-//  VideoPlayerViewControllerRepresentable.swift
-//  PDVideoPlayer
-//
-//  Created by Kazuki Nakashima on 2025/02/13.
-//
-
 #if os(macOS)
 import SwiftUI
 import AVKit
@@ -184,29 +177,18 @@ public class PlayerNSView: NSView {
     /// When true, dragging on this view moves the containing window.
     var isWindowDraggable: Bool = false
 
-    private var zoomScale: CGFloat = 1.0
-    private let minZoom: CGFloat = 1.0
-    private let maxZoom: CGFloat = 4.0
-
-    private func updateTransform() {
-        self.layer?.setAffineTransform(CGAffineTransform(scaleX: zoomScale, y: zoomScale))
-    }
-
     // MARK: - Lifecycle
 
     public override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        // レイヤーを持つようにする
         self.wantsLayer = true
     }
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
-        // Nib/Storyboard経由の場合もレイヤーを持つようにする
         self.wantsLayer = true
     }
 
-    // This view needs to receive key events for playback shortcuts
     public override var acceptsFirstResponder: Bool { true }
 
     public override func viewDidMoveToWindow() {
@@ -226,19 +208,14 @@ public class PlayerNSView: NSView {
         super.magnify(with: event)
     }
 
-    // UIView の layerClass 相当
     public override func makeBackingLayer() -> CALayer {
-        // ここで AVPlayerLayer を返すことで、
-        // self.layer が必ず AVPlayerLayer になる
         return AVPlayerLayer()
     }
 
     // MARK: - Player
 
     func setPlayer(_ player: AVPlayer, videoGravity: AVLayerVideoGravity) {
-        // wantsLayer が有効になった後なら、layer は AVPlayerLayer に置き換わっているはず
         guard let playerLayer = self.layer as? AVPlayerLayer else {
-            // デバッグ用にエラー出力するなり、ここで再度 AVPlayerLayer に置き換える処理を行ってもよい
             fatalError("Layer is not AVPlayerLayer. Check that wantsLayer = true and makeBackingLayer() are set properly.")
         }
         currentPlayer = player

@@ -1,9 +1,3 @@
-//
-//  RippleEffectModifier.swift
-//  PDVideoPlayer
-//
-//  Created by Kazuki Nakashima on 2025/04/14.
-//
 import SwiftUI
 #if canImport(UIKit)
 struct RippleEffectModifier: ViewModifier {
@@ -44,10 +38,6 @@ struct RippleEffectModifier: ViewModifier {
                         )
                     }
                     if let item = model.rippleStore.latestItem {
-                        // スキップ秒数表示などのUI
-                        // （こちらも「最後のタップからまとめて消える」挙動に合わせるなら、
-                        //  model.rippleStore.globalEndTime で一斉に消す実装に変更してもOK）
-                        
                         let w = model.rippleStore.viewSize.width
                         let h = model.rippleStore.viewSize.height
                         
