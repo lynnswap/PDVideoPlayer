@@ -2,7 +2,7 @@
 import AppKit
 #endif
 import SwiftUI
-@preconcurrency import AVFoundation
+import AVFoundation
 
 #if os(iOS)
 enum SkipDirection {
@@ -104,40 +104,48 @@ public final class PlayerViewModel {
         let stream = engine.startObserving()
         observeTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            for await event in stream {
-                switch event {
-                case .time(let current, let duration):
-                    currentTime = current
-                    self.duration = duration
-                case .status(let status, let waitingReason):
-                    switch status {
-                    case .playing:
-                        if !isPlaying { isPlaying = true }
+            do {
+                for try await event in stream {
+                    switch event {
+                    case .time(let current, let duration):
+                        currentTime = current
+                        self.duration = duration
+                    case .status(let status, let waitingReason):
+                        switch status {
+                        case .playing:
+                            if !isPlaying { isPlaying = true }
 #if os(iOS)
-                        if isLongpress {
-                            let fastRate = min(originalRate * 2.0, 2.0)
-                            if player.rate != fastRate {
-                                player.rate = fastRate
+                            if isLongpress {
+                                let fastRate = min(originalRate * 2.0, 2.0)
+                                if player.rate != fastRate {
+                                    player.rate = fastRate
+                                }
                             }
-                        }
 #endif
-                        if isBuffering { isBuffering = false }
-                    case .paused:
-                        if isPlaying, !isTracking { isPlaying = false }
-                        if isBuffering { isBuffering = false }
-                    case .waitingToPlayAtSpecifiedRate:
-                        switch waitingReason {
-                        case .evaluatingBufferingRate, .toMinimizeStalls:
-                            if !isBuffering { isBuffering = true }
-                        default:
                             if isBuffering { isBuffering = false }
+                        case .paused:
+                            if isPlaying, !isTracking { isPlaying = false }
+                            if isBuffering { isBuffering = false }
+                        case .waitingToPlayAtSpecifiedRate:
+                            switch waitingReason {
+                            case .evaluatingBufferingRate, .toMinimizeStalls:
+                                if !isBuffering { isBuffering = true }
+                            default:
+                                if isBuffering { isBuffering = false }
+                            }
+                        @unknown default:
+                            break
                         }
-                    @unknown default:
-                        break
+                    case .itemReady:
+                        Task { await loadSubtitleOptions() }
                     }
-                case .itemReady:
-                    Task { await loadSubtitleOptions() }
                 }
+            } catch {
+                if isBuffering { isBuffering = false }
+                if isPlaying, !isTracking { isPlaying = false }
+#if DEBUG
+                print("⚠️ player observation failed:", error)
+#endif
             }
         }
     }
@@ -153,12 +161,20 @@ public final class PlayerViewModel {
         }
         player.play()
         player.rate = playbackSpeed.value
+        if !isTracking { isPlaying = true }
     }
 
-    func pause() { player.pause() }
+    func pause() {
+        player.pause()
+        if !isTracking { isPlaying = false }
+    }
 
     public func togglePlay() {
-        isPlaying ? pause() : play()
+        if player.timeControlStatus == .playing || player.rate != 0 {
+            pause()
+        } else {
+            play()
+        }
     }
 
     public func seekRatio(_ ratio: Double) {
