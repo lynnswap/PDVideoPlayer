@@ -21,7 +21,8 @@ let package = Package(
             name: "PDVideoPlayer"),
         .testTarget(
             name: "PDVideoPlayerTests",
-            dependencies: ["PDVideoPlayer"]
+            dependencies: ["PDVideoPlayer"],
+            resources: [.process("Resources")]
         ),
     ]
 )
