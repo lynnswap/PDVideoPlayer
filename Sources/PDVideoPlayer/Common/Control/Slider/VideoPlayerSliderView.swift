@@ -210,7 +210,7 @@ struct VideoPlayerSliderRepresentable: UIViewRepresentable {
             slider.value = 0
         }
     }
-
+    @MainActor
     final class Coordinator {
         private var lastKnobSize: CGFloat?
         private var lastForegroundColor: UIColor?
