@@ -16,6 +16,8 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
         private var wasPlayingBeforeScroll = false
         private var isScrubbing = false
         private var ratioValue: Double = 0
+        private var phaseLessEndTask: Task<Void, Never>?
+        private let phaseLessEndDelayNanoseconds: UInt64 = 200_000_000
 
         init(model: PDPlayerModel) { self.model = model }
 
@@ -40,41 +42,84 @@ public struct TrackpadSwipeOverlay: NSViewRepresentable {
         func stopMonitoring() {
             if let monitor { NSEvent.removeMonitor(monitor) }
             monitor = nil
+            cancelPhaseLessEndTask()
         }
 
         private func handleScroll(_ event: NSEvent) -> NSEvent? {
             guard model.duration > 0 else { return event }
 
-            if !event.momentumPhase.isEmpty { return event }
-            if abs(event.scrollingDeltaX) <= abs(event.scrollingDeltaY) {
+            let isPhaseLess = event.phase.isEmpty
+            let isEnded = event.phase == .ended || event.phase == .cancelled
+            let isHorizontal = abs(event.scrollingDeltaX) > abs(event.scrollingDeltaY)
+
+            if isEnded {
+                if isScrubbing {
+                    finishScrubbing()
+                    return nil
+                }
                 return event
             }
 
-            if event.phase == .began || (!isScrubbing && event.phase != .ended && event.phase != .cancelled) {
-                ratioValue = model.currentTime / model.duration
-                wasPlayingBeforeScroll = model.isPlaying
-                model.pause()
-                model.isTracking = true
-                model.isScrubbing = true
-                isScrubbing = true
+            if !event.momentumPhase.isEmpty { return event }
+
+            if !isScrubbing {
+                guard isHorizontal else { return event }
+                beginScrubbing()
             }
 
+            if isHorizontal {
+                updateScrubbing(with: event)
+            }
+
+            if isPhaseLess {
+                schedulePhaseLessEnd()
+            } else {
+                cancelPhaseLessEndTask()
+            }
+            return nil
+        }
+
+        private func beginScrubbing() {
+            ratioValue = model.currentTime / model.duration
+            wasPlayingBeforeScroll = model.isPlaying
+            model.pause()
+            model.isTracking = true
+            model.isScrubbing = true
+            isScrubbing = true
+        }
+
+        private func updateScrubbing(with event: NSEvent) {
             let sign: Double = event.isDirectionInvertedFromDevice ? 1 : -1
             let sensitivity: Double = event.hasPreciseScrollingDeltas ? 0.002 : 0.0003
             ratioValue = min(max(ratioValue + event.scrollingDeltaX * sign * sensitivity, 0), 1)
             model.seekPrecisely(to: ratioValue * model.duration)
+        }
 
-            if event.phase == .ended || event.phase == .cancelled {
-                let total = model.duration
-                let step  = 0.03
-                let snapped = (ratioValue * total / step).rounded() * step
-                model.seekPrecisely(to: snapped)
-                model.isTracking = false
-                model.isScrubbing = false
-                if wasPlayingBeforeScroll { model.play() }
-                isScrubbing = false
+        private func finishScrubbing() {
+            guard isScrubbing else { return }
+            cancelPhaseLessEndTask()
+            let total = model.duration
+            let step  = 0.03
+            let snapped = (ratioValue * total / step).rounded() * step
+            model.seekPrecisely(to: snapped)
+            model.isTracking = false
+            model.isScrubbing = false
+            if wasPlayingBeforeScroll { model.play() }
+            isScrubbing = false
+        }
+
+        private func schedulePhaseLessEnd() {
+            cancelPhaseLessEndTask()
+            phaseLessEndTask = Task { @MainActor [weak self] in
+                guard let self else { return }
+                try? await Task.sleep(nanoseconds: self.phaseLessEndDelayNanoseconds)
+                self.finishScrubbing()
             }
-            return nil
+        }
+
+        private func cancelPhaseLessEndTask() {
+            phaseLessEndTask?.cancel()
+            phaseLessEndTask = nil
         }
     }
 
