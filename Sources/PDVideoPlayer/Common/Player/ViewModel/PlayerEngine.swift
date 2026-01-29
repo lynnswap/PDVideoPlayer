@@ -41,6 +41,7 @@ final class PlayerEngine {
         let (initialTime, initialDuration) = observer.initialTime(for: player)
         return eventBroadcaster.makeStream { continuation in
             continuation.yield(.time(current: initialTime.isFinite ? initialTime : 0, duration: initialDuration))
+            continuation.yield(.status(self.player.timeControlStatus, self.observer.waitingReason(for: self.player)))
         }
     }
 
