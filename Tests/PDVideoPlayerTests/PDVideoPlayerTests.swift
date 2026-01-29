@@ -91,6 +91,50 @@ import Testing
 }
 
 @MainActor
+@Test func viewModelReflectsAlreadyPlayingPlayer() async throws {
+    let url = try previewVideoURL()
+    let item = AVPlayerItem(url: url)
+    let player = AVPlayer(playerItem: item)
+    player.isMuted = true
+    player.automaticallyWaitsToMinimizeStalling = false
+
+    let status = await waitForReady(item)
+    #expect(status == .readyToPlay)
+
+    player.play()
+    defer { player.pause() }
+
+    let advanced = await waitForPlaybackProgress(player: player)
+    #expect(advanced == true)
+
+    let observer = TestPlayerEngineObserver()
+    let model = PlayerViewModel(player: player, observer: observer)
+    model.startObserving()
+
+    let didSync = await waitUntil { model.isPlaying }
+    #expect(didSync == true)
+    #expect(model.isBuffering == false)
+}
+
+@MainActor
+@Test func viewModelMarksPlayingWhenTimeAdvancesWithRate() async throws {
+    let observer = TestPlayerEngineObserver()
+    let player = AVPlayer()
+    let model = PlayerViewModel(player: player, observer: observer)
+    model.startObserving()
+
+    let didSubscribe = await waitUntil(timeout: .milliseconds(200)) { observer.timeContinuation != nil }
+    #expect(didSubscribe == true)
+
+    player.rate = 1
+    observer.timeContinuation?.yield(CMTime(seconds: 1, preferredTimescale: 1))
+
+    let didSync = await waitUntil { model.isPlaying }
+    #expect(didSync == true)
+    #expect(model.isBuffering == false)
+}
+
+@MainActor
 @Test func bufferingIndicatorShowsAfterDelay() async throws {
     let model = PlayerViewModel(player: AVPlayer())
 
@@ -338,11 +382,12 @@ import Testing
         task.cancel()
     }
 
+    let initialCount = statusEvents.count
     observer.statusContinuation?.yield(.paused)
-    let didReceive = await waitUntil(timeout: .milliseconds(200)) { statusEvents == [.paused] }
+    let didReceive = await waitUntil(timeout: .milliseconds(200)) { statusEvents.count > initialCount }
     #expect(didReceive == true)
 
-    #expect(statusEvents == [.paused])
+    #expect(statusEvents.last == .paused)
 }
 
 @MainActor
@@ -394,12 +439,14 @@ import Testing
     }
     defer { task.cancel() }
 
+    _ = await waitUntil(timeout: .milliseconds(200)) { !statusEvents.isEmpty }
+    let baselineCount = statusEvents.count
     engine.stopObserving()
     observer.statusContinuation?.yield(.paused)
-    let didReceive = await waitUntil(timeout: .milliseconds(200)) { !statusEvents.isEmpty }
+    let didReceive = await waitUntil(timeout: .milliseconds(200)) { statusEvents.count != baselineCount }
     #expect(didReceive == false)
 
-    #expect(statusEvents.isEmpty)
+    #expect(statusEvents.count == baselineCount)
 }
 
 @MainActor

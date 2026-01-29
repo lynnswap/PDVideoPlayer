@@ -109,6 +109,10 @@ public final class PlayerViewModel {
                 case .time(let current, let duration):
                     currentTime = current
                     self.duration = duration
+                    if !isTracking, player.rate != 0 {
+                        if !isPlaying { isPlaying = true }
+                        if isBuffering { isBuffering = false }
+                    }
                 case .status(let status, let waitingReason):
                     switch status {
                     case .playing:
